@@ -89,6 +89,7 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(intent)
             overridePendingTransition(0, 0)
         }
+        /*
         btnDaily.setOnClickListener {
             val today = LocalDate.now().toString()
             val intent = Intent(this@SettingsActivity, DailyWriteActivity::class.java)
@@ -96,6 +97,7 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(intent)
             overridePendingTransition(0, 0)
         }
+        */
         btnInfo.setOnClickListener {
 
         }
