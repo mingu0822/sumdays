@@ -15,6 +15,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
@@ -77,8 +78,20 @@ class DailyReadActivity : AppCompatActivity() {
 
     private fun setupNavigationBar() {
         val btnCalendar = findViewById<ImageButton>(R.id.btnCalendar)
-        val btnDaily = findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.btnDaily)
+        val btnStatistic = findViewById<ImageButton>(R.id.statistic_btn)
+        val btnSearch = findViewById<ImageButton>(R.id.btnSearch)
         val btnInfo = findViewById<ImageButton>(R.id.btnInfo)
+
+        // center 버튼은 따로
+        val centerContainer = findViewById<LinearLayout>(R.id.nav_center_container)
+        centerContainer.removeAllViews()
+        val centerRoot = layoutInflater.inflate(
+            R.layout.include_nav_center_write,
+            centerContainer,
+            true
+        )
+        val btnDaily = centerRoot.findViewWithTag<View>("nav_center")
+
 
         btnCalendar.setOnClickListener {
             startActivity(Intent(this, CalendarActivity::class.java))

@@ -31,6 +31,8 @@ import org.threeten.bp.YearMonth
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.temporal.ChronoUnit
 import java.util.Locale
+import com.example.sumdays.nav.NavBarController
+import com.example.sumdays.nav.NavSource
 
 class CalendarActivity : AppCompatActivity() {
 
@@ -39,6 +41,7 @@ class CalendarActivity : AppCompatActivity() {
     private lateinit var monthAdapter: MonthAdapter
     private lateinit var btnPrevMonth: ImageButton
     private lateinit var btnNextMonth: ImageButton
+    private lateinit var navBarController: NavBarController
 
     private val viewModel: CalendarViewModel by viewModels()
     var currentStatusMap: Map<String, Pair<Boolean, String?>> = emptyMap()
@@ -59,7 +62,8 @@ class CalendarActivity : AppCompatActivity() {
         btnNextMonth = findViewById(R.id.btn_next_month)
 
         setCustomCalendar()
-        setNavigationBar()
+        navBarController = NavBarController(this)
+        navBarController.setNavigationBar(NavSource.CALENDAR)
 
         tvMonthYear.setOnClickListener {
             showYearMonthPicker()
@@ -81,10 +85,10 @@ class CalendarActivity : AppCompatActivity() {
     }
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setNavigationBar() {
-        val btnCalendar = findViewById<android.widget.ImageButton>(R.id.btnCalendar)
+        val btnCalendar = findViewById<ImageButton>(R.id.btnCalendar)
         val btnStatistic = findViewById<ImageButton>(R.id.statistic_btn)
         val btnSearch = findViewById<ImageButton>(R.id.btnSearch)
-        val btnInfo = findViewById<android.widget.ImageButton>(R.id.btnInfo)
+        val btnInfo = findViewById<ImageButton>(R.id.btnInfo)
 
         // center 버튼은 따로
         val centerContainer = findViewById<LinearLayout>(R.id.nav_center_container)
