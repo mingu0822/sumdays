@@ -1,0 +1,10 @@
+<ImageButton
+    android:id="@+id/btnSum"
+    android:layout_width="90dp"
+    android:layout_height="90dp"
+    android:src="@drawable/nav_fox_button"
+    android:background="@android:color/transparent"
+    android:scaleType="fitCenter"
+    android:layout_gravity="center_horizontal|bottom"
+    android:translationY="-30dp"
+    app:tint="@null"/>

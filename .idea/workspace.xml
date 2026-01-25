@@ -46,8 +46,10 @@
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/Aliosoft/swpp-2025-project-team-15"
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "refactoring/setting__page",
+    "last_opened_file_path": "C:/Users/Aliosoft/swpp-2025-project-team-15",
+    "show.migrate.to.gradle.popup": "false"
   }
 }]]></component>
   <component name="TaskManager">
