@@ -110,7 +110,7 @@ class DailyWriteActivity : AppCompatActivity() {
 
         // 하단 네비게이션 바 설정
         navBarController = NavBarController(this)
-        navBarController.setNavigationBar(NavSource.READ) {
+        navBarController.setNavigationBar(NavSource.WRITE) {
             val currentMemos = memoAdapter.currentList
             Intent(this, DailySumActivity::class.java).apply {
                 putExtra("date", date)
