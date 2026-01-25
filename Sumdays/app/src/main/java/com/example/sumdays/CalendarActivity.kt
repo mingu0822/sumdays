@@ -84,44 +84,6 @@ class CalendarActivity : AppCompatActivity() {
         }
     }
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun setNavigationBar() {
-        val btnCalendar = findViewById<ImageButton>(R.id.btnCalendar)
-        val btnStatistic = findViewById<ImageButton>(R.id.statistic_btn)
-        val btnSearch = findViewById<ImageButton>(R.id.btnSearch)
-        val btnInfo = findViewById<ImageButton>(R.id.btnInfo)
-
-        // center 버튼은 따로
-        val centerContainer = findViewById<LinearLayout>(R.id.nav_center_container)
-        centerContainer.removeAllViews()
-        val centerRoot = layoutInflater.inflate(
-            R.layout.include_nav_center_write,
-            centerContainer,
-            true
-        )
-        val btnDaily = centerRoot.findViewWithTag<View>("nav_center")
-
-        btnCalendar.setOnClickListener { /* 현재 화면 */ }
-        btnStatistic.setOnClickListener {
-            val intent = Intent(this, StatisticsActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-        }
-        btnDaily.setOnClickListener {
-            val todayStr = today.toString()
-            val intent = Intent(this, DailyWriteActivity::class.java)
-            intent.putExtra("date", todayStr)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-        }
-        btnSearch.setOnClickListener { /* 미정 */ }
-        btnInfo.setOnClickListener {
-            val intent = Intent(this, SettingsActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun setCustomCalendar() {
         monthAdapter = MonthAdapter(activity = this)
         calendarViewPager.adapter = monthAdapter

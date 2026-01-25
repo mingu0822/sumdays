@@ -21,6 +21,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
@@ -41,6 +42,8 @@ import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import com.example.sumdays.nav.NavBarController
+import com.example.sumdays.nav.NavSource
 
 class DailyReadActivity : AppCompatActivity() {
 
@@ -48,6 +51,7 @@ class DailyReadActivity : AppCompatActivity() {
     private lateinit var currentDate: Calendar
     private val viewModel: DailyEntryViewModel by viewModels()
     private var currentLiveData: LiveData<DailyEntry?>? = null
+    private lateinit var navBarController: NavBarController
 
     private lateinit var photoGalleryAdapter: PhotoGalleryAdapter
 
@@ -59,11 +63,13 @@ class DailyReadActivity : AppCompatActivity() {
 
     private lateinit var pickImageLauncher: ActivityResultLauncher<PickVisualMediaRequest>
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDailyReadBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setupNavigationBar()
+        navBarController = NavBarController(this)
+        navBarController.setNavigationBar(NavSource.READ)
 
         initializeImagePicker()
 
@@ -76,39 +82,6 @@ class DailyReadActivity : AppCompatActivity() {
         setupEdgeToEdge(rootView)
     }
 
-    private fun setupNavigationBar() {
-        val btnCalendar = findViewById<ImageButton>(R.id.btnCalendar)
-        val btnStatistic = findViewById<ImageButton>(R.id.statistic_btn)
-        val btnSearch = findViewById<ImageButton>(R.id.btnSearch)
-        val btnInfo = findViewById<ImageButton>(R.id.btnInfo)
-
-        // center 버튼은 따로
-        val centerContainer = findViewById<LinearLayout>(R.id.nav_center_container)
-        centerContainer.removeAllViews()
-        val centerRoot = layoutInflater.inflate(
-            R.layout.include_nav_center_write,
-            centerContainer,
-            true
-        )
-        val btnDaily = centerRoot.findViewWithTag<View>("nav_center")
-
-
-        btnCalendar.setOnClickListener {
-            startActivity(Intent(this, CalendarActivity::class.java))
-            overridePendingTransition(0, 0)
-        }
-        btnDaily.setOnClickListener {
-            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Calendar.getInstance().time)
-            val intent = Intent(this, DailyWriteActivity::class.java)
-            intent.putExtra("date", today)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-        }
-        btnInfo.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-            overridePendingTransition(0, 0)
-        }
-    }
 
     private fun initializeImagePicker() {
         pickImageLauncher =

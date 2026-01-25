@@ -41,6 +41,8 @@ import java.util.Calendar
 import java.util.Locale
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.utils.setupEdgeToEdge
+import com.example.sumdays.nav.NavBarController
+import com.example.sumdays.nav.NavSource
 
 // 일기 작성 및 수정 화면을 담당하는 액티비티
 class DailyWriteActivity : AppCompatActivity() {
@@ -64,6 +66,7 @@ class DailyWriteActivity : AppCompatActivity() {
 
     private lateinit var audioRecorderHelper: AudioRecorderHelper
     private lateinit var readDiaryButton: Button
+    private lateinit var navBarController: NavBarController
 
 
     private val memoViewModel: MemoViewModel by viewModels {
@@ -106,7 +109,14 @@ class DailyWriteActivity : AppCompatActivity() {
         setupClickListeners()
 
         // 하단 네비게이션 바 설정
-        setupNavigationBar()
+        navBarController = NavBarController(this)
+        navBarController.setNavigationBar(NavSource.READ) {
+            val currentMemos = memoAdapter.currentList
+            Intent(this, DailySumActivity::class.java).apply {
+                putExtra("date", date)
+                putParcelableArrayListExtra("memo_list", ArrayList(currentMemos))
+            }
+        }
 
         val rootView = findViewById<View>(R.id.write)
         setupEdgeToEdge(rootView)
@@ -350,30 +360,6 @@ class DailyWriteActivity : AppCompatActivity() {
                     stopIcon.visibility = View.GONE
                 }
             }
-        }
-    }
-    private fun setupNavigationBar() {
-        val btnCalendar: ImageButton = findViewById(R.id.btnCalendar)
-        val btnInfo: ImageButton = findViewById(R.id.btnInfo)
-        val btnSum: ImageButton = findViewById(R.id.btnSum)
-
-        btnSum.setOnClickListener {
-            val currentMemos = memoAdapter.currentList
-            val intent = Intent(this, DailySumActivity::class.java)
-            intent.putExtra("date", date)
-            intent.putParcelableArrayListExtra("memo_list", ArrayList(currentMemos))
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-        }
-        btnCalendar.setOnClickListener {
-            val intent = Intent(this, CalendarActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-        }
-        btnInfo.setOnClickListener {
-            val intent = Intent(this, SettingsActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
         }
     }
 
