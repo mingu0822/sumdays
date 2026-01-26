@@ -1,4 +1,4 @@
-package com.example.sumdays.nav
+package com.example.sumdays.ui.component
 
 import android.app.Activity
 import android.content.Intent
@@ -10,7 +10,7 @@ import android.widget.LinearLayout
 import androidx.annotation.RequiresApi
 import com.example.sumdays.CalendarActivity
 import com.example.sumdays.DailyWriteActivity
-import com.example.sumdays.SettingsActivity
+import com.example.sumdays.ProfileActivity
 import com.example.sumdays.StatisticsActivity
 import com.example.sumdays.R
 import org.threeten.bp.LocalDate
@@ -88,7 +88,7 @@ class NavBarController(
 
         btnInfo.setOnClickListener {
             activity.startActivity(
-                Intent(activity, SettingsActivity::class.java)
+                Intent(activity, ProfileActivity::class.java)
             )
             activity.overridePendingTransition(0, 0)
         }

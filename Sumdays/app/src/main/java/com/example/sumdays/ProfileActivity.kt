@@ -6,12 +6,11 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.example.sumdays.databinding.ActivitySettingsMainBinding
+import com.example.sumdays.databinding.ActivityProfileMainBinding
 import com.example.sumdays.settings.AccountSettingsActivity
 import com.example.sumdays.settings.DiaryStyleSettingsActivity
 import com.example.sumdays.settings.NotificationSettingsActivity
 import com.example.sumdays.settings.prefs.UserStatsPrefs
-import org.threeten.bp.LocalDate
 import androidx.lifecycle.ViewModelProvider
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -28,16 +27,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.sumdays.data.AppDatabase
 
-class SettingsActivity : AppCompatActivity() {
+class ProfileActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivitySettingsMainBinding
+    private lateinit var binding: ActivityProfileMainBinding
     private lateinit var viewModel: DailyEntryViewModel
     private lateinit var userStatsPrefs: UserStatsPrefs
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivitySettingsMainBinding.inflate(layoutInflater)
+        binding = ActivityProfileMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         // 인스턴스 초기화
@@ -85,7 +84,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setNavigationBtnListener() = with(binding.navigationBar) {
         btnCalendar.setOnClickListener {
-            val intent = Intent(this@SettingsActivity, CalendarActivity::class.java)
+            val intent = Intent(this@ProfileActivity, CalendarActivity::class.java)
             startActivity(intent)
             overridePendingTransition(0, 0)
         }
@@ -106,23 +105,23 @@ class SettingsActivity : AppCompatActivity() {
     private fun setSettingsBtnListener() = with(binding) {
         // 세부 설정 페이지
         binding.notificationBlock.setOnClickListener {
-            startActivity(Intent(this@SettingsActivity, NotificationSettingsActivity::class.java))
+            startActivity(Intent(this@ProfileActivity, NotificationSettingsActivity::class.java))
         }
 
         binding.diaryStyleBlock.setOnClickListener {
-            startActivity(Intent(this@SettingsActivity, DiaryStyleSettingsActivity::class.java))
+            startActivity(Intent(this@ProfileActivity, DiaryStyleSettingsActivity::class.java))
         }
 
         binding.accountBlock.setOnClickListener {
-            startActivity(Intent(this@SettingsActivity, AccountSettingsActivity::class.java))
+            startActivity(Intent(this@ProfileActivity, AccountSettingsActivity::class.java))
         }
 
         binding.labsBlock.setOnClickListener {
-            startActivity(Intent(this@SettingsActivity, LabsSettingsActivity::class.java))
+            startActivity(Intent(this@ProfileActivity, LabsSettingsActivity::class.java))
         }
 
         binding.tutorialBlock.setOnClickListener {
-            startActivity(Intent(this@SettingsActivity, TutorialActivity::class.java))
+            startActivity(Intent(this@ProfileActivity, TutorialActivity::class.java))
         }
 
         binding.summaryBlock.setOnClickListener {
@@ -136,24 +135,24 @@ class SettingsActivity : AppCompatActivity() {
             // 3. WorkManager에 큐 삽입
             WorkManager.getInstance(applicationContext).enqueue(workRequest)
 
-            Toast.makeText(this@SettingsActivity, "주간 통계 생성 요청됨", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@ProfileActivity, "주간 통계 생성 요청됨", Toast.LENGTH_SHORT).show()
         }
 
         // backup 관련 버튼
         backupBtn.setOnClickListener {
             BackupScheduler.triggerManualBackup(applicationContext)
-            Toast.makeText(this@SettingsActivity, "수동 백업 완료", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@ProfileActivity, "수동 백업 완료", Toast.LENGTH_SHORT).show()
         }
 
         initBtn.setOnClickListener {
-            AlertDialog.Builder(this@SettingsActivity)
+            AlertDialog.Builder(this@ProfileActivity)
                 .setTitle("초기화 확인")
                 .setMessage("정말 초기화하시겠습니까? 초기화 동기화를 실행하면 서버에 백업되지 않은 데이터는 날아갑니다.")
                 .setPositiveButton("확인") { _, _ ->
                     // 확인 버튼을 눌렀을 때만 실행
                     val request = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
                     WorkManager.getInstance(applicationContext).enqueue(request)
-                    Toast.makeText(this@SettingsActivity, "초기화 동기화를 시작합니다", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ProfileActivity, "초기화 동기화를 시작합니다", Toast.LENGTH_SHORT).show()
                 }
                 .setNegativeButton("취소", null) // 취소 버튼을 누르면 다이얼로그 닫힘
                 .show()

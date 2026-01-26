@@ -31,8 +31,8 @@ import org.threeten.bp.YearMonth
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.temporal.ChronoUnit
 import java.util.Locale
-import com.example.sumdays.nav.NavBarController
-import com.example.sumdays.nav.NavSource
+import com.example.sumdays.ui.component.NavBarController
+import com.example.sumdays.ui.component.NavSource
 
 class CalendarActivity : AppCompatActivity() {
 
@@ -41,6 +41,7 @@ class CalendarActivity : AppCompatActivity() {
     private lateinit var monthAdapter: MonthAdapter
     private lateinit var btnPrevMonth: ImageButton
     private lateinit var btnNextMonth: ImageButton
+    private lateinit var btnSetting: ImageButton
     private lateinit var navBarController: NavBarController
 
     private val viewModel: CalendarViewModel by viewModels()
@@ -60,6 +61,7 @@ class CalendarActivity : AppCompatActivity() {
         tvMonthYear = findViewById(R.id.tv_month_year)
         btnPrevMonth = findViewById(R.id.btn_prev_month)
         btnNextMonth = findViewById(R.id.btn_next_month)
+        btnSetting = findViewById(R.id.setting_menu)
 
         setCustomCalendar()
         navBarController = NavBarController(this)
@@ -69,6 +71,12 @@ class CalendarActivity : AppCompatActivity() {
             showYearMonthPicker()
         }
 
+        btnSetting.setOnClickListener {
+            val intent = Intent(this@CalendarActivity, SettingActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+        }
+        
         val rootView = findViewById<View>(R.id.root_layout)
         setupEdgeToEdge(rootView)
 
@@ -83,6 +91,7 @@ class CalendarActivity : AppCompatActivity() {
             startActivity(intent)
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setCustomCalendar() {
         monthAdapter = MonthAdapter(activity = this)

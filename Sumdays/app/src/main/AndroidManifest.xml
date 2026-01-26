@@ -50,6 +50,9 @@
             android:screenOrientation="portrait"
             android:exported="false" />
         <activity
+            android:name=".SettingActivity"
+            android:exported="false" />
+        <activity
             android:name=".CalendarActivity"
             android:screenOrientation="portrait"
             android:exported="false"
@@ -64,7 +67,7 @@
             android:exported="false" />
 
         <!--  settings  -->
-        <activity android:name=".SettingsActivity"
+        <activity android:name=".ProfileActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
         <activity android:name=".settings.AccountSettingsActivity"

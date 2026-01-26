@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/nav_item_1"
+        android:title="항목 1" />
+
+    <item
+        android:id="@+id/nav_item_2"
+        android:title="항목 2" />
+
+    <item
+        android:id="@+id/nav_item_3"
+        android:title="항목 3" />
+
+    <item
+        android:id="@+id/nav_item_4"
+        android:title="항목 4" />
+
+</menu>

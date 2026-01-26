@@ -12,7 +12,6 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -41,8 +40,8 @@ import java.util.Calendar
 import java.util.Locale
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.utils.setupEdgeToEdge
-import com.example.sumdays.nav.NavBarController
-import com.example.sumdays.nav.NavSource
+import com.example.sumdays.ui.component.NavBarController
+import com.example.sumdays.ui.component.NavSource
 
 // 일기 작성 및 수정 화면을 담당하는 액티비티
 class DailyWriteActivity : AppCompatActivity() {

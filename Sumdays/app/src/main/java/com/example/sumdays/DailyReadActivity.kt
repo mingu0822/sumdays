@@ -13,9 +13,7 @@ import android.provider.MediaStore
 import android.util.Base64
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
@@ -42,8 +40,8 @@ import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import com.example.sumdays.nav.NavBarController
-import com.example.sumdays.nav.NavSource
+import com.example.sumdays.ui.component.NavBarController
+import com.example.sumdays.ui.component.NavSource
 
 class DailyReadActivity : AppCompatActivity() {
 
