@@ -75,17 +75,6 @@
                 android:layout_height="1dp"
                 android:background="@color/dark_divider" />
 
-            <!-- 세부 설정 페이지 버튼 -->
-            <LinearLayout
-                android:id="@+id/notificationBlock"
-                style="@style/SettingsItemStyle" >
-                <TextView
-                    android:text="알림 설정"
-                    style="@style/TextAppearance.App.Normal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-
             <LinearLayout
                 android:id="@+id/diaryStyleBlock"
                 style="@style/SettingsItemStyle" >
@@ -111,24 +100,6 @@
                 style="@style/SettingsItemStyle" >
                 <TextView
                     android:text="계정 설정"
-                    style="@style/TextAppearance.App.Normal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-            <LinearLayout
-                android:id="@+id/tutorialBlock"
-                style="@style/SettingsItemStyle" >
-                <TextView
-                    android:text="튜토리얼 다시보기"
-                    style="@style/TextAppearance.App.Normal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-            <LinearLayout
-                android:id="@+id/summaryBlock"
-                style="@style/SettingsItemStyle" >
-                <TextView
-                    android:text="주간통계 수동 추가"
                     style="@style/TextAppearance.App.Normal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />

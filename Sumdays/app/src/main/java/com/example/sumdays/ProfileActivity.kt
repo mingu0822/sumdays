@@ -1,9 +1,11 @@
 package com.example.sumdays
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.sumdays.databinding.ActivityProfileMainBinding
@@ -26,14 +28,17 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.ui.component.NavBarController
+import com.example.sumdays.ui.component.NavSource
 
 class ProfileActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityProfileMainBinding
     private lateinit var viewModel: DailyEntryViewModel
     private lateinit var userStatsPrefs: UserStatsPrefs
+    private lateinit var navBarController: NavBarController
 
-
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityProfileMainBinding.inflate(layoutInflater)
@@ -67,7 +72,8 @@ class ProfileActivity : AppCompatActivity() {
         loadAndDisplayNickname()
 
         setSettingsBtnListener()
-        setNavigationBtnListener()
+        navBarController = NavBarController(this)
+        navBarController.setNavigationBar(NavSource.PROFILE)
 
         // 상태바, 네비게이션바 같은 색으로
         val rootView = findViewById<View>(R.id.setting_main_root)
@@ -82,32 +88,7 @@ class ProfileActivity : AppCompatActivity() {
         binding.nickname.text = nickname
     }
 
-    private fun setNavigationBtnListener() = with(binding.navigationBar) {
-        btnCalendar.setOnClickListener {
-            val intent = Intent(this@ProfileActivity, CalendarActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-        }
-        /*
-        btnDaily.setOnClickListener {
-            val today = LocalDate.now().toString()
-            val intent = Intent(this@SettingsActivity, DailyWriteActivity::class.java)
-            intent.putExtra("date", today)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-        }
-        */
-        btnInfo.setOnClickListener {
-
-        }
-    }
-
     private fun setSettingsBtnListener() = with(binding) {
-        // 세부 설정 페이지
-        binding.notificationBlock.setOnClickListener {
-            startActivity(Intent(this@ProfileActivity, NotificationSettingsActivity::class.java))
-        }
-
         binding.diaryStyleBlock.setOnClickListener {
             startActivity(Intent(this@ProfileActivity, DiaryStyleSettingsActivity::class.java))
         }
@@ -118,24 +99,6 @@ class ProfileActivity : AppCompatActivity() {
 
         binding.labsBlock.setOnClickListener {
             startActivity(Intent(this@ProfileActivity, LabsSettingsActivity::class.java))
-        }
-
-        binding.tutorialBlock.setOnClickListener {
-            startActivity(Intent(this@ProfileActivity, TutorialActivity::class.java))
-        }
-
-        binding.summaryBlock.setOnClickListener {
-            val inputData = workDataOf("IS_TEST_MODE" to false) // true로 설정하면 더미 데이터 생성
-
-            // 2. OneTimeWorkRequest 생성 (즉시 실행)
-            val workRequest = OneTimeWorkRequestBuilder<WeekSummaryWorker>()
-                .setInputData(inputData)
-                .build()
-
-            // 3. WorkManager에 큐 삽입
-            WorkManager.getInstance(applicationContext).enqueue(workRequest)
-
-            Toast.makeText(this@ProfileActivity, "주간 통계 생성 요청됨", Toast.LENGTH_SHORT).show()
         }
 
         // backup 관련 버튼

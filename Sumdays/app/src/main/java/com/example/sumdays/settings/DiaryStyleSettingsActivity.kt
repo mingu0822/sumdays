@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.R
-import com.example.sumdays.databinding.ActivitySettingsDiaryStyleBinding
+import com.example.sumdays.databinding.ActivityProfileDiaryStyleBinding
 import com.example.sumdays.data.style.UserStyle
 import com.example.sumdays.data.style.UserStyleViewModel
 import com.example.sumdays.settings.prefs.UserStatsPrefs
@@ -24,7 +24,7 @@ import kotlinx.coroutines.*
 
 open class DiaryStyleSettingsActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
-    lateinit var binding: ActivitySettingsDiaryStyleBinding
+    lateinit var binding: ActivityProfileDiaryStyleBinding
     private lateinit var userStatsPrefs: UserStatsPrefs
     private lateinit var styleViewModel: UserStyleViewModel
     private lateinit var adapter: StyleCardAdapter
@@ -35,7 +35,7 @@ open class DiaryStyleSettingsActivity : AppCompatActivity(), CoroutineScope by M
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivitySettingsDiaryStyleBinding.inflate(layoutInflater)
+        binding = ActivityProfileDiaryStyleBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         userStatsPrefs = provideUserStatsPrefs()

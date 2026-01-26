@@ -20,7 +20,8 @@ import org.threeten.bp.LocalDate
 enum class NavSource {
     CALENDAR,
     WRITE,
-    READ
+    READ,
+    PROFILE
 }
 
 class NavBarController(
@@ -87,10 +88,12 @@ class NavBarController(
         btnSearch.setOnClickListener { /* 미정 */ }
 
         btnInfo.setOnClickListener {
-            activity.startActivity(
-                Intent(activity, ProfileActivity::class.java)
-            )
-            activity.overridePendingTransition(0, 0)
+            if(from != NavSource.PROFILE) {
+                activity.startActivity(
+                    Intent(activity, ProfileActivity::class.java)
+                )
+                activity.overridePendingTransition(0, 0)
+            }
         }
     }
 }
