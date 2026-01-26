@@ -46,7 +46,6 @@ import com.example.sumdays.nav.NavSource
 
 // 일기 작성 및 수정 화면을 담당하는 액티비티
 class DailyWriteActivity : AppCompatActivity() {
-
     private lateinit var date: String
     private lateinit var memoAdapter: MemoAdapter
 
