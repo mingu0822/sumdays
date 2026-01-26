@@ -33,11 +33,8 @@ import org.robolectric.Robolectric
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.threeten.bp.LocalDate
-import android.app.AlertDialog
 import org.junit.Assert.assertNotNull
-import org.robolectric.shadows.ShadowAlertDialog
 import org.robolectric.shadows.ShadowToast
-import android.content.DialogInterface
 import org.robolectric.shadows.ShadowDialog
 
 
@@ -48,10 +45,10 @@ class SettingsActivityTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private lateinit var activity: SettingsActivity
+    private lateinit var activity: ProfileActivity
     private lateinit var mockViewModel: DailyEntryViewModel
     private lateinit var mockUserStatsPrefs: UserStatsPrefs
-    private lateinit var controller: org.robolectric.android.controller.ActivityController<SettingsActivity>
+    private lateinit var controller: org.robolectric.android.controller.ActivityController<ProfileActivity>
 
     @Before
     fun setup() {
@@ -74,7 +71,7 @@ class SettingsActivityTest {
         } returns mockViewModel
 
         // 4. Activity 실행
-        controller = Robolectric.buildActivity(SettingsActivity::class.java)
+        controller = Robolectric.buildActivity(ProfileActivity::class.java)
         activity = controller.get()
 
         // 필드 주입 (onCreate 실행 전)
@@ -88,7 +85,7 @@ class SettingsActivityTest {
     }
 
     private fun injectMockPrefs() {
-        val prefsField = SettingsActivity::class.java.getDeclaredField("userStatsPrefs")
+        val prefsField = ProfileActivity::class.java.getDeclaredField("userStatsPrefs")
         prefsField.isAccessible = true
         prefsField.set(activity, mockUserStatsPrefs)
     }

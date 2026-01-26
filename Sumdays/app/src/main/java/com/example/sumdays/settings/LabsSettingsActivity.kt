@@ -6,13 +6,13 @@ import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.example.sumdays.R
-import com.example.sumdays.databinding.ActivitySettingsLabsBinding
+import com.example.sumdays.databinding.ActivityProfileLabsBinding
 import com.example.sumdays.settings.prefs.LabsPrefs
 import com.example.sumdays.utils.setupEdgeToEdge
 
 class LabsSettingsActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivitySettingsLabsBinding
+    private lateinit var binding: ActivityProfileLabsBinding
 
     // 색상 설정
     private val thumbOn = Color.parseColor("#FFFFFF")
@@ -23,7 +23,7 @@ class LabsSettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivitySettingsLabsBinding.inflate(layoutInflater)
+        binding = ActivityProfileLabsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setupHeader()

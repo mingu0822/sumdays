@@ -308,7 +308,7 @@ class DailyReadActivityTest {
         btnInfo.performClick()
 
         val startedIntent = shadowActivity.nextStartedActivity
-        assertEquals(SettingsActivity::class.java.name, startedIntent.component?.className)
+        assertEquals(ProfileActivity::class.java.name, startedIntent.component?.className)
     }
 
 

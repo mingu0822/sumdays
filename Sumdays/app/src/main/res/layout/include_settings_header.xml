@@ -11,7 +11,7 @@
         android:id="@+id/headerBackIcon"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:src="@drawable/ic_arrow_back_white"
+        android:src="@drawable/ic_arrow_back_black"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

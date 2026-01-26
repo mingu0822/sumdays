@@ -1,6 +1,5 @@
 package com.example.sumdays
 
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Looper
@@ -210,7 +209,7 @@ class DailyWriteActivityTest {
 
         val actual = shadowApplication.nextStartedActivity
         assertNotNull(actual)
-        assertEquals(SettingsActivity::class.java.name, actual.component?.className)
+        assertEquals(ProfileActivity::class.java.name, actual.component?.className)
     }
 
     @Test

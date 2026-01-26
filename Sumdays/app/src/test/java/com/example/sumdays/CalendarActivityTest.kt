@@ -169,7 +169,7 @@ class CalendarActivityTest {
         val nextIntent: Intent = shadowActivity.nextStartedActivity
         assertThat(
             nextIntent.component?.className,
-            `is`(SettingsActivity::class.qualifiedName)
+            `is`(ProfileActivity::class.qualifiedName)
         )
     }
 

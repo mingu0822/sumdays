@@ -13,13 +13,13 @@ import android.provider.MediaStore
 import android.util.Base64
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
@@ -40,6 +40,8 @@ import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import com.example.sumdays.ui.component.NavBarController
+import com.example.sumdays.ui.component.NavSource
 
 class DailyReadActivity : AppCompatActivity() {
 
@@ -47,6 +49,7 @@ class DailyReadActivity : AppCompatActivity() {
     private lateinit var currentDate: Calendar
     private val viewModel: DailyEntryViewModel by viewModels()
     private var currentLiveData: LiveData<DailyEntry?>? = null
+    private lateinit var navBarController: NavBarController
 
     private lateinit var photoGalleryAdapter: PhotoGalleryAdapter
 
@@ -58,11 +61,13 @@ class DailyReadActivity : AppCompatActivity() {
 
     private lateinit var pickImageLauncher: ActivityResultLauncher<PickVisualMediaRequest>
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDailyReadBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setupNavigationBar()
+        navBarController = NavBarController(this)
+        navBarController.setNavigationBar(NavSource.READ)
 
         initializeImagePicker()
 
@@ -75,27 +80,6 @@ class DailyReadActivity : AppCompatActivity() {
         setupEdgeToEdge(rootView)
     }
 
-    private fun setupNavigationBar() {
-        val btnCalendar = findViewById<ImageButton>(R.id.btnCalendar)
-        val btnDaily = findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.btnDaily)
-        val btnInfo = findViewById<ImageButton>(R.id.btnInfo)
-
-        btnCalendar.setOnClickListener {
-            startActivity(Intent(this, CalendarActivity::class.java))
-            overridePendingTransition(0, 0)
-        }
-        btnDaily.setOnClickListener {
-            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Calendar.getInstance().time)
-            val intent = Intent(this, DailyWriteActivity::class.java)
-            intent.putExtra("date", today)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-        }
-        btnInfo.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-            overridePendingTransition(0, 0)
-        }
-    }
 
     private fun initializeImagePicker() {
         pickImageLauncher =

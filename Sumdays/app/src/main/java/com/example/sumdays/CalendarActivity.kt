@@ -31,6 +31,8 @@ import org.threeten.bp.YearMonth
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.temporal.ChronoUnit
 import java.util.Locale
+import com.example.sumdays.ui.component.NavBarController
+import com.example.sumdays.ui.component.NavSource
 
 class CalendarActivity : AppCompatActivity() {
 
@@ -39,6 +41,8 @@ class CalendarActivity : AppCompatActivity() {
     private lateinit var monthAdapter: MonthAdapter
     private lateinit var btnPrevMonth: ImageButton
     private lateinit var btnNextMonth: ImageButton
+    private lateinit var btnSetting: ImageButton
+    private lateinit var navBarController: NavBarController
 
     private val viewModel: CalendarViewModel by viewModels()
     var currentStatusMap: Map<String, Pair<Boolean, String?>> = emptyMap()
@@ -57,15 +61,22 @@ class CalendarActivity : AppCompatActivity() {
         tvMonthYear = findViewById(R.id.tv_month_year)
         btnPrevMonth = findViewById(R.id.btn_prev_month)
         btnNextMonth = findViewById(R.id.btn_next_month)
+        btnSetting = findViewById(R.id.setting_menu)
 
         setCustomCalendar()
-        setStatisticBtnListener()
-        setNavigationBar()
+        navBarController = NavBarController(this)
+        navBarController.setNavigationBar(NavSource.CALENDAR)
 
         tvMonthYear.setOnClickListener {
             showYearMonthPicker()
         }
 
+        btnSetting.setOnClickListener {
+            val intent = Intent(this@CalendarActivity, SettingActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+        }
+        
         val rootView = findViewById<View>(R.id.root_layout)
         setupEdgeToEdge(rootView)
 
@@ -78,35 +89,6 @@ class CalendarActivity : AppCompatActivity() {
             editor.apply()
             val intent = Intent(this, TutorialActivity::class.java)
             startActivity(intent)
-        }
-    }
-    private fun setStatisticBtnListener() {
-        val btnStats = findViewById<ImageButton>(R.id.statistic_btn)
-        btnStats.setOnClickListener {
-            val intent = Intent(this, StatisticsActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun setNavigationBar() {
-        val btnCalendar = findViewById<android.widget.ImageButton>(R.id.btnCalendar)
-        val btnDaily = findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.btnDaily)
-        val btnInfo = findViewById<android.widget.ImageButton>(R.id.btnInfo)
-
-        btnCalendar.setOnClickListener { /* 현재 화면 */ }
-        btnDaily.setOnClickListener {
-            val todayStr = today.toString()
-            val intent = Intent(this, DailyWriteActivity::class.java)
-            intent.putExtra("date", todayStr)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-        }
-        btnInfo.setOnClickListener {
-            val intent = Intent(this, SettingsActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
         }
     }
 
