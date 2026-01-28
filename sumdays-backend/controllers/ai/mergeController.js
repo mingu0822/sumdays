@@ -10,17 +10,17 @@ const mergeController = {
      */
     merge: async (req, res) => {
         try {
-            const { memos, style_prompt, style_examples, style_vector, end_flag, advanced_flag, temperature } = req.body;
+            const { memos, style_prompt, style_examples, end_flag, length_level } = req.body;
 
             if (!memos || !Array.isArray(memos) || memos.length < 2) {
-                return res.status(400).json({
+                return res.status(401).json({
                     success: false,
                     message: "At least two memos are required for merging.",
                 });
             }
 
             if (!style_prompt || !style_examples) {
-                return res.status(400).json({
+                return res.status(402).json({
                     success: false,
                     message: "style_prompt and style_examples are required.",
                 });
@@ -30,8 +30,8 @@ const mergeController = {
                       
             if (!end_flag) {
                 const response = await axios.post(
-                    `${PYTHON_SERVER_URL}/merge/`, 
-                    { memos, style_prompt, style_examples, style_vector, end_flag, advanced_flag, temperature },
+                    `${PYTHON_SERVER_URL}/merge/paragraph`, 
+                    { memos, style_prompt, style_examples, length_level },
                     {responseType: "stream"}
                 );
 
@@ -48,7 +48,7 @@ const mergeController = {
             } else {
                 const response = await axios.post(
                     `${PYTHON_SERVER_URL}/merge/`, 
-                    { memos, style_prompt, style_examples, style_vector, end_flag, advanced_flag, temperature }
+                    { memos, style_prompt, style_examples }
                 );
 
                 if (!response.data) {
@@ -67,7 +67,7 @@ const mergeController = {
             
         } catch (err) {
             console.error("[mergeController.merge] Error:", err.message);
-            return res.status(500).json({
+            return res.status(400).json({
                 success: false,
                 error: err.message || err,
             });

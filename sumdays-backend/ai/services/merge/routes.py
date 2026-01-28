@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, Response
-from .merge_service import merge_stream, merge_rerank, merge_paragraph_stream
+from .merge_service import merge_stream, merge_paragraph_stream
 from ..analysis.diary_service import DiaryAnalyzer
 
 analysis_service = DiaryAnalyzer()

@@ -124,6 +124,13 @@ Task:
 Merge the base memo and the piece memo into a single diary paragraph that follows the specified style and length.
 """
 
+    base_tokens = len(memo_body + memo_piece) // 2
+    max_tokens = {
+        0: base_tokens + 50,
+        1: base_tokens + 150,
+        2: base_tokens + 300,
+    }.get(length_level, base_tokens + 150)
+
     stream = client.chat.completions.create(
         model=os.getenv("GPT_MODEL", "gpt-4.1-nano"),
         stream=True,
@@ -132,7 +139,7 @@ Merge the base memo and the piece memo into a single diary paragraph that follow
             {"role": "user",  "content": prompt},
         ],
         temperature=0.8,
-        max_tokens=1024,  # TODO: 메모 길이에 비례하게 토큰 수 조정
+        max_tokens=max_tokens,
     )
 
     for chunk in stream:
