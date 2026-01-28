@@ -276,3 +276,89 @@ Output only the paragraphs, with no explanations, numbering, or labels.
         text = delta.content or ""
         if text:
             yield chunk
+
+def merge_paragraph_stream(memos, style_features, style_examples, length_level=1):
+
+    style_features_text, style_examples_text = prep(style_features, style_examples)
+    memo_body = memos[0]
+    memo_piece = memos[1]
+
+    developer_msg = """
+You are a writing assistant that merges two related memo texts into a single, natural diary paragraph.
+
+Rules:
+- The output must be ONE paragraph of diary-style prose.
+- Do NOT explain the process or mention memos.
+- Base memo is the core narrative. Piece memo adds context, emotion, or detail.
+- The two texts describe related events and must be smoothly connected.
+- Preserve the user's writing style strictly.
+
+Style handling:
+- Follow the provided style features and imitate the style examples.
+- Do not copy sentences verbatim from the examples.
+
+Length control:
+- length_level = 0 → very concise, minimal expansion
+- length_level = 1 → normal diary paragraph
+- length_level = 2 → detailed, reflective, richer description
+
+Output:
+- Natural Korean prose.
+- No titles, no bullet points, no markdown.
+"""
+
+
+    prompt = f"""
+<style_features>
+{style_features_text}
+</style_features>
+
+<style_examples>
+{style_examples_text}
+</style_examples>
+
+<base_memo>
+{memo_body}
+</base_memo>
+
+<piece_memo>
+{memo_piece}
+</piece_memo>
+
+<length_level>
+{length_level}
+</length_level>
+
+Task:
+Merge the base memo and the piece memo into a single diary paragraph that follows the specified style and length.
+"""
+
+    stream = client.chat.completions.create(
+        model=os.getenv("GPT_MODEL", "gpt-4.1-nano"),
+        stream=True,
+        messages=[
+            {"role": "developer", "content": developer_msg},
+            {"role": "user",  "content": prompt},
+        ],
+        temperature=0.8,
+        max_tokens=1024,  # TODO: 메모 길이에 비례하게 토큰 수 조정
+    )
+
+    for chunk in stream:
+        delta = chunk.choices[0].delta
+        text = delta.content or ""
+        if text:
+            yield chunk
+
+def prep(style_features, style_examples):
+    if isinstance(style_features, dict):
+        style_features_text = json.dumps(style_features, ensure_ascii=False, indent=2)
+    else:
+        style_features_text = str(style_features)
+
+    if isinstance(style_examples, list):
+        style_examples_text = "\n".join(f"- {s}" for s in style_examples)
+    else:
+        style_examples_text = "- " + str(style_examples)
+
+    return style_features_text, style_examples_text
