@@ -2,7 +2,7 @@ package com.example.sumdays.daily.memo
 
 import com.google.gson.annotations.SerializedName
 
-data class MemoPayload(val id: Int, val content: String, val order: Int)
+data class MemoPayload(val content: String, val order: Int)
 
 data class MergeRequest(
     val memos: List<MemoPayload>,
@@ -12,4 +12,5 @@ data class MergeRequest(
     @SerializedName("style_vector") val styleVector: List<Float>,
     @SerializedName("advanced_flag") val advancedFlag: Boolean,
     @SerializedName("temperature") val temperature: Float,
+    @SerializedName("length_level") val lengthLevel: Int,
 )

@@ -22,8 +22,6 @@ import com.example.sumdays.daily.memo.MemoMergeUtils.convertStylePromptToMap
 import com.example.sumdays.daily.memo.MemoMergeUtils.extractMergedText
 import com.example.sumdays.data.dao.UserStyleDao
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.daily.memo.MemoPayload
-import com.example.sumdays.daily.memo.MergeRequest
 import com.example.sumdays.settings.prefs.LabsPrefs
 import com.example.sumdays.settings.prefs.UserStatsPrefs
 import java.io.InputStreamReader
@@ -204,6 +202,15 @@ class MemoMergeAdapter(
     private fun mergeByIndex(fromIndex: Int, toIndex: Int, mergedIds: List<Int>) {
         if (fromIndex !in memoList.indices || toIndex !in memoList.indices) return
 
+        val pieceMemo = memoList[fromIndex]
+        val baseMemo = memoList[toIndex]
+
+        // 받는 쪽(base)이 무조건 앞순서
+        val payloads = listOf(
+            MemoPayload(content = baseMemo.content, order = 0),
+            MemoPayload(content = pieceMemo.content, order = 1)
+        )
+
         val previousIdMap: Map<Int, List<Int>> = mergedIds.associateWith { id ->
             (idToMergedIds[id] ?: listOf(id)).toList()
         }
@@ -228,7 +235,8 @@ class MemoMergeAdapter(
                     targetIndex = if (fromIndex < toIndex) toIndex - 1 else toIndex
                 }
 
-                val finalMergedText = mergeTextByIds(mergedIds, endFlag = false) { partial ->
+                // 서버에 요청
+                val finalMergedText = mergeTextToServer(payloads, endFlag = false) { partial ->
                     scope.launch(Dispatchers.Main) {
                         if (targetIndex in memoList.indices) {
                             memoList[targetIndex] =
@@ -238,6 +246,7 @@ class MemoMergeAdapter(
                     }
                 }
 
+                // ID 매핑 업데이트
                 mergedIds.forEach { updateIdMap(it, mergedIds) }
 
                 withContext(Dispatchers.Main) {
@@ -286,19 +295,11 @@ class MemoMergeAdapter(
     }
 
     @Throws(MergeException::class)
-    suspend fun mergeTextByIds(
-        mergedIds: List<Int>,
+    suspend fun mergeTextToServer(
+        payloads: List<MemoPayload>,
         endFlag: Boolean = false,
         onPartial: (String) -> Unit = {}
     ): String {
-
-        val memos = mutableListOf<MemoPayload>()
-        mergedIds.forEach {
-            val memo = originalMemoMap[it]
-            if (memo != null) {
-                memos.add(MemoPayload(memo.id, memo.content, memo.order))
-            }
-        }
 
         val activeStyleId = userStatsPrefs.getActiveStyleId()
         val styleData = userStyleDao.getStyleById(activeStyleId)
@@ -333,23 +334,20 @@ class MemoMergeAdapter(
             )
             styleVector = emptyList()
         }
-        Log.d("test", "TEST: 0")
-
-        val temperature = LabsPrefs.getTemperature(context)
-        val advancedFlag = LabsPrefs.getAdvancedFlag(context)
 
         val request = MergeRequest(
-            memos = memos,
+            memos = payloads,
             endFlag = endFlag,
             stylePrompt = stylePrompt,
             styleExamples = styleExample,
             styleVector = styleVector,
-            advancedFlag = advancedFlag,
-            temperature = temperature
+            advancedFlag = LabsPrefs.getAdvancedFlag(context),
+            temperature = LabsPrefs.getTemperature(context),
+            lengthLevel = LabsPrefs.getLengthLevel(context),
         )
 
-        // try-catch 블록을 통해 예외를 구체적인 MergeException으로 변환
         try {
+            // 최종 일기
             if (endFlag) {
                 val response = ApiClient.api.mergeMemos(request)
                 if (!response.isSuccessful) {
@@ -359,7 +357,7 @@ class MemoMergeAdapter(
                 return extractMergedText(json)
             }
 
-            Log.d("test", "TEST: 1")
+            // 스트리밍 처리
             val call = ApiClient.api.mergeMemosStream(request)
             val response = call.execute()
 
@@ -427,13 +425,11 @@ class MemoMergeAdapter(
     }
 
     suspend fun mergeAllMemo(): String {
-        val idMutableList = mutableListOf<Int>()
-        for (entry in originalMemoMap) {
-            idMutableList.add(entry.value.id)
+        // 현재 화면에 보이는 memoList를 기반으로 페이로드 생성
+        val payloads = memoList.mapIndexed { index, memo ->
+            MemoPayload(content = memo.content, order = index)
         }
-        val idList = idMutableList.toList()
-        // mergeAllMemo는 한 번에 전체를 합치는 것이므로 여기서도 예외 처리는 mergeTextByIds에 위임
-        return mergeTextByIds(idList, endFlag = true)
+        return mergeTextToServer(payloads, endFlag = true)
     }
 
     override fun onBindViewHolder(holder: VH, position: Int, payloads: MutableList<Any>) {

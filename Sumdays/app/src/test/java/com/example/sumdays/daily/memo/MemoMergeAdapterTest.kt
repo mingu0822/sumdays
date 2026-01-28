@@ -12,7 +12,6 @@ import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.ApiService
 import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.google.gson.JsonObject
-import io.mockk.Call as KCall
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -343,7 +342,7 @@ class MemoMergeAdapterTest {
 
         every { MemoMergeUtils.extractMergedText(json) } returns "final-merged"
 
-        val result = ad.mergeTextByIds(listOf(1, 2), endFlag = true)
+        val result = ad.mergeTextToServer(listOf(1, 2), endFlag = true)
 
         assertEquals("final-merged", result)
     }
@@ -426,7 +425,7 @@ class MemoMergeAdapterTest {
     }
 
     @Test
-    fun mergeAllMemo_callsMergeTextByIdsWithAllOriginalIds_andReturnsResult() = runBlocking {
+    fun mergeAllMemo_callsMergeTextToServer_andReturnsResult() = runBlocking {
         // 1) 초기 메모 3개
         val m1 = memo(1, "A", "10:00", order = 0)
         val m2 = memo(2, "B", "10:01", order = 1)
@@ -446,7 +445,7 @@ class MemoMergeAdapterTest {
         val capturedIds = slot<List<Int>>()
 
         coEvery {
-            spyAdapter.mergeTextByIds(capture(capturedIds), endFlag = true, onPartial = any())
+            spyAdapter.mergeTextToServer(capture(capturedIds), endFlag = true, onPartial = any())
         } returns "merged-all"
 
         // 4) 실제 호출

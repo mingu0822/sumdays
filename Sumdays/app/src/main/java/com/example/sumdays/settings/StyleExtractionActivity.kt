@@ -339,11 +339,12 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope by MainScope
         val styleVector = style.styleVector
         val advancedFlag = LabsPrefs.getAdvancedFlag(this@StyleExtractionActivity)
         val temperature = LabsPrefs.getTemperature(this@StyleExtractionActivity)
+        val lengthLevel = LabsPrefs.getLengthLevel(this@StyleExtractionActivity)
 
         val memosPayload = listOf(
-            MemoPayload(1, "아침에 늦잠을 자서 밥을 굶었다.", 1),
-            MemoPayload(2, "점심에는 라면을 먹었다. 맛있었다.", 2),
-            MemoPayload(3, "저녁에는 삼겹살을 구워먹었다. 즐거운 하루였다.", 3)
+            MemoPayload("아침에 늦잠을 자서 밥을 굶었다.", 1),
+            MemoPayload("점심에는 라면을 먹었다. 맛있었다.", 2),
+            MemoPayload("저녁에는 삼겹살을 구워먹었다. 즐거운 하루였다.", 3)
         )
 
         val request = MergeRequest(
@@ -353,7 +354,8 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope by MainScope
             styleExamples = examples,
             styleVector = styleVector,
             advancedFlag = advancedFlag,
-            temperature = temperature
+            temperature = temperature,
+            lengthLevel = lengthLevel
         )
 
         return withContext(Dispatchers.IO) {
