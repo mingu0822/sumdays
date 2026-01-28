@@ -15,22 +15,18 @@ class MemoViewModel(private val repository: MemoRepository) : ViewModel() {
         return repository.getMemosForDate(date).asLiveData()
     }
 
-    // 새로운 메모를 삽입하는 함수
     fun insert(memo: Memo) = viewModelScope.launch {
         repository.insert(memo)
     }
 
-    // 메모를 수정하는 함수
     fun update(memo: Memo) = viewModelScope.launch {
         repository.update(memo)
     }
 
-    // 메모 순서 업데이트
     fun updateAll(memos: List<Memo>) = viewModelScope.launch {
         repository.updateAll(memos)
     }
 
-    // 메모 삭제
     fun delete(memo: Memo) = viewModelScope.launch {
         repository.delete(memo)
     }

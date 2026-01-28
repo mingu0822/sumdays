@@ -7,7 +7,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object ApiClient {
-    const val BASE_URL = "http://ec2-43-203-191-170.ap-northeast-2.compute.amazonaws.com:3000/"
+    const val BASE_URL = "http://10.25.96.95:3000/"
     //폰에서 실행하려면 서버를 돌리는 컴퓨터의 IP를 여기 적어야 함
 
     // OkHttp 로깅 + 타임아웃 설정
