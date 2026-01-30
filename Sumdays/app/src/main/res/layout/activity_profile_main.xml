@@ -105,6 +105,15 @@
                     android:layout_height="wrap_content" />
             </LinearLayout>
             <LinearLayout
+                android:id="@+id/themeBlock"
+                style="@style/SettingsItemStyle">
+                <TextView
+                    android:text="테마 변경"
+                    style="@style/TextAppearance.App.Normal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+            <LinearLayout
                 android:id="@+id/logoutBlock"
                 style="@style/SettingsItemStyle">
                 <TextView
@@ -114,6 +123,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </LinearLayout>
+
 
         </LinearLayout>
     </ScrollView>

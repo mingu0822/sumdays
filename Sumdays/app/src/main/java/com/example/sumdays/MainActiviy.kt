@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts // ⬅️ import 추가
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat // ⬅️ import 추가
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.reminder.ReminderReceiver
@@ -26,11 +27,14 @@ class MainActivity : AppCompatActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        applySavedTheme()
+
         super.onCreate(savedInstanceState)
         SessionManager.init(applicationContext)
 
         createNotificationChannel()
         askForNotificationPermission()
+
     }
 
     private fun checkLoginAndNavigate() {
@@ -111,5 +115,16 @@ class MainActivity : AppCompatActivity() {
             triggerTime,
             pendingIntent
         )
+    }
+    private fun applySavedTheme() {
+        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val isDark = prefs.getBoolean("dark_mode", false)
+
+        val mode = if (isDark) {
+            AppCompatDelegate.MODE_NIGHT_YES
+        } else {
+            AppCompatDelegate.MODE_NIGHT_NO
+        }
+        AppCompatDelegate.setDefaultNightMode(mode)
     }
 }

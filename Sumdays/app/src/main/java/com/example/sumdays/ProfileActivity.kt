@@ -28,6 +28,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.settings.ThemeSettingsActivity
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 
@@ -99,6 +100,10 @@ class ProfileActivity : AppCompatActivity() {
 
         binding.labsBlock.setOnClickListener {
             startActivity(Intent(this@ProfileActivity, LabsSettingsActivity::class.java))
+        }
+
+        binding.themeBlock.setOnClickListener {
+            startActivity(Intent(this@ProfileActivity, ThemeSettingsActivity::class.java))
         }
 
         // backup 관련 버튼
