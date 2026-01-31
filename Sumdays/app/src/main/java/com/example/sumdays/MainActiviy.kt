@@ -27,7 +27,6 @@ class MainActivity : AppCompatActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        applySavedTheme()
 
         super.onCreate(savedInstanceState)
         SessionManager.init(applicationContext)
@@ -115,16 +114,5 @@ class MainActivity : AppCompatActivity() {
             triggerTime,
             pendingIntent
         )
-    }
-    private fun applySavedTheme() {
-        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
-        val isDark = prefs.getBoolean("dark_mode", false)
-
-        val mode = if (isDark) {
-            AppCompatDelegate.MODE_NIGHT_YES
-        } else {
-            AppCompatDelegate.MODE_NIGHT_NO
-        }
-        AppCompatDelegate.setDefaultNightMode(mode)
     }
 }

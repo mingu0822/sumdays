@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- res/values-night/colors.xml (다크용) -->
-    <color name="background">#282d35</color>
+    <color name="background">#000000</color>
     <color name="textColor">#FFFFFF</color>
 </resources>
 
