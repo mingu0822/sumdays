@@ -58,6 +58,10 @@
             android:exported="false"
             android:theme="@style/Theme.First" />
         <activity
+            android:name=".SearchActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
             android:name=".StatisticsActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
