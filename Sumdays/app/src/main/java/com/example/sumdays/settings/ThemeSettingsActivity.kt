@@ -16,6 +16,7 @@ import com.example.sumdays.utils.setupEdgeToEdge
 class ThemeSettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityThemeSettingsBinding
+    private lateinit var themeSwitch: Switch
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,23 +24,14 @@ class ThemeSettingsActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         applySavedTheme()
-        val themeSwitch: Switch = findViewById(R.id.dark_theme_toggle)
+        themeSwitch = findViewById(R.id.dark_theme_toggle)
 
         // 현재 모드에 따라 스위치 초기 상태 설정
         val currentMode = AppCompatDelegate.getDefaultNightMode()
         themeSwitch.isChecked = (currentMode == AppCompatDelegate.MODE_NIGHT_YES)
 
-        // 스위치 눌렀을 때 모드 변경
-        themeSwitch.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)   // 다크
-                saveThemeMode(true)
-            } else {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)    // 라이트
-                saveThemeMode(false)
-            }
-        }
-
+        setupHeaderClickListener()
+        setupSwitchListener()
 
         // 상태바, 네비게이션바 같은 색으로
         val rootView = findViewById<View>(R.id.setting_labs_root)
@@ -63,4 +55,25 @@ class ThemeSettingsActivity : AppCompatActivity() {
         }
         AppCompatDelegate.setDefaultNightMode(mode)
     }
+
+    private fun setupHeaderClickListener() {
+        binding.header.headerBackIcon.setOnClickListener {
+            finish()
+        }
+    }
+
+    private fun setupSwitchListener() {
+        // 스위치 눌렀을 때 모드 변경
+        themeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)   // 다크
+                saveThemeMode(true)
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)    // 라이트
+                saveThemeMode(false)
+            }
+        }
+
+    }
 }
+
