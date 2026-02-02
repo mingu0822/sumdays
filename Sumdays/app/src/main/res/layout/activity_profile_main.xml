@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:id="@+id/setting_main_root"
     android:fitsSystemWindows="true"
+    android:background="@color/background"
     tools:context=".CalendarActivity">
 
 
