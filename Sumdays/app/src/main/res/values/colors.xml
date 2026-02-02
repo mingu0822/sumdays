@@ -38,4 +38,8 @@
     <color name="text_color_hint">#888888</color>
     <color name="text_highlight_red">#CC0000</color>
 
+    <!-- res/values/colors.xml (라이트용) -->
+    <color name="background">#FFFFFF</color>
+    <color name="textColor">#000000</color>
+
 </resources>

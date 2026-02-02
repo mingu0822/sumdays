@@ -71,7 +71,7 @@ class DayAdapter(
             val textColor = when {
                 dayOfWeek == DayOfWeek.SUNDAY -> Color.RED
                 dayOfWeek == DayOfWeek.SATURDAY -> Color.parseColor("#0095FF")
-                else -> Color.WHITE
+                else -> ContextCompat.getColor(itemView.context, R.color.textColor)
             }
             tvDayNumber.setTextColor(textColor)
 

@@ -5,6 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/background"
     tools:context=".DailyReadActivity">
 
     <!-- 상단 날짜 / 이전·다음 / 메모 보기 버튼 영역 -->
