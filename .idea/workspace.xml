@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0e1f41c8-f7db-4c93-abfb-5cdd3d2f2f7c" name="Changes" comment="" />
+    <list default="true" id="0e1f41c8-f7db-4c93-abfb-5cdd3d2f2f7c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/SearchActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/SearchActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/network/ApiClient.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/network/ApiClient.kt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -22,12 +27,12 @@
     &quot;assignee&quot;: &quot;kimon2002&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/snuhcs-course/swpp-2025-project-team-15.git&quot;,
-    &quot;accountId&quot;: &quot;27988a0f-4dc9-4f8e-9937-a8ccf544c4cf&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/mingu0822/sumdays.git",
+    "accountId": "27988a0f-4dc9-4f8e-9937-a8ccf544c4cf"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6
 }</component>
@@ -46,7 +51,7 @@
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "search",
     "last_opened_file_path": "C:/Users/Aliosoft/swpp-2025-project-team-15"
   }
 }]]></component>

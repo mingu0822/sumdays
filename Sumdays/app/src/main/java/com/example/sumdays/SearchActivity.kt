@@ -2,6 +2,7 @@ package com.example.sumdays
 
 
 import DailySearchViewModel
+import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
 import android.widget.ImageButton
@@ -41,15 +42,14 @@ class SearchActivity : AppCompatActivity() {
 
         setButtonClickListener()
 
-        // Room DB/DAO 가져오기 (네 프로젝트 DB 클래스에 맞게 수정)
+        // Room DB/DAO 가져오기
         val db = AppDatabase.getDatabase(this)
         val repo = DailyEntryRepository(db.dailyEntryDao())
         viewModel = ViewModelProvider(this, DailySearchViewModelFactory(repo))
             .get(DailySearchViewModel::class.java)
 
         adapter = DailyEntrySearchAdapter { entry ->
-            // 클릭 시 해당 날짜 상세로 이동 (원하는 화면으로 연결)
-            // Intent(this, DailyEntryActivity::class.java).putExtra("date", entry.date)
+             startActivity(Intent(this, DailyReadActivity::class.java).putExtra("date", entry.date))
         }
 
         rvResults.layoutManager = LinearLayoutManager(this)
