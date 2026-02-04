@@ -60,6 +60,8 @@ class DailyEntryRepository (
         )
     }
 
+    fun search(q: String) = dao.searchEntries(q)
+
     //  기간 내 일기 조회 함수
     suspend fun getEntriesBetween(startDate: String, endDate: String): List<DailyEntry> {
         return dao.getEntriesBetween(startDate, endDate)

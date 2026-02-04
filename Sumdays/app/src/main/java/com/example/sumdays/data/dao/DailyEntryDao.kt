@@ -1,5 +1,6 @@
 package com.example.sumdays.data.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.example.sumdays.daily.memo.Memo
 import com.example.sumdays.data.DailyEntry
@@ -112,4 +113,16 @@ interface DailyEntryDao {
 
     @Query("UPDATE daily_entry SET isEdited = 0, isDeleted = 0 WHERE date IN (:dates)")
     suspend fun resetEditedFlags(dates: List<String>)
+
+    @Query("""
+        SELECT * FROM daily_entry
+        WHERE isDeleted = 0
+          AND (
+            diary LIKE '%' || :q || '%'
+            OR keywords LIKE '%' || :q || '%'
+            OR aiComment LIKE '%' || :q || '%'
+          )
+        ORDER BY date DESC
+    """)
+    fun searchEntries(q: String): LiveData<List<DailyEntry>>
 }
