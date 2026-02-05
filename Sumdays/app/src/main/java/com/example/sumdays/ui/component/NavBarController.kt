@@ -13,6 +13,7 @@ import com.example.sumdays.DailyWriteActivity
 import com.example.sumdays.ProfileActivity
 import com.example.sumdays.StatisticsActivity
 import com.example.sumdays.R
+import com.example.sumdays.SearchActivity
 import org.threeten.bp.LocalDate
 
 
@@ -85,7 +86,12 @@ class NavBarController(
             activity.overridePendingTransition(0, 0)
         }
 
-        btnSearch.setOnClickListener { /* 미정 */ }
+        btnSearch.setOnClickListener {
+            activity.startActivity(
+                Intent(activity, SearchActivity::class.java)
+            )
+            activity.overridePendingTransition(0, 0)
+        }
 
         btnInfo.setOnClickListener {
             if(from != NavSource.PROFILE) {
