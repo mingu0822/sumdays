@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts // ⬅️ import 추가
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat // ⬅️ import 추가
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.reminder.ReminderReceiver
@@ -26,11 +27,13 @@ class MainActivity : AppCompatActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         SessionManager.init(applicationContext)
 
         createNotificationChannel()
         askForNotificationPermission()
+
     }
 
     private fun checkLoginAndNavigate() {

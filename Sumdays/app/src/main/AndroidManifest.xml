@@ -19,6 +19,7 @@
         android:theme="@style/Theme.First"
         android:usesCleartextTraffic="true"
         android:launchMode="singleTask">
+
         <activity
             android:name=".RegisterationActivity"
             android:screenOrientation="portrait"
@@ -87,6 +88,9 @@
         <activity android:name=".settings.LabsSettingsActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
+        <activity android:name=".settings.ThemeSettingsActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
 
         <activity
             android:name=".settings.StyleExtractionActivity"
@@ -122,5 +126,6 @@
 
 
     </application>
+
 
 </manifest>

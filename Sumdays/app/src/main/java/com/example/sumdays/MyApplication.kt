@@ -1,6 +1,7 @@
 package com.example.sumdays
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
 import com.example.sumdays.daily.memo.MemoRepository
 import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.sync.BackupScheduler
@@ -25,5 +26,17 @@ open class MyApplication : Application() {
         AndroidThreeTen.init(this)
         BackupScheduler.scheduleAutoBackup(this)
         WeekSummaryScheduler.scheduleWeeklyTask(this)
+
+
+        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val isDark = prefs.getBoolean("dark_mode", false)
+
+        val mode = if (isDark) {
+            AppCompatDelegate.MODE_NIGHT_YES
+        } else {
+            AppCompatDelegate.MODE_NIGHT_NO
+        }
+
+        AppCompatDelegate.setDefaultNightMode(mode)
     }
 }
