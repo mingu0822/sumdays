@@ -16,12 +16,15 @@ import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.viewpager2.widget.ViewPager2
 import com.example.sumdays.calendar.CalendarLanguage
 import com.example.sumdays.calendar.MonthAdapter
 import com.example.sumdays.data.viewModel.CalendarViewModel
+import com.example.sumdays.settings.ThemeSettingsActivity
+import com.example.sumdays.settings.prefs.ThemeState
 import com.example.sumdays.utils.setupEdgeToEdge
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.jakewharton.threetenabp.AndroidThreeTen
@@ -63,6 +66,8 @@ class CalendarActivity : AppCompatActivity() {
         btnNextMonth = findViewById(R.id.btn_next_month)
         btnSetting = findViewById(R.id.setting_menu)
 
+        applyThemeModeSettings()
+
         setCustomCalendar()
         navBarController = NavBarController(this)
         navBarController.setNavigationBar(NavSource.CALENDAR)
@@ -92,6 +97,22 @@ class CalendarActivity : AppCompatActivity() {
         }
     }
 
+    private fun applyThemeModeSettings(){
+        // Apply dark mode
+        ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+
+        if (ThemeState.isDarkMode){
+            btnPrevMonth.setImageResource(R.drawable.ic_arrow_back_white)
+            btnNextMonth.setImageResource(R.drawable.ic_arrow_forward_white)
+            btnSetting.setImageResource(R.drawable.ic_setting_menu_gray)
+        }
+        else{
+            btnPrevMonth.setImageResource(R.drawable.ic_arrow_back_black)
+            btnNextMonth.setImageResource(R.drawable.ic_arrow_forward_black)
+            btnSetting.setImageResource(R.drawable.ic_setting_menu_black)
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setCustomCalendar() {
         monthAdapter = MonthAdapter(activity = this)
@@ -113,7 +134,7 @@ class CalendarActivity : AppCompatActivity() {
                     when (dayName) {
                         "일", "SUN" -> ContextCompat.getColor(this@CalendarActivity, android.R.color.holo_red_dark)
                         "토", "SAT" -> ContextCompat.getColor(this@CalendarActivity, android.R.color.holo_blue_dark)
-                        else -> Color.WHITE
+                        else -> if (ThemeState.isDarkMode) Color.WHITE else Color.BLACK
                     }
                 )
             }

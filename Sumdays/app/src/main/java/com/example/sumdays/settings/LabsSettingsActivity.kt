@@ -5,9 +5,11 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import com.example.sumdays.R
 import com.example.sumdays.databinding.ActivityProfileLabsBinding
 import com.example.sumdays.settings.prefs.LabsPrefs
+import com.example.sumdays.settings.prefs.ThemeState
 import com.example.sumdays.utils.setupEdgeToEdge
 
 class LabsSettingsActivity : AppCompatActivity() {
@@ -30,9 +32,23 @@ class LabsSettingsActivity : AppCompatActivity() {
         setupTemperatureSlider()
         setupAdvancedToggle()
 
+        applyThemeModeSettings()
+
         // 상태바, 네비게이션바 같은 색으로
         val rootView = findViewById<View>(R.id.setting_labs_root)
         setupEdgeToEdge(rootView)
+    }
+
+    private fun applyThemeModeSettings(){
+        // Apply dark mode
+        ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+
+        if (ThemeState.isDarkMode){
+            binding.header.headerBackIcon.setImageResource(R.drawable.ic_arrow_back_white)
+        }
+        else{
+            binding.header.headerBackIcon.setImageResource(R.drawable.ic_arrow_back_black)
+        }
     }
 
     private fun setupHeader() {

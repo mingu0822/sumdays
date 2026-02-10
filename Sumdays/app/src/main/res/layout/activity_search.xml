@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:background="@color/dark_background">
+    android:background="@color/background">
 
     <!-- Top bar -->
     <LinearLayout
@@ -24,8 +24,8 @@
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="뒤로가기"
-            android:src="@drawable/ic_arrow_back_grey"
-            app:tint="@color/gray"/>
+            android:src="@drawable/ic_arrow_back_black"
+            />
 
         <TextView
             android:id="@+id/tvTitle"
@@ -45,7 +45,7 @@
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:layout_marginTop="12dp"
-        android:background="@drawable/bg_search_round"
+        android:background="@drawable/bg_search_round_white"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="12dp"
@@ -115,5 +115,14 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+
+    <include
+        android:id="@+id/navigation_bar"
+        layout="@layout/include_navigation_bar"
+        android:layout_width="0dp"
+        android:layout_height="110dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

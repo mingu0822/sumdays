@@ -80,8 +80,8 @@
                 android:id="@+id/diaryStyleBlock"
                 style="@style/SettingsItemStyle" >
                 <TextView
+                    android:id="@+id/diaryStyleBlockText"
                     android:text="일기 스타일"
-                    style="@style/TextAppearance.App.Normal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </LinearLayout>
@@ -90,6 +90,7 @@
                 android:id="@+id/labsBlock"
                 style="@style/SettingsItemStyle" >
                 <TextView
+                    android:id="@+id/labsBlockText"
                     android:text="실험실"
                     style="@style/TextAppearance.App.Normal"
                     android:layout_width="match_parent"
@@ -100,6 +101,7 @@
                 android:id="@+id/accountBlock"
                 style="@style/SettingsItemStyle" >
                 <TextView
+                    android:id="@+id/accountBlockText"
                     android:text="계정 설정"
                     style="@style/TextAppearance.App.Normal"
                     android:layout_width="match_parent"
@@ -109,6 +111,7 @@
                 android:id="@+id/themeBlock"
                 style="@style/SettingsItemStyle">
                 <TextView
+                    android:id="@+id/themeBlockText"
                     android:text="테마 변경"
                     style="@style/TextAppearance.App.Normal"
                     android:layout_width="match_parent"

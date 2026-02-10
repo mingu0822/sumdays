@@ -4,10 +4,12 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import com.example.sumdays.databinding.ActivityProfileMainBinding
 import com.example.sumdays.settings.AccountSettingsActivity
 import com.example.sumdays.settings.DiaryStyleSettingsActivity
@@ -29,6 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.settings.ThemeSettingsActivity
+import com.example.sumdays.settings.prefs.ThemeState
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 
@@ -72,6 +75,8 @@ class ProfileActivity : AppCompatActivity() {
         // 닉네임 로드
         loadAndDisplayNickname()
 
+        applyThemeModeSettings()
+
         setSettingsBtnListener()
         navBarController = NavBarController(this)
         navBarController.setNavigationBar(NavSource.PROFILE)
@@ -79,6 +84,26 @@ class ProfileActivity : AppCompatActivity() {
         // 상태바, 네비게이션바 같은 색으로
         val rootView = findViewById<View>(R.id.setting_main_root)
         setupEdgeToEdge(rootView)
+    }
+
+    private fun applyThemeModeSettings(){
+        // Apply dark mode
+        ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+
+        if (ThemeState.isDarkMode){
+            binding.nickname.setTextColor(getColor(R.color.white))
+            binding.diaryStyleBlockText.setTextColor(getColor(R.color.white))
+            binding.labsBlockText.setTextColor(getColor(R.color.white))
+            binding.accountBlockText.setTextColor(getColor(R.color.white))
+            binding.themeBlockText.setTextColor(getColor(R.color.white))
+        }
+        else{
+            binding.nickname.setTextColor(getColor(R.color.white))
+            binding.diaryStyleBlockText.setTextColor(getColor(R.color.white))
+            binding.labsBlockText.setTextColor(getColor(R.color.white))
+            binding.accountBlockText.setTextColor(getColor(R.color.white))
+            binding.themeBlockText.setTextColor(getColor(R.color.white))
+        }
     }
 
     /**

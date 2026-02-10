@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="14dp"
-    android:background="@color/dark_background">
+    android:background="@color/background">
 
     <TextView
         android:id="@+id/tvDate"
@@ -14,7 +14,7 @@
         android:text="2026-02-04"
         android:textStyle="bold"
         android:textSize="14sp"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/tvIcons"
         app:layout_constraintTop_toTopOf="parent"/>
@@ -25,7 +25,7 @@
         android:layout_height="wrap_content"
         android:text="🙂 🌙"
         android:textSize="14sp"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
@@ -37,7 +37,7 @@
         android:ellipsize="end"
         android:text="일기 미리보기..."
         android:textSize="13sp"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:layout_marginTop="6dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -52,7 +52,7 @@
         android:text="키워드: 공부;카페;친구"
         android:textSize="12sp"
         android:layout_marginTop="6dp"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:alpha="0.75"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

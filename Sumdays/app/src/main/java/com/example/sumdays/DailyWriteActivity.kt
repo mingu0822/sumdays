@@ -33,12 +33,14 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import com.example.sumdays.daily.memo.MemoDragAndDropCallback
 import com.example.sumdays.audio.AudioRecorderHelper
 import android.util.Log
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import java.util.ArrayList
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
+import com.example.sumdays.settings.prefs.ThemeState
 import com.example.sumdays.utils.setupEdgeToEdge
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
@@ -106,6 +108,8 @@ class DailyWriteActivity : AppCompatActivity() {
         // UI 요소에 클릭 리스너 설정
         setupClickListeners()
 
+        applyThemeModeSettings()
+
         // 하단 네비게이션 바 설정
         navBarController = NavBarController(this)
         navBarController.setNavigationBar(NavSource.WRITE) {
@@ -118,6 +122,26 @@ class DailyWriteActivity : AppCompatActivity() {
 
         val rootView = findViewById<View>(R.id.write)
         setupEdgeToEdge(rootView)
+    }
+
+    private fun applyThemeModeSettings(){
+        // Apply dark mode
+        ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+
+        if (ThemeState.isDarkMode){
+            readDiaryButton.setTextColor(getColor(R.color.white))
+            memoInputEditText.setTextColor(getColor(R.color.black))
+            memoInputEditText.setHintTextColor(getColor(R.color.black))
+            sendIcon.setImageResource(R.drawable.ic_send_white)
+            micIcon.setImageResource(R.drawable.ic_mic_white)
+        }
+        else{
+            readDiaryButton.setTextColor(getColor(R.color.white))
+            memoInputEditText.setTextColor(getColor(R.color.black))
+            memoInputEditText.setHintTextColor(getColor(R.color.black))
+            sendIcon.setImageResource(R.drawable.ic_send_black)
+            micIcon.setImageResource(R.drawable.ic_mic_black)
+        }
     }
 
     private fun createAudioRecorderHelper(): AudioRecorderHelper {

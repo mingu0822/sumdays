@@ -86,7 +86,7 @@
                 android:id="@+id/send_icon"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:src="@drawable/ic_send"
+                android:src="@drawable/ic_send_white"
                 android:layout_marginStart="8dp"
                 android:contentDescription="메모 전송" />
 
@@ -99,7 +99,7 @@
                     android:id="@+id/mic_icon"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:src="@drawable/ic_mic"
+                    android:src="@drawable/ic_mic_white"
                     android:contentDescription="음성 입력"
                     android:visibility="visible" />
 

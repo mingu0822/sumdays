@@ -22,7 +22,8 @@ enum class NavSource {
     CALENDAR,
     WRITE,
     READ,
-    PROFILE
+    PROFILE,
+    SEARCH,
 }
 
 class NavBarController(
@@ -87,14 +88,16 @@ class NavBarController(
         }
 
         btnSearch.setOnClickListener {
-            activity.startActivity(
-                Intent(activity, SearchActivity::class.java)
-            )
-            activity.overridePendingTransition(0, 0)
+            if (from != NavSource.SEARCH) {
+                activity.startActivity(
+                    Intent(activity, SearchActivity::class.java)
+                )
+                activity.overridePendingTransition(0, 0)
+            }
         }
 
         btnInfo.setOnClickListener {
-            if(from != NavSource.PROFILE) {
+            if (from != NavSource.PROFILE) {
                 activity.startActivity(
                     Intent(activity, ProfileActivity::class.java)
                 )
