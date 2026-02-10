@@ -5,35 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0e1f41c8-f7db-4c93-abfb-5cdd3d2f2f7c" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Sumdays/.idea/deploymentTargetSelector.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/settings/prefs/ThemeState.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/bg_search_round_gray.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/ic_mic_black.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/ic_send_black.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/ic_setting_menu_gray.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/CalendarActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/CalendarActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/DailyWriteActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/DailyWriteActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/ProfileActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/ProfileActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/SearchActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/SearchActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/search/DailyEntrySearchAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/search/DailyEntrySearchAdapter.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/settings/AccountSettingsActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/settings/AccountSettingsActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/settings/DiaryStyleSettingsActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/settings/DiaryStyleSettingsActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/settings/LabsSettingsActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/settings/LabsSettingsActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/settings/ThemeSettingsActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/settings/ThemeSettingsActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/ui/component/NavBarController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/ui/component/NavBarController.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/bg_search_round.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/bg_search_round_white.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/ic_mic.png" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/ic_mic_white.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/ic_send.png" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/ic_send_white.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/ic_setting_menu.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/ic_setting_menu_black.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_calendar.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_calendar.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_daily_write.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_daily_write.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_profile_diary_style.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_profile_diary_style.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_profile_main.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_profile_main.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_search.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_search.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/item_daily_entry_search.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/item_daily_entry_search.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/item_search_result.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/DailyReadActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/DailyReadActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/SettingActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/SettingActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/sum_icon_text.png" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/sum_icon_text.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_daily_read.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_daily_read.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_setting_main.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_setting_main.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_sum.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_sum.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -66,6 +66,7 @@
                 style="@style/SettingsItemStyle">
 
                 <TextView
+                    android:id="@+id/notificationBlockText"
                     style="@style/TextAppearance.App.Normal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -78,6 +79,7 @@
                 style="@style/SettingsItemStyle">
 
                 <TextView
+                    android:id="@+id/tutorialBlockText"
                     style="@style/TextAppearance.App.Normal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -89,6 +91,7 @@
                 style="@style/SettingsItemStyle">
 
                 <TextView
+                    android:id="@+id/summaryBlockText"
                     style="@style/TextAppearance.App.Normal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

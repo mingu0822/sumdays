@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import com.example.sumdays.databinding.ActivitySettingMainBinding
 import com.example.sumdays.settings.NotificationSettingsActivity
 import androidx.work.OneTimeWorkRequestBuilder
@@ -18,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.settings.prefs.ThemeState
 
 class SettingActivity : AppCompatActivity() {
 
@@ -30,7 +32,7 @@ class SettingActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setSettingsBtnListener()
-
+        applyThemeModeSettings()
     }
     private fun setSettingsBtnListener() = with(binding) {
         // 세부 설정 페이지
@@ -58,6 +60,24 @@ class SettingActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener {
             finish() // 가장 직관적이고 확실한 방법입니다.
+        }
+    }
+
+    private fun applyThemeModeSettings(){
+        // Apply dark mode
+        ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+
+        if (ThemeState.isDarkMode){
+            binding.notificationBlockText.setTextColor(getColor(R.color.white))
+            binding.tutorialBlockText.setTextColor(getColor(R.color.white))
+            binding.summaryBlockText.setTextColor(getColor(R.color.white))
+            binding.btnBack.setImageResource(R.drawable.ic_arrow_back_white)
+        }
+        else{
+            binding.notificationBlockText.setTextColor(getColor(R.color.white))
+            binding.tutorialBlockText.setTextColor(getColor(R.color.white))
+            binding.summaryBlockText.setTextColor(getColor(R.color.white))
+            binding.btnBack.setImageResource(R.drawable.ic_arrow_back_black)
         }
     }
 }

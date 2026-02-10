@@ -22,6 +22,7 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -32,6 +33,7 @@ import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.databinding.ActivityDailyReadBinding
 import com.example.sumdays.image.GalleryItem
 import com.example.sumdays.image.PhotoGalleryAdapter
+import com.example.sumdays.settings.prefs.ThemeState
 import com.example.sumdays.utils.setupEdgeToEdge
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -76,10 +78,27 @@ class DailyReadActivity : AppCompatActivity() {
         setupClickListeners()
         observeEntry()
 
+        applyThemeModeSettings()
+
         val rootView = findViewById<View>(R.id.main)
         setupEdgeToEdge(rootView)
     }
 
+    private fun applyThemeModeSettings(){
+        // Apply dark mode
+        ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+
+        if (ThemeState.isDarkMode){
+            binding.editMemosButton.setTextColor(getColor(R.color.white))
+            binding.prevDayButton.setImageResource(R.drawable.ic_arrow_back_white)
+            binding.nextDayButton.setImageResource(R.drawable.ic_arrow_forward_white)
+        }
+        else{
+            binding.editMemosButton.setTextColor(getColor(R.color.white))
+            binding.prevDayButton.setImageResource(R.drawable.ic_arrow_back_black)
+            binding.nextDayButton.setImageResource(R.drawable.ic_arrow_forward_black)
+        }
+    }
 
     private fun initializeImagePicker() {
         pickImageLauncher =
