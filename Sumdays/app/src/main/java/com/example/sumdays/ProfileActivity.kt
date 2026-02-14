@@ -52,8 +52,9 @@ class ProfileActivity : AppCompatActivity() {
         userStatsPrefs = UserStatsPrefs(this)
         viewModel = ViewModelProvider(this)[DailyEntryViewModel::class.java]
 
+        updateAuthUI()
 
-        binding.logoutBlock.setOnClickListener {
+        binding.loginButton.setOnClickListener {
 
             lifecycleScope.launch(Dispatchers.IO) {
                 val db = AppDatabase.getDatabase(applicationContext)
@@ -72,8 +73,6 @@ class ProfileActivity : AppCompatActivity() {
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }
-        // 닉네임 로드
-        loadAndDisplayNickname()
 
         applyThemeModeSettings()
 
@@ -84,6 +83,25 @@ class ProfileActivity : AppCompatActivity() {
         // 상태바, 네비게이션바 같은 색으로
         val rootView = findViewById<View>(R.id.setting_main_root)
         setupEdgeToEdge(rootView)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 화면이 다시 보일 때마다 UI를 최신 상태로 갱신합니다.
+        updateAuthUI()
+    }
+    private fun updateAuthUI() {
+        val isLoggedIn = SessionManager.isLoggedIn()
+
+        if (isLoggedIn) {
+            // [로그인 된 상태]
+            binding.nickname.text = userStatsPrefs.getNickname()
+            binding.loginButton.text = "로그아웃"
+        } else {
+            // [비로그인 상태]
+            binding.nickname.text = "닉네임"
+            binding.loginButton.text = "로그인 / 회원가입"
+        }
     }
 
     private fun applyThemeModeSettings(){
@@ -106,13 +124,6 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * SharedPreferences에서 닉네임을 가져와 UI에 표시하는 함수
-     */
-    private fun loadAndDisplayNickname() {
-        val nickname = userStatsPrefs.getNickname()
-        binding.nickname.text = nickname
-    }
 
     private fun setSettingsBtnListener() = with(binding) {
         binding.diaryStyleBlock.setOnClickListener {
@@ -131,24 +142,5 @@ class ProfileActivity : AppCompatActivity() {
             startActivity(Intent(this@ProfileActivity, ThemeSettingsActivity::class.java))
         }
 
-        // backup 관련 버튼
-        backupBtn.setOnClickListener {
-            BackupScheduler.triggerManualBackup(applicationContext)
-            Toast.makeText(this@ProfileActivity, "수동 백업 완료", Toast.LENGTH_SHORT).show()
-        }
-
-        initBtn.setOnClickListener {
-            AlertDialog.Builder(this@ProfileActivity)
-                .setTitle("초기화 확인")
-                .setMessage("정말 초기화하시겠습니까? 초기화 동기화를 실행하면 서버에 백업되지 않은 데이터는 날아갑니다.")
-                .setPositiveButton("확인") { _, _ ->
-                    // 확인 버튼을 눌렀을 때만 실행
-                    val request = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
-                    WorkManager.getInstance(applicationContext).enqueue(request)
-                    Toast.makeText(this@ProfileActivity, "초기화 동기화를 시작합니다", Toast.LENGTH_SHORT).show()
-                }
-                .setNegativeButton("취소", null) // 취소 버튼을 누르면 다이얼로그 닫힘
-                .show()
-        }
     }
 }

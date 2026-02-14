@@ -43,30 +43,18 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
-                    <!-- 버튼 2 (오른쪽 끝) -->
-                    <ImageButton
-                        android:id="@+id/backupBtn"
-                        android:src="@drawable/ic_backup_done"
-                        android:background="@android:color/transparent"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:contentDescription="비밀번호 변경" />
-
-                    <!-- 버튼 1 (비번 변경 왼쪽에 배치) -->
-                    <ImageButton
-                        android:id="@+id/initBtn"
-                        android:src="@drawable/ic_backup_download"
-                        android:background="@android:color/transparent"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_toStartOf="@id/backupBtn"
-                        android:layout_marginEnd="12dp"
-                        android:layout_centerVertical="true"
-                        android:contentDescription="닉네임 수정" />
 
                 </RelativeLayout>
+                <Button
+                    android:id="@+id/loginButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="16dp"
+                    android:text="회원가입 / 로그인"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    app:cornerRadius="12dp" />
             </LinearLayout>
 
             <!-- 구분선 -->
@@ -114,16 +102,6 @@
                     android:id="@+id/themeBlockText"
                     android:text="테마 변경"
                     style="@style/TextAppearance.App.Normal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-            <LinearLayout
-                android:id="@+id/logoutBlock"
-                style="@style/SettingsItemStyle">
-                <TextView
-                    android:text="로그아웃"
-                    style="@style/TextAppearance.App.Normal"
-                    android:textColor="@color/text_highlight_red"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </LinearLayout>
