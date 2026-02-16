@@ -51,7 +51,7 @@ class LabsSettingsActivityTest {
         val act = Robolectric.buildActivity(LabsSettingsActivity::class.java)
             .setup().get()
 
-        val slider = act.findViewById<Slider>(R.id.temperature_slider)
+        val slider = act.findViewById<Slider>(R.id.length_level_slider)
 
         assertEquals(0.5f, slider.value)
     }
@@ -61,8 +61,8 @@ class LabsSettingsActivityTest {
         val activity = Robolectric.buildActivity(LabsSettingsActivity::class.java)
             .setup().get()
 
-        val slider = activity.findViewById<Slider>(R.id.temperature_slider)
-        val example = activity.findViewById<TextView>(R.id.temperature_example_text)
+        val slider = activity.findViewById<Slider>(R.id.length_level_slider)
+        val example = activity.findViewById<TextView>(R.id.length_level_example_text)
 
         slider.value = 0.2f
 
