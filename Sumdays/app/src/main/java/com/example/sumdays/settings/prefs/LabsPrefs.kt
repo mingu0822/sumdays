@@ -12,7 +12,7 @@ object LabsPrefs {
 
     private const val DEFAULT_TEMPERATURE = 0.5f
     private const val DEFAULT_ADVANCED_FLAG = false
-    private const val DEFAULT_LENGTH_LEVEL = 0
+    private const val DEFAULT_LENGTH_LEVEL = 1
 
     fun setTemperature(context: Context, value: Float) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
