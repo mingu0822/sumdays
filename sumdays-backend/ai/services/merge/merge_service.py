@@ -124,12 +124,14 @@ Task:
 Merge the base memo and the piece memo into a single diary paragraph that follows the specified style and length.
 """
 
-    base_tokens = len(memo_body + memo_piece) // 2
-    max_tokens = {
-        0: base_tokens + 50,
-        1: base_tokens + 150,
-        2: base_tokens + 300,
-    }.get(length_level, base_tokens + 150)
+    input_text_len = len(memo_body + memo_piece)
+    token_multiplier = {
+        0: 1.5, 
+        1: 3.0, 
+        2: 5.0, 
+    }.get(length_level, 3.0)
+
+    max_tokens = int(max(200, input_text_len * token_multiplier + 200))
 
     stream = client.chat.completions.create(
         model=os.getenv("GPT_MODEL", "gpt-4.1-nano"),
