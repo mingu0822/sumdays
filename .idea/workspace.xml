@@ -5,12 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0e1f41c8-f7db-4c93-abfb-5cdd3d2f2f7c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/DailyReadActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/DailyReadActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/SettingActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/SettingActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/sum_icon_text.png" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/drawable/sum_icon_text.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_daily_read.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_daily_read.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_setting_main.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_setting_main.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_sum.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_sum.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/statistics/StreakPrefs.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_2026-02-04__3_44__Changes_1.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/DailySumActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/DailySumActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/StatisticsActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/StatisticsActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/network/ApiClient.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/network/ApiClient.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/test/java/com/example/sumdays/StatisticsActivityTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/test/java/com/example/sumdays/StatisticsActivityTest.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
