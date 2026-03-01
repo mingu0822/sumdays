@@ -39,6 +39,19 @@
     <color name="text_color_hint">#888888</color>
     <color name="text_highlight_red">#CC0000</color>
 
+    <color name="btn_blue_primary">#007AFF</color>
+
+    <color name="btn_blue_navy">#1A237E</color>
+
+    <color name="btn_blue_light">#4FC3F7</color>
+
+    <color name="sea_clear_aqua">#00BCD4</color>
+
+    <color name="sea_emerald">#009688</color>
+
+    <color name="sea_maldives">#4DD0E1</color>
+
+
     <!-- res/values/colors.xml (라이트용) -->
     <color name="background">#FFFFFF</color>
     <color name="textColor">#000000</color>
