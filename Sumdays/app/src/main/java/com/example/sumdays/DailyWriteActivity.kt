@@ -346,6 +346,7 @@ class DailyWriteActivity : AppCompatActivity() {
             intent.putExtra("date", date)
             startActivity(intent)
             overridePendingTransition(0, 0)
+            finish()
         }
 
         sendIcon.setOnClickListener {
