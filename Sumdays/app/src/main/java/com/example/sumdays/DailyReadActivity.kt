@@ -258,6 +258,13 @@ class DailyReadActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+        // 말풍선 on/off
+        binding.foxFaceImage.setOnClickListener {
+            if (binding.commentText.visibility == View.VISIBLE) {
+                binding.commentText.visibility = View.GONE
+            } else {
+                binding.commentText.visibility = View.VISIBLE
+            }        }
     }
 
     /**

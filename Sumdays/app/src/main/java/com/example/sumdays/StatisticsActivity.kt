@@ -177,6 +177,14 @@ class StatisticsActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        StreakPrefs.refreshOnOpen(this)              // 만료 체크
+        val streak = StreakPrefs.getStreak(this)     // 최신 streak 읽기
+        tvStrikeCount.text = "🔥: ${streak}"
+    }
+
     private fun showLoading(isLoading: Boolean) {
         runOnUiThread {
             if (isLoading) {
@@ -234,15 +242,15 @@ class StatisticsActivity : AppCompatActivity() {
         tvGrapeCount.text = "🍇: ${grapeCount}"
     }
 
-        private fun calculateAndDisplayStreak() {
+    private fun calculateAndDisplayStreak() {
         // CoroutineScope를 사용하여 백그라운드 (IO 스레드)에서 DB 접근 및 계산 수행
         CoroutineScope(Dispatchers.IO).launch {
 
             // 1. Room에서 모든 작성 날짜(String)를 가져옵니다.
             val allDates = viewModel.getAllWrittenDates()
 
-            // 2. Strike 횟수를 계산합니다.
-            val streak = calculateCurrentStreak(allDates)
+            // 2. Strike 횟수를 가져옵니다.
+            val streak = StreakPrefs.getStreak(this@StatisticsActivity)
 
             // 3. Main 스레드에서 UI 업데이트
             withContext(Dispatchers.Main) {
@@ -251,33 +259,6 @@ class StatisticsActivity : AppCompatActivity() {
         }
     }
 
-        fun calculateCurrentStreak(dates: List<String>): Int {
-        if (dates.isEmpty()) return 0
-
-        // 날짜 문자열을 LocalDate 객체로 변환하고 중복 제거, 내림차순 정렬
-        val uniqueDates = dates.toSet()
-            .map { LocalDate.parse(it) }
-            .sortedDescending()
-
-        var currentStreak = 0
-        var currentDate = LocalDate.now()
-        var isTodayWritten = uniqueDates.any { it.isEqual(currentDate) }
-
-        // 오늘 날짜부터 시작하여 연속성 검사
-        while (true) {
-            if (uniqueDates.contains(currentDate)) {
-                currentStreak++
-            } else if (!isTodayWritten && currentDate.isEqual(LocalDate.now())) {
-                // 오늘 날짜이고, 오늘 일기가 작성되지 않았다면 스킵하고 어제로 이동
-            } else {
-                // 연속성이 끊어지면 종료
-                break
-            }
-            currentDate = currentDate.minusDays(1) // 이전 날짜로 이동
-        }
-
-        return currentStreak
-    }
 
     private fun handleScrollForBackground(bg1: ImageView, bg2: ImageView, dy: Int, rvWidth: Int) {
         // ---------- 배경 전환용 스크롤 (위로 올릴수록 값 증가) ----------

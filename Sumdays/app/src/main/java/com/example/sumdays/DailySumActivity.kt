@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.daily.memo.Memo
 import com.example.sumdays.daily.memo.MemoMergeAdapter
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import com.example.sumdays.daily.diary.AnalysisRepository
 import kotlinx.coroutines.launch
 import androidx.activity.viewModels
@@ -170,7 +171,18 @@ class DailySumActivity : AppCompatActivity() {
         finish()
     }
 
+    private fun getTodayDate(): String{
+        val today = LocalDate.now()
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val todayStr = today.format(formatter)
+        return todayStr
+    }
+
     private suspend fun saveDiary(mergedResult: String){
+        val todayStr = getTodayDate()
+        // 일기 작성 연속일 수 계산
+        StreakPrefs.onDiarySaved(this, todayStr)
+
         viewModel.updateEntry(date = date, diary = mergedResult)
         AnalysisRepository.requestAnalysis(date, mergedResult, viewModel)
     }

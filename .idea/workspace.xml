@@ -4,7 +4,20 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< image_insert
     <list default="true" id="0e1f41c8-f7db-4c93-abfb-5cdd3d2f2f7c" name="Changes" comment="" />
+=======
+    <list default="true" id="0e1f41c8-f7db-4c93-abfb-5cdd3d2f2f7c" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/statistics/StreakPrefs.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_2026-02-04__3_44__Changes_1.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/DailySumActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/DailySumActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/StatisticsActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/StatisticsActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/network/ApiClient.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/network/ApiClient.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/test/java/com/example/sumdays/StatisticsActivityTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/test/java/com/example/sumdays/StatisticsActivityTest.kt" afterDir="false" />
+    </list>
+>>>>>>> main
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
