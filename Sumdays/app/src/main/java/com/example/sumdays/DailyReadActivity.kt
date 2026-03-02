@@ -68,32 +68,30 @@ class DailyReadActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityDailyReadBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         navBarController = NavBarController(this)
         navBarController.setNavigationBar(NavSource.READ)
 
         initializeImagePicker()
-
         initializeDate()
         setupPhotoGallery()
         setupClickListeners()
         observeEntry()
-
         applyThemeModeSettings()
 
         val rootView = findViewById<View>(R.id.main)
         setupEdgeToEdge(rootView)
     }
 
-    private fun applyThemeModeSettings(){
-        // Apply dark mode
-        ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+    private fun applyThemeModeSettings() {
+        ThemeState.isDarkMode =
+            (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
 
-        if (ThemeState.isDarkMode){
+        if (ThemeState.isDarkMode) {
             binding.editMemosButton.setTextColor(getColor(R.color.white))
             binding.prevDayButton.setImageResource(R.drawable.ic_arrow_back_white)
             binding.nextDayButton.setImageResource(R.drawable.ic_arrow_forward_white)
-        }
-        else{
+        } else {
             binding.editMemosButton.setTextColor(getColor(R.color.white))
             binding.prevDayButton.setImageResource(R.drawable.ic_arrow_back_black)
             binding.nextDayButton.setImageResource(R.drawable.ic_arrow_forward_black)
@@ -122,13 +120,11 @@ class DailyReadActivity : AppCompatActivity() {
                     MediaStore.Images.Media.getBitmap(contentResolver, uri)
                 }
 
-                // 2. 리사이징 (DB 용량 초과 방지를 위해 더 작게 축소)
-                // 기존 800 -> 400px로 변경 (용량 대폭 감소)
+                // 2. 리사이징 (DB 용량 초과 방지를 위해 축소)
                 val scaledBitmap = resizeBitmap(bitmap, 400)
 
                 // 3. 압축 및 Base64 변환
                 val outputStream = ByteArrayOutputStream()
-                // 화질을 50%로 설정하여 용량 최소화
                 scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
 
                 val byteArray = outputStream.toByteArray()
@@ -141,7 +137,11 @@ class DailyReadActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@DailyReadActivity, "이미지 변환 실패: 용량이 너무 큽니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@DailyReadActivity,
+                        "이미지 변환 실패: 용량이 너무 큽니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
@@ -165,7 +165,7 @@ class DailyReadActivity : AppCompatActivity() {
     private fun addPhoto(base64String: String) {
         currentPhotoList.add(base64String)
         updatePhotoGalleryUI()
-        savePhotoUrls() // DB에 저장
+        savePhotoUrls()
     }
 
     private fun updatePhotoGalleryUI() {
@@ -197,7 +197,7 @@ class DailyReadActivity : AppCompatActivity() {
             binding.nextDayButton.visibility = View.INVISIBLE
             binding.nextDayButton.isEnabled = false
         } else {
-            binding.dateText.text = "${displayFormatter.format(currentDate.time)}"
+            binding.dateText.text = displayFormatter.format(currentDate.time)
             binding.nextDayButton.visibility = View.VISIBLE
             binding.nextDayButton.isEnabled = true
         }
@@ -210,14 +210,14 @@ class DailyReadActivity : AppCompatActivity() {
         binding.commentText.text = entry?.aiComment ?: ""
 
         val score = entry?.emotionScore ?: 0.0
-        val FoxFaceResId = when {
+        val foxFaceResId = when {
             score >= 0.6 -> R.drawable.dailyread_fox_face_level_5
             score >= 0.2 -> R.drawable.dailyread_fox_face_level_4
             score >= -0.2 -> R.drawable.dailyread_fox_face_level_3
             score >= -0.6 -> R.drawable.dailyread_fox_face_level_2
             else -> R.drawable.dailyread_fox_face_level_1
         }
-        binding.foxFaceImage.setImageResource(FoxFaceResId)
+        binding.foxFaceImage.setImageResource(foxFaceResId)
 
         // DB에서 불러온 String을 Base64 리스트로 복구
         currentPhotoList.clear()
@@ -236,18 +236,22 @@ class DailyReadActivity : AppCompatActivity() {
             if (dateString != null) {
                 repoKeyFormatter.parse(dateString)?.let { currentDate.time = it }
             }
-        } catch (e: Exception) { /* ... */ }
+        } catch (_: Exception) {
+        }
     }
 
     private fun setupClickListeners() {
         binding.dateText.setOnClickListener { showDatePickerDialog() }
         binding.prevDayButton.setOnClickListener { changeDate(-1) }
         binding.nextDayButton.setOnClickListener { changeDate(1) }
+
         binding.editInplaceButton.setOnClickListener { toggleEditMode(true) }
+
         binding.saveButton.setOnClickListener {
             val updatedContent = binding.diaryContentEditText.text.toString()
             showReanalysisDialog(updatedContent)
         }
+
         binding.editMemosButton.setOnClickListener {
             val intent = Intent(this, DailyWriteActivity::class.java)
             intent.putExtra("date", repoKeyFormatter.format(currentDate.time))
@@ -263,20 +267,31 @@ class DailyReadActivity : AppCompatActivity() {
             }        }
     }
 
+    /**
+     * 사진 갤러리 RecyclerView + Adapter 설정
+     */
     private fun setupPhotoGallery() {
         photoGalleryAdapter = PhotoGalleryAdapter(
             onPhotoClick = { photoBase64 ->
                 showPhotoDialog(photoBase64)
             },
-            onPhotoLongClick = { position ->
-                showDeleteConfirmDialog(position)
-            },
+            // onPhotoLongClick는 안 쓰고, 삭제는 오른쪽 위 버튼으로 처리
             onAddClick = {
-                pickImageLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                pickImageLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
+            },
+            onDeleteClick = { position ->
+                showDeleteConfirmDialog(position)
             }
         )
+
         binding.photoGalleryRecyclerView.apply {
-            layoutManager = LinearLayoutManager(this@DailyReadActivity, LinearLayoutManager.HORIZONTAL, false)
+            layoutManager = LinearLayoutManager(
+                this@DailyReadActivity,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
             adapter = photoGalleryAdapter
         }
     }
@@ -304,9 +319,10 @@ class DailyReadActivity : AppCompatActivity() {
 
     private fun showPhotoDialog(photoBase64: String) {
         val dialog = Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
-        val imageView = ImageView(this)
-        imageView.setBackgroundColor(getColor(android.R.color.black))
-        imageView.scaleType = ImageView.ScaleType.FIT_CENTER
+        val imageView = ImageView(this).apply {
+            setBackgroundColor(getColor(android.R.color.black))
+            scaleType = ImageView.ScaleType.FIT_CENTER
+        }
 
         try {
             val imageBytes = Base64.decode(photoBase64, Base64.DEFAULT)
@@ -326,10 +342,13 @@ class DailyReadActivity : AppCompatActivity() {
         val year = currentDate.get(Calendar.YEAR)
         val month = currentDate.get(Calendar.MONTH)
         val day = currentDate.get(Calendar.DAY_OF_MONTH)
-        val dateSetListener = DatePickerDialog.OnDateSetListener { _, selectedYear, selectedMonth, selectedDayOfMonth ->
-            currentDate.set(selectedYear, selectedMonth, selectedDayOfMonth)
-            observeEntry()
-        }
+
+        val dateSetListener =
+            DatePickerDialog.OnDateSetListener { _, selectedYear, selectedMonth, selectedDayOfMonth ->
+                currentDate.set(selectedYear, selectedMonth, selectedDayOfMonth)
+                observeEntry()
+            }
+
         val datePickerDialog = DatePickerDialog(this, dateSetListener, year, month, day)
         datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
         datePickerDialog.show()
@@ -349,10 +368,16 @@ class DailyReadActivity : AppCompatActivity() {
 
     private fun isAfterToday(cal: Calendar): Boolean {
         val today = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
         }
         val compareCal = (cal.clone() as Calendar).apply {
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
         }
         return compareCal.equals(today) || compareCal.after(today)
     }
@@ -382,7 +407,9 @@ class DailyReadActivity : AppCompatActivity() {
             .setTitle("AI 재분석")
             .setMessage("일기 내용을 수정했습니다. AI 코멘트와 분석 결과도 새로고침할까요?")
             .setPositiveButton("예 (새로 분석)") { dialog, _ ->
-                lifecycleScope.launch { AnalysisRepository.requestAnalysis(dateKey, updatedContent, viewModel) }
+                lifecycleScope.launch {
+                    AnalysisRepository.requestAnalysis(dateKey, updatedContent, viewModel)
+                }
                 toggleEditMode(false)
                 dialog.dismiss()
             }

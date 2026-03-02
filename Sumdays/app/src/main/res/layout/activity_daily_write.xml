@@ -1,184 +1,239 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/write"
-    android:background="@color/background"
     tools:context=".DailyWriteActivity">
 
-
+    <!-- ① 메인 화면 전체 -->
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/header_layout"
+        android:id="@+id/write"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp">
+        android:layout_height="match_parent"
+        android:background="@color/background">
 
-        <TextView
-            android:id="@+id/date_text_view"
-            android:layout_width="wrap_content"
+        <!-- 상단 날짜 + 일기 보기 버튼 영역 -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/header_layout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="2025-10-02"
-            android:textSize="@dimen/text_size_M"
-            android:textStyle="bold"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <Button
-            android:id="@+id/read_diary_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="일기 보기"
-            android:backgroundTint="@color/btn_violet"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/memo_list_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="12dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="12dp"
-        android:padding="8dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@id/input_area"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/header_layout" />
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/input_area"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/memo_list_view"
-        app:layout_constraintBottom_toTopOf="@id/bottom_buttons_layout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp">
-
-        <!-- 아이콘 묶음 -->
-        <LinearLayout
-            android:id="@+id/input_actions"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
-
-            <ImageView
-                android:id="@+id/send_icon"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:src="@drawable/ic_send_white"
-                android:layout_marginStart="8dp"
-                android:contentDescription="메모 전송" />
-
-            <FrameLayout
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_marginStart="8dp">
-
-                <ImageView
-                    android:id="@+id/mic_icon"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/ic_mic_white"
-                    android:contentDescription="음성 입력"
-                    android:visibility="visible" />
-
-                <ImageView
-                    android:id="@+id/stop_icon"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/ic_stop_recording"
-                    android:contentDescription="녹음 중지"
-                    android:visibility="gone"
-                    tools:visibility="visible"/>
-            </FrameLayout>
-            -->
-        </LinearLayout>
-
-        <!-- 입력창: 아이콘 묶음의 왼쪽까지 꽉 채움 -->
-        <EditText
-            android:id="@+id/memo_input_edittext"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:background="@drawable/dailywrite_rounded_edittext_background"
-            android:hint="하루를 기록해보세요"
-            android:padding="12dp"
-            android:minHeight="48dp"
-            android:maxLines="3"
-            android:inputType="textMultiLine"
-            android:scrollbars="none"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/input_actions"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginEnd="12dp" />
+            app:layout_constraintEnd_toEndOf="parent">
 
-        <LinearLayout
-            android:id="@+id/audio_wave_view"
+            <TextView
+                android:id="@+id/date_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2025-10-02"
+                android:textSize="@dimen/text_size_M"
+                android:textStyle="bold"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <Button
+                android:id="@+id/read_diary_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="일기 보기"
+                android:backgroundTint="@color/btn_violet"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- 메모 리스트 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/memo_list_view"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:background="@drawable/dailywrite_rounded_edittext_background"
-            android:visibility="gone"
-            app:layout_constraintStart_toStartOf="@id/memo_input_edittext"
-            app:layout_constraintEnd_toEndOf="@id/memo_input_edittext"
-            app:layout_constraintTop_toTopOf="@id/memo_input_edittext"
-            app:layout_constraintBottom_toBottomOf="@id/memo_input_edittext"
-            tools:visibility="visible">
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="12dp"
+            android:padding="8dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintTop_toBottomOf="@id/header_layout"
+            app:layout_constraintBottom_toTopOf="@id/input_area"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-            <View
-                android:id="@+id/wave_bar_1"
-                android:layout_width="4dp"
-                android:layout_height="24dp"
-                android:layout_marginHorizontal="2dp"
-                android:background="@color/green_light"/>
+        <!-- 입력 영역 -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/input_area"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            app:layout_constraintTop_toBottomOf="@id/memo_list_view"
+            app:layout_constraintBottom_toTopOf="@id/bottom_buttons_layout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
-            <View
-                android:id="@+id/wave_bar_2"
-                android:layout_width="4dp"
-                android:layout_height="16dp"
-                android:layout_marginHorizontal="2dp"
-                android:background="@color/green_light" />
-            <View
-                android:id="@+id/wave_bar_3"
-                android:layout_width="4dp"
-                android:layout_height="24dp"
-                android:layout_marginHorizontal="2dp"
-                android:background="@color/green_light"/>
+            <!-- 아이콘 묶음 (전송 / 마이크 / 이미지) -->
+            <LinearLayout
+                android:id="@+id/input_actions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
 
-        </LinearLayout>
+                <ImageView
+                    android:id="@+id/send_icon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/ic_send_white"
+                    android:contentDescription="메모 전송" />
+
+                <FrameLayout
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginStart="8dp">
+
+                    <ImageView
+                        android:id="@+id/mic_icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/ic_mic_white"
+                        android:contentDescription="음성 입력"
+                        android:visibility="visible" />
+
+                    <ImageView
+                        android:id="@+id/stop_icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/ic_stop_recording"
+                        android:contentDescription="녹음 중지"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </FrameLayout>
+
+                <ImageView
+                    android:id="@+id/image_icon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/ic_image_black"
+                    android:contentDescription="이미지 추가" />
+            </LinearLayout>
+
+            <!-- 텍스트 입력창 -->
+            <EditText
+                android:id="@+id/memo_input_edittext"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/dailywrite_rounded_edittext_background"
+                android:hint="하루를 기록해보세요"
+                android:padding="12dp"
+                android:minHeight="48dp"
+                android:maxLines="3"
+                android:inputType="textMultiLine"
+                android:scrollbars="none"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/input_actions"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <!-- 오디오 웨이브 뷰 (녹음 중 표시) -->
+            <LinearLayout
+                android:id="@+id/audio_wave_view"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:background="@drawable/dailywrite_rounded_edittext_background"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="@id/memo_input_edittext"
+                app:layout_constraintEnd_toEndOf="@id/memo_input_edittext"
+                app:layout_constraintTop_toTopOf="@id/memo_input_edittext"
+                app:layout_constraintBottom_toBottomOf="@id/memo_input_edittext"
+                tools:visibility="visible">
+
+                <View
+                    android:id="@+id/wave_bar_1"
+                    android:layout_width="4dp"
+                    android:layout_height="24dp"
+                    android:layout_marginHorizontal="2dp"
+                    android:background="@color/green_light"/>
+
+                <View
+                    android:id="@+id/wave_bar_2"
+                    android:layout_width="4dp"
+                    android:layout_height="16dp"
+                    android:layout_marginHorizontal="2dp"
+                    android:background="@color/green_light" />
+
+                <View
+                    android:id="@+id/wave_bar_3"
+                    android:layout_width="4dp"
+                    android:layout_height="24dp"
+                    android:layout_marginHorizontal="2dp"
+                    android:background="@color/green_light"/>
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- 하단 네비게이션 바 -->
+        <include
+            android:id="@+id/bottom_buttons_layout"
+            layout="@layout/include_navigation_bar"
+            android:layout_width="0dp"
+            android:layout_height="110dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <include
-        android:id="@+id/bottom_buttons_layout"
-        layout="@layout/include_navigation_bar"
-        android:layout_width="0dp"
-        android:layout_height="110dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        />
+    <!-- ② 오른쪽 사진 패널 (드로어) -->
+    <FrameLayout
+        android:id="@+id/image_drawer"
+        android:layout_width="320dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@android:color/transparent">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/bg_image_drawer_rounded"
+            android:orientation="vertical"
+            android:elevation="8dp"
+            android:padding="16dp">
 
+            <TextView
+                android:id="@+id/image_panel_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="오늘 일기 사진"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <!-- 사진 그리드: PhotoGalleryAdapter (Photo + Add 셀) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/image_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:paddingTop="4dp"
+                tools:listitem="@layout/item_photo_gallery" />
+        </LinearLayout>
+    </FrameLayout>
+
+</androidx.drawerlayout.widget.DrawerLayout>

@@ -2,8 +2,8 @@
 <!-- item_photo_gallery.xml과 크기는 동일하게 맞춥니다. -->
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="80dp"
-    android:layout_height="80dp"
+    android:layout_width="120dp"
+    android:layout_height="120dp"
     android:layout_marginEnd="8dp"
     app:cardBackgroundColor="@color/dark_item_photo_background"
     app:cardCornerRadius="8dp">
