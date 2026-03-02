@@ -32,7 +32,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <!-- 닉네임 (왼쪽 정렬) -->
                     <TextView
                         android:id="@+id/nickname"
                         android:text="닉네임"
@@ -43,6 +42,13 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
+                    <Button
+                        android:id="@+id/accountBlock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:text="계정 설정" />
 
                 </RelativeLayout>
                 <Button
@@ -86,25 +92,17 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/accountBlock"
-                style="@style/SettingsItemStyle" >
-                <TextView
-                    android:id="@+id/accountBlockText"
-                    android:text="계정 설정"
-                    style="@style/TextAppearance.App.Normal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-            <LinearLayout
-                android:id="@+id/themeBlock"
+                android:id="@+id/summaryBlock"
                 style="@style/SettingsItemStyle">
+
                 <TextView
-                    android:id="@+id/themeBlockText"
-                    android:text="테마 변경"
+                    android:id="@+id/summaryBlockText"
                     style="@style/TextAppearance.App.Normal"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:text="주간통계 수동 추가" />
             </LinearLayout>
+
 
 
         </LinearLayout>

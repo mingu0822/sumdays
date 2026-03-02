@@ -19,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.settings.ThemeSettingsActivity
 import com.example.sumdays.settings.prefs.ThemeState
 
 class SettingActivity : AppCompatActivity() {
@@ -44,18 +45,8 @@ class SettingActivity : AppCompatActivity() {
             startActivity(Intent(this@SettingActivity, TutorialActivity::class.java))
         }
 
-        binding.summaryBlock.setOnClickListener {
-            val inputData = workDataOf("IS_TEST_MODE" to false) // true로 설정하면 더미 데이터 생성
-
-            // 2. OneTimeWorkRequest 생성 (즉시 실행)
-            val workRequest = OneTimeWorkRequestBuilder<WeekSummaryWorker>()
-                .setInputData(inputData)
-                .build()
-
-            // 3. WorkManager에 큐 삽입
-            WorkManager.getInstance(applicationContext).enqueue(workRequest)
-
-            Toast.makeText(this@SettingActivity, "주간 통계 생성 요청됨", Toast.LENGTH_SHORT).show()
+        binding.themeBlock.setOnClickListener {
+            startActivity(Intent(this@SettingActivity, ThemeSettingsActivity::class.java))
         }
 
         binding.btnBack.setOnClickListener {
@@ -70,13 +61,13 @@ class SettingActivity : AppCompatActivity() {
         if (ThemeState.isDarkMode){
             binding.notificationBlockText.setTextColor(getColor(R.color.white))
             binding.tutorialBlockText.setTextColor(getColor(R.color.white))
-            binding.summaryBlockText.setTextColor(getColor(R.color.white))
+            binding.themeBlockText.setTextColor(getColor(R.color.white))
             binding.btnBack.setImageResource(R.drawable.ic_arrow_back_white)
         }
         else{
             binding.notificationBlockText.setTextColor(getColor(R.color.white))
             binding.tutorialBlockText.setTextColor(getColor(R.color.white))
-            binding.summaryBlockText.setTextColor(getColor(R.color.white))
+            binding.themeBlockText.setTextColor(getColor(R.color.white))
             binding.btnBack.setImageResource(R.drawable.ic_arrow_back_black)
         }
     }

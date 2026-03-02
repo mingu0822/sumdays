@@ -112,15 +112,15 @@ class ProfileActivity : AppCompatActivity() {
             binding.nickname.setTextColor(getColor(R.color.white))
             binding.diaryStyleBlockText.setTextColor(getColor(R.color.white))
             binding.labsBlockText.setTextColor(getColor(R.color.white))
-            binding.accountBlockText.setTextColor(getColor(R.color.white))
-            binding.themeBlockText.setTextColor(getColor(R.color.white))
+            // binding.accountBlockText.setTextColor(getColor(R.color.white))
+            binding.summaryBlockText.setTextColor(getColor(R.color.white))
         }
         else{
             binding.nickname.setTextColor(getColor(R.color.white))
             binding.diaryStyleBlockText.setTextColor(getColor(R.color.white))
             binding.labsBlockText.setTextColor(getColor(R.color.white))
-            binding.accountBlockText.setTextColor(getColor(R.color.white))
-            binding.themeBlockText.setTextColor(getColor(R.color.white))
+            // binding.accountBlockText.setTextColor(getColor(R.color.white))
+            binding.summaryBlockText.setTextColor(getColor(R.color.white))
         }
     }
 
@@ -138,9 +138,20 @@ class ProfileActivity : AppCompatActivity() {
             startActivity(Intent(this@ProfileActivity, LabsSettingsActivity::class.java))
         }
 
-        binding.themeBlock.setOnClickListener {
-            startActivity(Intent(this@ProfileActivity, ThemeSettingsActivity::class.java))
+        binding.summaryBlock.setOnClickListener {
+            val inputData = workDataOf("IS_TEST_MODE" to false) // true로 설정하면 더미 데이터 생성
+
+            // 2. OneTimeWorkRequest 생성 (즉시 실행)
+            val workRequest = OneTimeWorkRequestBuilder<WeekSummaryWorker>()
+                .setInputData(inputData)
+                .build()
+
+            // 3. WorkManager에 큐 삽입
+            WorkManager.getInstance(applicationContext).enqueue(workRequest)
+
+            Toast.makeText(this@ProfileActivity, "주간 통계 생성 요청됨", Toast.LENGTH_SHORT).show()
         }
+
 
     }
 }
