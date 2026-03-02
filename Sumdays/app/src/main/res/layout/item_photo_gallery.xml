@@ -1,9 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/gallery_image"
-    android:layout_width="80dp"
-    android:layout_height="80dp"
-    android:layout_marginEnd="8dp"
-    android:scaleType="centerCrop"
-    android:background="@color/dark_item_photo_background"
-    android:contentDescription="일기 사진" />
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <!-- 사진 -->
+    <ImageView
+        android:id="@+id/gallery_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:background="@color/dark_item_photo_background"
+        android:contentDescription="일기 사진" />
+
+    <!-- 오른쪽 위 삭제 버튼 -->
+    <ImageView
+        android:id="@+id/btn_delete_image"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="6dp"
+        android:padding="4dp"
+        android:src="@drawable/ic_image_delete"
+        android:contentDescription="사진 삭제" />
+
+</FrameLayout>

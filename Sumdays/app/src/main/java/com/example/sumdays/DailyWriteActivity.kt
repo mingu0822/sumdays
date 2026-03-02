@@ -6,8 +6,11 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
+import android.util.Base64
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
@@ -17,73 +20,101 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.sumdays.daily.memo.Memo
-import com.example.sumdays.daily.memo.MemoAdapter
-import com.example.sumdays.daily.memo.MemoViewModel
-import com.example.sumdays.daily.memo.MemoViewModelFactory
-import androidx.recyclerview.widget.ItemTouchHelper
-import com.example.sumdays.daily.memo.MemoDragAndDropCallback
-import com.example.sumdays.audio.AudioRecorderHelper
-import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
-import java.util.ArrayList
+import androidx.core.view.GravityCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.example.sumdays.audio.AudioRecorderHelper
+import com.example.sumdays.daily.memo.Memo
+import com.example.sumdays.daily.memo.MemoAdapter
+import com.example.sumdays.daily.memo.MemoDragAndDropCallback
+import com.example.sumdays.daily.memo.MemoViewModel
+import com.example.sumdays.daily.memo.MemoViewModelFactory
+import com.example.sumdays.data.viewModel.DailyEntryViewModel
+import com.example.sumdays.image.GalleryItem
+import com.example.sumdays.image.PhotoGalleryAdapter
+import com.example.sumdays.settings.prefs.ThemeState
+import com.example.sumdays.ui.component.NavBarController
+import com.example.sumdays.ui.component.NavSource
+import com.example.sumdays.utils.setupEdgeToEdge
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import com.example.sumdays.data.viewModel.DailyEntryViewModel
-import com.example.sumdays.settings.prefs.ThemeState
-import com.example.sumdays.utils.setupEdgeToEdge
-import com.example.sumdays.ui.component.NavBarController
-import com.example.sumdays.ui.component.NavSource
 
-// 일기 작성 및 수정 화면을 담당하는 액티비티
 class DailyWriteActivity : AppCompatActivity() {
+
     private lateinit var date: String
     private lateinit var memoAdapter: MemoAdapter
 
-    // UI 뷰 변수들
+    // UI 뷰들
     private lateinit var dateTextView: TextView
     private lateinit var memoListView: RecyclerView
     private lateinit var memoInputEditText: EditText
     private lateinit var sendIcon: ImageView
-
     private lateinit var micIcon: ImageView
     private lateinit var stopIcon: ImageView
-
+    private lateinit var imageIcon: ImageView
     private lateinit var audioWaveView: LinearLayout
     private lateinit var waveBar1: View
     private lateinit var waveBar2: View
     private lateinit var waveBar3: View
-
-    private lateinit var audioRecorderHelper: AudioRecorderHelper
     private lateinit var readDiaryButton: Button
     private lateinit var navBarController: NavBarController
+    private lateinit var audioRecorderHelper: AudioRecorderHelper
 
+    // 오른쪽 드로어 & 이미지 갤러리
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var imageRecyclerView: RecyclerView
+    private lateinit var photoGalleryAdapter: PhotoGalleryAdapter
+    private val photoUrls = mutableListOf<String>()   // 실제 사진 URI(or Base64) 목록
 
     private val memoViewModel: MemoViewModel by viewModels {
         MemoViewModelFactory(
             (application as MyApplication).repository
         )
     }
-
     private val dailyEntryViewModel: DailyEntryViewModel by viewModels()
 
-    private var defaultMemoHint: String = ""
     private var isRecording = false
     private var waveAnimatorSet: AnimatorSet? = null
-
     private var pendingAudioMemoId: Int? = null
-
     private var isApiProcessingAudio = false
+
+    // 갤러리에서 여러 장 선택
+    private val pickImagesLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+            if (uris != null && uris.isNotEmpty()) {
+                // URI 영구 권한 획득 (가능한 경우)
+                uris.forEach { uri ->
+                    try {
+                        contentResolver.takePersistableUriPermission(
+                            uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                    } catch (_: SecurityException) {
+                        // 이미 권한 있거나, 영구 권한 필요 없는 경우 무시
+                    }
+                }
+
+                // 문자열로 저장 후 리스트 갱신
+                uris.forEach { uri ->
+                    photoUrls.add(uri.toString())
+                }
+                refreshGalleryItems()
+            }
+        }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,26 +122,20 @@ class DailyWriteActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_daily_write)
 
+        drawerLayout = findViewById(R.id.drawer_layout)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.write)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        // 모든 뷰 초기화
+
         initViews()
-
-        // 헬퍼 초기화 (initViews 이후 호출)
         audioRecorderHelper = createAudioRecorderHelper()
-
-        // 인텐트 데이터 처리 및 데이터 관찰 시작
         handleIntent(intent)
-
-        // UI 요소에 클릭 리스너 설정
         setupClickListeners()
-
         applyThemeModeSettings()
 
-        // 하단 네비게이션 바 설정
         navBarController = NavBarController(this)
         navBarController.setNavigationBar(NavSource.WRITE) {
             val currentMemos = memoAdapter.currentList
@@ -124,23 +149,24 @@ class DailyWriteActivity : AppCompatActivity() {
         setupEdgeToEdge(rootView)
     }
 
-    private fun applyThemeModeSettings(){
-        // Apply dark mode
-        ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+    private fun applyThemeModeSettings() {
+        ThemeState.isDarkMode =
+            (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
 
-        if (ThemeState.isDarkMode){
+        if (ThemeState.isDarkMode) {
             readDiaryButton.setTextColor(getColor(R.color.white))
             memoInputEditText.setTextColor(getColor(R.color.black))
             memoInputEditText.setHintTextColor(getColor(R.color.black))
             sendIcon.setImageResource(R.drawable.ic_send_white)
             micIcon.setImageResource(R.drawable.ic_mic_white)
-        }
-        else{
+            imageIcon.setImageResource(R.drawable.ic_image_white)
+        } else {
             readDiaryButton.setTextColor(getColor(R.color.white))
             memoInputEditText.setTextColor(getColor(R.color.black))
             memoInputEditText.setHintTextColor(getColor(R.color.black))
             sendIcon.setImageResource(R.drawable.ic_send_black)
             micIcon.setImageResource(R.drawable.ic_mic_black)
+            imageIcon.setImageResource(R.drawable.ic_image_black)
         }
     }
 
@@ -166,8 +192,8 @@ class DailyWriteActivity : AppCompatActivity() {
 
                     isApiProcessingAudio = true
                     micIcon.visibility = View.VISIBLE
-                    micIcon.isEnabled = false // 클릭 안되게
-                    micIcon.alpha = 0.5f // 반투명하게
+                    micIcon.isEnabled = false
+                    micIcon.alpha = 0.5f
                     stopIcon.visibility = View.GONE
                     sendIcon.visibility = View.VISIBLE
 
@@ -179,9 +205,11 @@ class DailyWriteActivity : AppCompatActivity() {
                     val dummyMemo = Memo(
                         id = tempId,
                         content = "음성 인식 중...",
-                        timestamp = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Calendar.getInstance().time),
+                        timestamp = SimpleDateFormat("HH:mm", Locale.getDefault()).format(
+                            Calendar.getInstance().time
+                        ),
                         date = date,
-                        order = memoAdapter.itemCount ,
+                        order = memoAdapter.itemCount,
                         type = "audio"
                     )
                     pendingAudioMemoId = tempId
@@ -207,29 +235,39 @@ class DailyWriteActivity : AppCompatActivity() {
             },
             onRecordingFailed = { errorMessage ->
                 runOnUiThread {
-                    Toast.makeText(this, "음성 인식에 실패했습니다:\n$errorMessage", Toast.LENGTH_SHORT).show()
-                    val errorContent = "[오류: $errorMessage]"
-                    removeDummyMemo(errorContent, "audio")
+                    Toast.makeText(
+                        this,
+                        "음성 인식에 실패했습니다:\n$errorMessage",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    removeDummyMemo("[오류: $errorMessage]", "audio")
 
                     isApiProcessingAudio = false
-                    micIcon.isEnabled = true // 아이콘 다시 활성화
+                    micIcon.isEnabled = true
                     micIcon.alpha = 1.0f
                 }
             },
             onPermissionDenied = {
                 runOnUiThread {
-                    Toast.makeText(this, "음성 녹음을 사용하려면 마이크 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this,
+                        "음성 녹음을 사용하려면 마이크 권한이 필요합니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             },
             onShowPermissionRationale = {
                 runOnUiThread {
-                    Toast.makeText(this, "메모를 음성으로 녹음하려면 마이크 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this,
+                        "메모를 음성으로 녹음하려면 마이크 권한이 필요합니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         )
     }
 
-    // 액티비티가 재사용될 때 새로운 인텐트 처리
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -243,7 +281,7 @@ class DailyWriteActivity : AppCompatActivity() {
         sendIcon = findViewById(R.id.send_icon)
         micIcon = findViewById(R.id.mic_icon)
         stopIcon = findViewById(R.id.stop_icon)
-        // photoIcon = findViewById(R.id.photo_icon) // ★★★ 삭제 ★★★
+        imageIcon = findViewById(R.id.image_icon)
         readDiaryButton = findViewById(R.id.read_diary_button)
 
         audioWaveView = findViewById(R.id.audio_wave_view)
@@ -255,17 +293,15 @@ class DailyWriteActivity : AppCompatActivity() {
         memoAdapter = MemoAdapter()
         memoListView.adapter = memoAdapter
 
-        // 메모 아이템 클릭 시 수정 다이얼로그 표시
         memoAdapter.setOnItemClickListener(object : MemoAdapter.OnItemClickListener {
             override fun onItemClick(memo: Memo) {
                 showEditMemoDialog(memo)
             }
         })
 
-        // 드래그 앤 드롭 및 스와이프 콜백 정의
         val dragAndDropCallback = MemoDragAndDropCallback(
             adapter = memoAdapter,
-            onMove = { fromPosition, toPosition -> /* ... */ },
+            onMove = { _, _ -> },
             onDelete = { position ->
                 val memoToDelete = memoAdapter.currentList[position]
                 memoViewModel.delete(memoToDelete)
@@ -279,18 +315,55 @@ class DailyWriteActivity : AppCompatActivity() {
                 memoViewModel.updateAll(updatedList)
             }
         )
-
         val itemTouchHelper = ItemTouchHelper(dragAndDropCallback)
         itemTouchHelper.attachToRecyclerView(memoListView)
+
+        // 🔹 이미지 갤러리 RecyclerView
+        imageRecyclerView = findViewById(R.id.image_recycler_view)
+        photoGalleryAdapter = PhotoGalleryAdapter(
+            onPhotoClick = { url ->
+                showImagePreviewDialog(url)
+            },
+            onDeleteClick = { position ->
+                showDeletePhotoDialog(position)
+            },
+            onAddClick = {
+                pickImagesLauncher.launch(arrayOf("image/*"))
+            }
+        )
+
+        imageRecyclerView.apply {
+            layoutManager = GridLayoutManager(this@DailyWriteActivity, 2)
+
+            // 한 줄에 2장 + 간격 데코레이션
+            if (itemDecorationCount == 0) {
+                val spacingDp = 8
+                val spacingPx =
+                    (spacingDp * resources.displayMetrics.density).toInt()
+                addItemDecoration(
+                    GridSpacingItemDecoration(
+                        spanCount = 2,
+                        spacing = spacingPx,
+                        includeEdge = true
+                    )
+                )
+            }
+
+            adapter = photoGalleryAdapter
+        }
+
+        refreshGalleryItems()
     }
 
     private fun handleIntent(intent: Intent?) {
-        date = intent?.getStringExtra("date") ?: SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Calendar.getInstance().time)
+        date = intent?.getStringExtra("date")
+            ?: SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
+                Calendar.getInstance().time
+            )
         dateTextView.text = date
 
         memoViewModel.getMemosForDate(date).observe(this) { memos ->
             memos?.let {
-                // LiveData가 갱신될 때, 현재 UI에 임시 메모가 있다면 유지
                 if (pendingAudioMemoId != null && !it.any { memo -> memo.id == pendingAudioMemoId }) {
                     val currentList = memoAdapter.currentList.toMutableList()
                     memoAdapter.submitList(currentList)
@@ -299,14 +372,19 @@ class DailyWriteActivity : AppCompatActivity() {
                 }
             }
         }
+
         dailyEntryViewModel.getEntry(date).observe(this) { entry ->
             val diaryExists = !entry?.diary.isNullOrEmpty()
             if (diaryExists) {
-                // 일기가 있으면: 버튼 활성화 및 보라색
                 readDiaryButton.isEnabled = true
-                readDiaryButton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.btn_violet))
+                readDiaryButton.backgroundTintList =
+                    ColorStateList.valueOf(
+                        ContextCompat.getColor(
+                            this,
+                            R.color.btn_violet
+                        )
+                    )
             } else {
-                // 일기가 없으면: 버튼 비활성화 및 회색
                 readDiaryButton.isEnabled = false
                 readDiaryButton.backgroundTintList =
                     ContextCompat.getColorStateList(this, R.color.gray)
@@ -321,7 +399,7 @@ class DailyWriteActivity : AppCompatActivity() {
         editText.setText(memo.content)
 
         builder.setView(dialogView)
-            .setPositiveButton("수정") { dialog, id ->
+            .setPositiveButton("수정") { _, _ ->
                 val newContent = editText.text.toString().trim()
                 if (newContent.isNotEmpty()) {
                     val updatedMemo = memo.copy(content = newContent)
@@ -330,16 +408,17 @@ class DailyWriteActivity : AppCompatActivity() {
                     Toast.makeText(this, "내용을 입력해 주세요.", Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("삭제") { dialog, id ->
+            .setNegativeButton("삭제") { dialog, _ ->
                 memoViewModel.delete(memo)
                 dialog.dismiss()
             }
-            .setNeutralButton("취소") { dialog, id ->
+            .setNeutralButton("취소") { dialog, _ ->
                 dialog.dismiss()
             }
             .create()
             .show()
     }
+
     private fun setupClickListeners() {
         readDiaryButton.setOnClickListener {
             val intent = Intent(this, DailyReadActivity::class.java)
@@ -353,12 +432,14 @@ class DailyWriteActivity : AppCompatActivity() {
             if (memoContent.isNotEmpty()) {
                 addTextMemoToList(memoContent, "text")
                 memoInputEditText.text.clear()
-                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                val imm =
+                    getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
             } else {
                 Toast.makeText(this, "메모 내용을 입력해 주세요.", Toast.LENGTH_SHORT).show()
             }
         }
+
         micIcon.setOnClickListener {
             if (isApiProcessingAudio) {
                 Toast.makeText(this, "이전 음성을 처리 중입니다...", Toast.LENGTH_SHORT).show()
@@ -366,11 +447,12 @@ class DailyWriteActivity : AppCompatActivity() {
             }
             audioRecorderHelper.checkPermissionAndToggleRecording()
         }
+
         stopIcon.setOnClickListener {
             audioRecorderHelper.checkPermissionAndToggleRecording()
         }
 
-        memoInputEditText.setOnFocusChangeListener { view, hasFocus ->
+        memoInputEditText.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 stopIcon.visibility = View.GONE
             } else {
@@ -383,6 +465,14 @@ class DailyWriteActivity : AppCompatActivity() {
                 }
             }
         }
+
+        imageIcon.setOnClickListener {
+            if (drawerLayout.isDrawerOpen(GravityCompat.END)) {
+                drawerLayout.closeDrawer(GravityCompat.END)
+            } else {
+                drawerLayout.openDrawer(GravityCompat.END)
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -390,29 +480,45 @@ class DailyWriteActivity : AppCompatActivity() {
         audioRecorderHelper.release()
         waveAnimatorSet?.cancel()
     }
+
     private fun startWaveAnimation() {
         waveAnimatorSet?.cancel()
         val anim1 = ObjectAnimator.ofFloat(waveBar1, "scaleY", 1.0f, 0.3f, 0.7f, 1.0f).apply {
-            duration = 400; repeatCount = ValueAnimator.INFINITE; repeatMode = ValueAnimator.REVERSE
+            duration = 400
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
         }
         val anim2 = ObjectAnimator.ofFloat(waveBar2, "scaleY", 1.0f, 0.5f, 0.2f, 0.8f, 1.0f).apply {
-            duration = 400; startDelay = 150; repeatCount = ValueAnimator.INFINITE; repeatMode = ValueAnimator.REVERSE
+            duration = 400
+            startDelay = 150
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
         }
         val anim3 = ObjectAnimator.ofFloat(waveBar3, "scaleY", 1.0f, 0.6f, 1.0f, 0.4f, 1.0f).apply {
-            duration = 400; startDelay = 300; repeatCount = ValueAnimator.INFINITE; repeatMode = ValueAnimator.REVERSE
+            duration = 400
+            startDelay = 300
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
         }
-        waveAnimatorSet = AnimatorSet().apply { playTogether(anim1, anim2, anim3); start() }
+        waveAnimatorSet = AnimatorSet().apply {
+            playTogether(anim1, anim2, anim3)
+            start()
+        }
     }
 
     private fun stopWaveAnimation() {
-        waveAnimatorSet?.cancel(); waveAnimatorSet = null
-        waveBar1.scaleY = 1.0f; waveBar2.scaleY = 1.0f; waveBar3.scaleY = 1.0f
+        waveAnimatorSet?.cancel()
+        waveAnimatorSet = null
+        waveBar1.scaleY = 1.0f
+        waveBar2.scaleY = 1.0f
+        waveBar3.scaleY = 1.0f
     }
 
     private fun addTextMemoToList(content: String, memoType: String = "text") {
-        val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Calendar.getInstance().time)
+        val currentTime =
+            SimpleDateFormat("HH:mm", Locale.getDefault()).format(Calendar.getInstance().time)
         val newMemo = Memo(
-            id = 0, // Room이 자동 생성
+            id = 0,
             content = content,
             timestamp = currentTime,
             date = date,
@@ -420,7 +526,7 @@ class DailyWriteActivity : AppCompatActivity() {
             type = memoType
         )
 
-        Log.d("test" , "${content} / ${currentTime} / ${date} / ${memoAdapter.itemCount}  / ${memoType}")
+        Log.d("test", "$content / $currentTime / $date / ${memoAdapter.itemCount}  / $memoType")
         memoViewModel.insert(newMemo)
         memoListView.smoothScrollToPosition(memoAdapter.itemCount)
     }
@@ -437,6 +543,7 @@ class DailyWriteActivity : AppCompatActivity() {
         }
         addTextMemoToList(newContent, memoType)
     }
+
     private fun removeDummyMemo(errorContent: String, memoType: String) {
         if (pendingAudioMemoId != null) {
             val currentList = memoAdapter.currentList.toMutableList()
@@ -446,6 +553,110 @@ class DailyWriteActivity : AppCompatActivity() {
                 memoAdapter.submitList(currentList)
             }
             pendingAudioMemoId = null
+        }
+    }
+
+    private fun refreshGalleryItems() {
+        val items = mutableListOf<GalleryItem>()
+        photoUrls.forEach { url ->
+            items.add(GalleryItem.Photo(url))
+        }
+        // 마지막에 + 카드 하나 추가
+        items.add(GalleryItem.Add)
+
+        photoGalleryAdapter.submitList(items)
+    }
+
+    private fun showImagePreviewDialog(url: String) {
+        // XML 없이 코드로만 ImageView 생성 (layout 필요 X)
+        val imageView = ImageView(this).apply {
+            adjustViewBounds = true
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            setPadding(16, 16, 16, 16)
+        }
+
+        // Base64 / 일반 URI 모두 지원
+        try {
+            val bytes = Base64.decode(url, Base64.DEFAULT)
+            Glide.with(this)
+                .load(bytes)
+                .error(android.R.drawable.ic_menu_report_image)
+                .into(imageView)
+        } catch (e: IllegalArgumentException) {
+            Glide.with(this)
+                .load(url)
+                .error(android.R.drawable.ic_menu_report_image)
+                .into(imageView)
+        }
+
+        AlertDialog.Builder(this)
+            .setView(imageView)
+            .setPositiveButton("닫기") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+            .show()
+    }
+
+    private fun showDeletePhotoDialog(position: Int) {
+        // photoUrls는 실제 사진만 저장 → 마지막 Add 셀 제외
+        if (position < 0 || position >= photoUrls.size) return
+
+        AlertDialog.Builder(this)
+            .setMessage("이 사진을 삭제할까요?")
+            .setPositiveButton("삭제") { dialog, _ ->
+                photoUrls.removeAt(position)
+                refreshGalleryItems()
+                dialog.dismiss()
+            }
+            .setNegativeButton("취소") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+            .show()
+    }
+
+    override fun onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.END)) {
+            drawerLayout.closeDrawer(GravityCompat.END)
+        } else {
+            super.onBackPressed()
+        }
+    }
+}
+
+/**
+ * 그리드 형태 RecyclerView에 간격을 주기 위한 ItemDecoration
+ */
+class GridSpacingItemDecoration(
+    private val spanCount: Int,
+    private val spacing: Int,      // px 단위
+    private val includeEdge: Boolean
+) : RecyclerView.ItemDecoration() {
+
+    override fun getItemOffsets(
+        outRect: Rect,
+        view: View,
+        parent: RecyclerView,
+        state: RecyclerView.State
+    ) {
+        val position = parent.getChildAdapterPosition(view) // item position
+        val column = position % spanCount                   // item column
+
+        if (includeEdge) {
+            outRect.left = spacing - column * spacing / spanCount
+            outRect.right = (column + 1) * spacing / spanCount
+
+            if (position < spanCount) {
+                outRect.top = spacing
+            }
+            outRect.bottom = spacing
+        } else {
+            outRect.left = column * spacing / spanCount
+            outRect.right = spacing - (column + 1) * spacing / spanCount
+            if (position >= spanCount) {
+                outRect.top = spacing
+            }
         }
     }
 }
