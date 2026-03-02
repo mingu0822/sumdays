@@ -118,6 +118,10 @@ class CalendarActivity : AppCompatActivity() {
         monthAdapter = MonthAdapter(activity = this)
         calendarViewPager.adapter = monthAdapter
 
+        // 깜빡임 방지
+        val recyclerView = calendarViewPager.getChildAt(0) as? androidx.recyclerview.widget.RecyclerView
+        recyclerView?.itemAnimator = null
+
         val headerLayout = findViewById<LinearLayout>(R.id.day_of_week_header)
         headerLayout.removeAllViews()
 
