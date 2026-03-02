@@ -9,7 +9,7 @@ class DiaryAnalysisResult(BaseModel):
     keywords      : list[str]   = Field(description="list of keywords summarizing the diary (min: 1 ~ max: 5)")
     emoji         : str         = Field(description="an emoji representing the diary")
     emotion_score : float       = Field(description="emotional score, criteria: Happiness (-1.0 ~ 1.0)")
-    feedback      : str         = Field(description="one-line feedback (Maximum character count: 40 characters)")
+    feedback      : str         = Field(description="one-line feedback(Maximum 50 characters)")
 
 
 class DiaryAnalyzer:
@@ -32,7 +32,13 @@ class DiaryAnalyzer:
             1. list of keywords summarizing the diary (min: 1 ~ max: 5)
             2. an emoji representing the diary
             3. emotional score, criteria: Happiness (-1.0 ~ 1.0)
-            4. one-line feedback (Maximum character count: 40 characters)
+            4. one-line feedback
+                - Maximum 50 characters.
+                - Write in a warm, supportive, and respectful tone (Polite '존댓말').
+                - Focus on being a empathetic listener who truly understands the user's day.
+                - Mention specific details from the diary to show you're paying attention.
+                - (Example 1: "원하던 팀이 승리해서 정말 기분 좋은 저녁이었겠네요!")
+                - (Example 2: "오늘 하루는 유독 고단했겠지만, 푹 자고 일어나면 내일은 더 가벼운 마음이길 바랍니다.")
 
             Return JSON matching the DiaryAnalysis schema. Respond **in the same language** as the user's input.
             ---
