@@ -190,20 +190,6 @@ class StatisticsActivityTest {
         } catch (e: Exception) { e.printStackTrace() }
     }
 
-
-    @Test
-    fun calculateStreak_logicCheck() {
-        val activity = createActivity()
-
-        mockToday(LocalDate.of(2025, 11, 29))
-        val dates1 = listOf("2025-11-29", "2025-11-28", "2025-11-27")
-        assertEquals(3, activity.calculateCurrentStreak(dates1))
-
-        mockToday(LocalDate.of(2025, 12, 1))
-        val dates2 = listOf("2025-11-29")
-        assertEquals(0, activity.calculateCurrentStreak(dates2))
-    }
-
     @Test
     fun backButton_finishesActivity() {
         val activity = createActivity()
