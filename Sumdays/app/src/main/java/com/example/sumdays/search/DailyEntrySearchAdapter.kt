@@ -69,11 +69,17 @@ class DailyEntrySearchAdapter(
             tvKeywords.text = if (entry.keywords.isNullOrBlank()) {
                 ""
             } else {
-                "키워드: ${entry.keywords}"
+                "키워드: ${transformDevidersSemicolonToComma(entry.keywords)}"
             }
             tvKeywords.visibility = if (tvKeywords.text.isNullOrBlank()) View.GONE else View.VISIBLE
 
             applyThemeModeSettings()
+        }
+
+
+        private fun transformDevidersSemicolonToComma(keywords: String): String {
+            return keywords
+                .split(";").joinToString(", ") { it.trim() }
         }
 
         private fun applyThemeModeSettings(){
