@@ -10,7 +10,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -43,16 +42,12 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
-import java.util.UUID
 import kotlin.coroutines.CoroutineContext
 
-class StyleExtractionActivity : AppCompatActivity(), CoroutineScope by MainScope() {
+class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
 
     lateinit var binding: ActivityStyleExtractionBinding
     private lateinit var styleViewModel: UserStyleViewModel
-
-    // (예전 방식) 여러 장 선택용 – 지금은 count 표시 정도에만 사용 가능
-    private val selectedImageUris = mutableListOf<Uri>()
 
     private var isBlocking = false
     private var isExtracting = false
@@ -60,24 +55,12 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope by MainScope
 
     private lateinit var backCallback: OnBackPressedCallback
 
-    // Activity 종료 시 코루틴 Job 취소
+    // 코루틴 스코프
     private val job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
-    // 이미지 다중 선택을 위한 Launcher (기존)
-    private val selectImagesLauncher = registerForActivityResult(
-        ActivityResultContracts.GetMultipleContents()
-    ) { uris: List<Uri> ->
-        if (uris.isNotEmpty()) {
-            selectedImageUris.clear()
-            selectedImageUris.addAll(uris)
-            // 현재 로직은 count만 반영, 실제 추출에 사용하는 리스트는 currentPhotoUris
-            updateImageCountUi()
-        }
-    }
-
-    /*---------------------------PhotoGallery 관련 필드------------------*/
+    /*--------------------------- PhotoGallery 관련 필드 ------------------*/
     private lateinit var photoGalleryAdapter: PhotoGalleryAdapter
     private lateinit var pickImageLauncher: ActivityResultLauncher<PickVisualMediaRequest>
     private val currentPhotoUris = mutableListOf<Uri>()
@@ -141,9 +124,7 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope by MainScope
         binding.runExtractionButton.setOnClickListener {
             handleExtractStyle()
         }
-
-        // 만약 "이미지 여러 장 선택" 버튼이 있다면 이런 식으로 쓸 수 있음:
-        // binding.selectImagesButton.setOnClickListener { selectImagesLauncher.launch("image/*") }
+        // 필요하면 여기서 다른 버튼 리스너 추가
     }
 
     private fun updateImageCountUi() {
@@ -406,13 +387,13 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope by MainScope
             onPhotoClick = { photoUrl ->
                 showPhotoDialog(photoUrl)
             },
+            onDeleteClick = { position ->
+                showDeleteConfirmDialog(position)
+            },
             onAddClick = {
                 pickImageLauncher.launch(
                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                 )
-            },
-            onDeleteClick = { position ->
-                showDeleteConfirmDialog(position)
             }
         )
 

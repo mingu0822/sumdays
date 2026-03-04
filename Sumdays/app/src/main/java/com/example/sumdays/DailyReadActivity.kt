@@ -55,7 +55,7 @@ class DailyReadActivity : AppCompatActivity() {
 
     private lateinit var photoGalleryAdapter: PhotoGalleryAdapter
 
-    // Base64 문자열을 저장하는 리스트
+    // 🔹 DB에 저장/로드하는 Base64 문자열 리스트
     private val currentPhotoList = mutableListOf<String>()
 
     private val repoKeyFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -69,6 +69,7 @@ class DailyReadActivity : AppCompatActivity() {
         binding = ActivityDailyReadBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // 하단 네비게이션
         navBarController = NavBarController(this)
         navBarController.setNavigationBar(NavSource.READ)
 
@@ -98,6 +99,9 @@ class DailyReadActivity : AppCompatActivity() {
         }
     }
 
+    // ──────────────────────────────────
+    //  사진 선택 → Base64 변환
+    // ──────────────────────────────────
     private fun initializeImagePicker() {
         pickImageLauncher =
             registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -117,6 +121,7 @@ class DailyReadActivity : AppCompatActivity() {
                 val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     ImageDecoder.decodeBitmap(ImageDecoder.createSource(contentResolver, uri))
                 } else {
+                    @Suppress("DEPRECATION")
                     MediaStore.Images.Media.getBitmap(contentResolver, uri)
                 }
 
@@ -171,7 +176,8 @@ class DailyReadActivity : AppCompatActivity() {
     private fun updatePhotoGalleryUI() {
         val items = currentPhotoList.map { GalleryItem.Photo(it) } + GalleryItem.Add
         photoGalleryAdapter.submitList(items)
-        binding.photoGalleryRecyclerView.visibility = View.VISIBLE
+        binding.photoGalleryRecyclerView.visibility =
+            if (currentPhotoList.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun savePhotoUrls() {
@@ -180,6 +186,9 @@ class DailyReadActivity : AppCompatActivity() {
         viewModel.updateEntry(date = dateKey, photoUrls = photoDataString)
     }
 
+    // ──────────────────────────────────
+    //  DB 관찰 & UI 갱신
+    // ──────────────────────────────────
     private fun observeEntry() {
         val dateKey = repoKeyFormatter.format(currentDate.time)
         currentLiveData?.removeObservers(this)
@@ -219,7 +228,7 @@ class DailyReadActivity : AppCompatActivity() {
         }
         binding.foxFaceImage.setImageResource(foxFaceResId)
 
-        // DB에서 불러온 String을 Base64 리스트로 복구
+        // 📸 DB에서 불러온 String을 Base64 리스트로 복구
         currentPhotoList.clear()
         entry?.photoUrls?.let { urls ->
             if (urls.isNotEmpty()) {
@@ -229,6 +238,9 @@ class DailyReadActivity : AppCompatActivity() {
         updatePhotoGalleryUI()
     }
 
+    // ──────────────────────────────────
+    //  날짜 초기화 & 이동
+    // ──────────────────────────────────
     private fun initializeDate() {
         val dateString = intent.getStringExtra("date")
         currentDate = Calendar.getInstance()
@@ -267,22 +279,22 @@ class DailyReadActivity : AppCompatActivity() {
             }        }
     }
 
-    /**
-     * 사진 갤러리 RecyclerView + Adapter 설정
-     */
+    // ──────────────────────────────────
+    //  사진 갤러리 RecyclerView + Adapter
+    // ──────────────────────────────────
     private fun setupPhotoGallery() {
         photoGalleryAdapter = PhotoGalleryAdapter(
-            onPhotoClick = { photoBase64 ->
-                showPhotoDialog(photoBase64)
+            onPhotoClick = { photoString ->
+                // Base64 / Uri 모두 대응
+                showPhotoDialog(photoString)
             },
-            // onPhotoLongClick는 안 쓰고, 삭제는 오른쪽 위 버튼으로 처리
+            onDeleteClick = { position ->
+                showDeleteConfirmDialog(position)
+            },
             onAddClick = {
                 pickImageLauncher.launch(
                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                 )
-            },
-            onDeleteClick = { position ->
-                showDeleteConfirmDialog(position)
             }
         )
 
@@ -317,18 +329,36 @@ class DailyReadActivity : AppCompatActivity() {
         }
     }
 
-    private fun showPhotoDialog(photoBase64: String) {
+    /**
+     * 전체 화면 사진 보기
+     * - Base64 / Uri 문자열 둘 다 지원
+     */
+    private fun showPhotoDialog(photoString: String) {
         val dialog = Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
         val imageView = ImageView(this).apply {
             setBackgroundColor(getColor(android.R.color.black))
             scaleType = ImageView.ScaleType.FIT_CENTER
         }
 
+        val isUriOrPath = photoString.startsWith("content://") ||
+                photoString.startsWith("file://") ||
+                photoString.startsWith("http://") ||
+                photoString.startsWith("https://") ||
+                photoString.startsWith("/")
+
         try {
-            val imageBytes = Base64.decode(photoBase64, Base64.DEFAULT)
-            Glide.with(this)
-                .load(imageBytes)
-                .into(imageView)
+            if (isUriOrPath) {
+                // 혹시라도 Uri 형태가 들어올 경우 대비
+                Glide.with(this)
+                    .load(Uri.parse(photoString))
+                    .into(imageView)
+            } else {
+                // 기본은 Base64 로 가정
+                val imageBytes = Base64.decode(photoString, Base64.DEFAULT)
+                Glide.with(this)
+                    .load(imageBytes)
+                    .into(imageView)
+            }
         } catch (e: Exception) {
             Toast.makeText(this, "이미지를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
         }
@@ -338,6 +368,9 @@ class DailyReadActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    // ──────────────────────────────────
+    //  날짜 선택 & 이동
+    // ──────────────────────────────────
     private fun showDatePickerDialog() {
         val year = currentDate.get(Calendar.YEAR)
         val month = currentDate.get(Calendar.MONTH)
@@ -382,6 +415,9 @@ class DailyReadActivity : AppCompatActivity() {
         return compareCal.equals(today) || compareCal.after(today)
     }
 
+    // ──────────────────────────────────
+    //  일기 수정 / 재분석
+    // ──────────────────────────────────
     private fun toggleEditMode(isEditing: Boolean) {
         if (isEditing) {
             binding.diaryContentEditText.setText(binding.diaryContentTextView.text)
