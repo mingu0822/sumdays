@@ -1,5 +1,6 @@
 package com.example.sumdays.image
 
+import android.net.Uri
 import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,8 @@ import com.example.sumdays.R
  * 갤러리 썸네일 어댑터
  *
  * - GalleryItem.Photo(url) : 실제 사진
+ *      - url 이 "content://", "file://", "http", "/" 로 시작하면 → Uri/경로로 처리
+ *      - 그 외는 → Base64 로 처리 시도
  * - GalleryItem.Add        : 마지막 + 카드
  *
  * @param onPhotoClick  : 사진 눌렀을 때 (큰 이미지 보기용)
@@ -78,7 +81,7 @@ class PhotoGalleryAdapter(
             onClick: (String) -> Unit,
             onDeleteClick: (Int) -> Unit
         ) {
-            // 🔹 정사각형 강제: width 측정 후 height를 width에 맞춤
+            // 🔹 썸네일을 정사각형으로 맞추고 싶을 때 (선택 사항)
             itemView.post {
                 val params = itemView.layoutParams
                 val w = itemView.width
@@ -88,29 +91,46 @@ class PhotoGalleryAdapter(
                 }
             }
 
-            // 🔹 이미지 로딩 (Base64 → 아니면 일반 URI/파일경로)
-            try {
-                val imageBytes = Base64.decode(url, Base64.DEFAULT)
+            // 🔹 1) Uri / 파일 / http 인지 먼저 체크
+            val isUriOrPath = url.startsWith("content://") ||
+                    url.startsWith("file://") ||
+                    url.startsWith("http://") ||
+                    url.startsWith("https://") ||
+                    url.startsWith("/")
+
+            if (isUriOrPath) {
+                // 👉 StyleExtractionActivity 처럼 Uri.toString() 으로 넘긴 경우 여기로 옴
                 Glide.with(itemView.context)
-                    .load(imageBytes)
+                    .load(Uri.parse(url))
                     .centerCrop()
                     .error(android.R.drawable.ic_menu_report_image)
                     .into(imageView)
-            } catch (e: IllegalArgumentException) {
-                Glide.with(itemView.context)
-                    .load(url)
-                    .centerCrop()
-                    .error(android.R.drawable.ic_menu_report_image)
-                    .fallback(android.R.drawable.ic_menu_report_image)
-                    .into(imageView)
+            } else {
+                // 👉 DailyReadActivity 처럼 Base64 문자열을 넘긴 경우
+                try {
+                    val imageBytes = Base64.decode(url, Base64.DEFAULT)
+                    Glide.with(itemView.context)
+                        .load(imageBytes)
+                        .centerCrop()
+                        .error(android.R.drawable.ic_menu_report_image)
+                        .into(imageView)
+                } catch (e: IllegalArgumentException) {
+                    // 혹시 Base64 디코딩이 안 되면, 마지막으로 그냥 문자열 로드 시도
+                    Glide.with(itemView.context)
+                        .load(url)
+                        .centerCrop()
+                        .error(android.R.drawable.ic_menu_report_image)
+                        .fallback(android.R.drawable.ic_menu_report_image)
+                        .into(imageView)
+                }
             }
 
-            // 사진 클릭 → 확대 보기 등
+            // 사진 클릭 → 크게 보기
             imageView.setOnClickListener {
                 onClick(url)
             }
 
-            // 삭제 버튼 클릭 → 해당 position 삭제 콜백
+            // 삭제 버튼 클릭 → position 기반 콜백
             deleteButton.setOnClickListener {
                 onDeleteClick(position)
             }
@@ -122,16 +142,6 @@ class PhotoGalleryAdapter(
      */
     class AddViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(onClick: () -> Unit) {
-            // 🔹 + 카드도 정사각형으로
-            itemView.post {
-                val params = itemView.layoutParams
-                val w = itemView.width
-                if (params != null && w > 0) {
-                    params.height = w
-                    itemView.layoutParams = params
-                }
-            }
-
             itemView.setOnClickListener {
                 onClick()
             }
