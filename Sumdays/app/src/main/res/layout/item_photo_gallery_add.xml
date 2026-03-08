@@ -1,19 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- item_photo_gallery.xml과 크기는 동일하게 맞춥니다. -->
+
+<!-- 사진 카드와 동일한 크기 -->
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="120dp"
     android:layout_height="120dp"
     android:layout_marginEnd="8dp"
-    app:cardBackgroundColor="@color/dark_item_photo_background"
-    app:cardCornerRadius="8dp">
+    android:clickable="true"
+    android:focusable="true"
+    app:cardCornerRadius="8dp"
+    app:cardUseCompatPadding="false"
+    app:cardBackgroundColor="@color/dark_item_photo_background">
 
-    <ImageView
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_gravity="center"
-        android:src="@drawable/ic_add_grey_24"
-        app:tint="@android:color/white"
-        android:contentDescription="사진 추가" />
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_add_grey_24"
+            android:contentDescription="사진 추가"
+            app:tint="@android:color/white" />
+
+    </FrameLayout>
 
 </androidx.cardview.widget.CardView>

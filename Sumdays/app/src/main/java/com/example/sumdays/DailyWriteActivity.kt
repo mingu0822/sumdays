@@ -3,10 +3,11 @@ package com.example.sumdays
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.graphics.Rect
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Base64
@@ -19,7 +20,9 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
@@ -31,6 +34,7 @@ import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -42,8 +46,10 @@ import com.example.sumdays.daily.memo.MemoAdapter
 import com.example.sumdays.daily.memo.MemoDragAndDropCallback
 import com.example.sumdays.daily.memo.MemoViewModel
 import com.example.sumdays.daily.memo.MemoViewModelFactory
+import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.image.GalleryItem
+import com.example.sumdays.image.GridSpacingItemDecoration
 import com.example.sumdays.image.PhotoGalleryAdapter
 import com.example.sumdays.settings.prefs.ThemeState
 import com.example.sumdays.ui.component.NavBarController
@@ -77,8 +83,13 @@ class DailyWriteActivity : AppCompatActivity() {
     // 오른쪽 드로어 & 이미지 갤러리
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var imageRecyclerView: RecyclerView
+    private lateinit var imageDrawerContainer: LinearLayout
+    private lateinit var imagePanelTitle: TextView
     private lateinit var photoGalleryAdapter: PhotoGalleryAdapter
-    private val photoUrls = mutableListOf<String>()   // 실제 사진 URI(or Base64) 목록
+
+    // DB에 저장할 Uri 문자열 리스트
+    private val currentPhotoList = mutableListOf<String>()
+    private var currentEntryLiveData: LiveData<DailyEntry?>? = null
 
     private val memoViewModel: MemoViewModel by viewModels {
         MemoViewModelFactory(
@@ -92,29 +103,7 @@ class DailyWriteActivity : AppCompatActivity() {
     private var pendingAudioMemoId: Int? = null
     private var isApiProcessingAudio = false
 
-    // 갤러리에서 여러 장 선택
-    private val pickImagesLauncher =
-        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-            if (uris != null && uris.isNotEmpty()) {
-                // URI 영구 권한 획득 (가능한 경우)
-                uris.forEach { uri ->
-                    try {
-                        contentResolver.takePersistableUriPermission(
-                            uri,
-                            Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        )
-                    } catch (_: SecurityException) {
-                        // 이미 권한 있거나, 영구 권한 필요 없는 경우 무시
-                    }
-                }
-
-                // 문자열로 저장 후 리스트 갱신
-                uris.forEach { uri ->
-                    photoUrls.add(uri.toString())
-                }
-                refreshGalleryItems()
-            }
-        }
+    private lateinit var pickImagesLauncher: ActivityResultLauncher<Array<String>>
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -130,6 +119,7 @@ class DailyWriteActivity : AppCompatActivity() {
             insets
         }
 
+        initializeImagePicker()
         initViews()
         audioRecorderHelper = createAudioRecorderHelper()
         handleIntent(intent)
@@ -145,8 +135,36 @@ class DailyWriteActivity : AppCompatActivity() {
             }
         }
 
+        onBackPressedDispatcher.addCallback(this) {
+            if (drawerLayout.isDrawerOpen(GravityCompat.END)) {
+                drawerLayout.closeDrawer(GravityCompat.END)
+            } else {
+                finish()
+            }
+        }
+
         val rootView = findViewById<View>(R.id.write)
         setupEdgeToEdge(rootView)
+    }
+
+    private fun initializeImagePicker() {
+        pickImagesLauncher =
+            registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+                if (uris.isNullOrEmpty()) return@registerForActivityResult
+
+                uris.forEach { uri ->
+                    try {
+                        contentResolver.takePersistableUriPermission(
+                            uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                    } catch (_: SecurityException) {
+                    } catch (_: Exception) {
+                    }
+                }
+
+                addPhotos(uris)
+            }
     }
 
     private fun applyThemeModeSettings() {
@@ -154,6 +172,10 @@ class DailyWriteActivity : AppCompatActivity() {
             (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
 
         if (ThemeState.isDarkMode) {
+            imageDrawerContainer.setBackgroundResource(R.drawable.bg_image_drawer_rounded_dark)
+            imageRecyclerView.setBackgroundColor(getColor(R.color.dark_item_card_background))
+            imagePanelTitle.setTextColor(getColor(android.R.color.white))
+
             readDiaryButton.setTextColor(getColor(R.color.white))
             memoInputEditText.setTextColor(getColor(R.color.black))
             memoInputEditText.setHintTextColor(getColor(R.color.black))
@@ -161,6 +183,10 @@ class DailyWriteActivity : AppCompatActivity() {
             micIcon.setImageResource(R.drawable.ic_mic_white)
             imageIcon.setImageResource(R.drawable.ic_image_white)
         } else {
+            imageDrawerContainer.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
+            imageRecyclerView.setBackgroundColor(getColor(android.R.color.white))
+            imagePanelTitle.setTextColor(getColor(android.R.color.black))
+
             readDiaryButton.setTextColor(getColor(R.color.white))
             memoInputEditText.setTextColor(getColor(R.color.black))
             memoInputEditText.setHintTextColor(getColor(R.color.black))
@@ -289,6 +315,10 @@ class DailyWriteActivity : AppCompatActivity() {
         waveBar2 = findViewById(R.id.wave_bar_2)
         waveBar3 = findViewById(R.id.wave_bar_3)
 
+        imageDrawerContainer = findViewById(R.id.image_drawer_container)
+        imagePanelTitle = findViewById(R.id.image_panel_title)
+        imageRecyclerView = findViewById(R.id.image_recycler_view)
+
         memoListView.layoutManager = LinearLayoutManager(this)
         memoAdapter = MemoAdapter()
         memoListView.adapter = memoAdapter
@@ -306,7 +336,7 @@ class DailyWriteActivity : AppCompatActivity() {
                 val memoToDelete = memoAdapter.currentList[position]
                 memoViewModel.delete(memoToDelete)
             },
-            onDragStart = { },
+            onDragStart = {},
             onDragEnd = {
                 val updatedList = memoAdapter.currentList.toMutableList()
                 for (i in updatedList.indices) {
@@ -318,11 +348,9 @@ class DailyWriteActivity : AppCompatActivity() {
         val itemTouchHelper = ItemTouchHelper(dragAndDropCallback)
         itemTouchHelper.attachToRecyclerView(memoListView)
 
-        // 🔹 이미지 갤러리 RecyclerView
-        imageRecyclerView = findViewById(R.id.image_recycler_view)
         photoGalleryAdapter = PhotoGalleryAdapter(
-            onPhotoClick = { url ->
-                showImagePreviewDialog(url)
+            onPhotoClick = { photoString ->
+                showPhotoDialog(photoString)
             },
             onDeleteClick = { position ->
                 showDeletePhotoDialog(position)
@@ -335,11 +363,9 @@ class DailyWriteActivity : AppCompatActivity() {
         imageRecyclerView.apply {
             layoutManager = GridLayoutManager(this@DailyWriteActivity, 2)
 
-            // 한 줄에 2장 + 간격 데코레이션
             if (itemDecorationCount == 0) {
                 val spacingDp = 8
-                val spacingPx =
-                    (spacingDp * resources.displayMetrics.density).toInt()
+                val spacingPx = (spacingDp * resources.displayMetrics.density).toInt()
                 addItemDecoration(
                     GridSpacingItemDecoration(
                         spanCount = 2,
@@ -352,7 +378,7 @@ class DailyWriteActivity : AppCompatActivity() {
             adapter = photoGalleryAdapter
         }
 
-        refreshGalleryItems()
+        updatePhotoGalleryUI()
     }
 
     private fun handleIntent(intent: Intent?) {
@@ -373,22 +399,34 @@ class DailyWriteActivity : AppCompatActivity() {
             }
         }
 
-        dailyEntryViewModel.getEntry(date).observe(this) { entry ->
+        observeDailyEntry()
+    }
+
+    private fun observeDailyEntry() {
+        currentEntryLiveData?.removeObservers(this)
+        currentEntryLiveData = dailyEntryViewModel.getEntry(date)
+        currentEntryLiveData?.observe(this) { entry ->
             val diaryExists = !entry?.diary.isNullOrEmpty()
+
             if (diaryExists) {
                 readDiaryButton.isEnabled = true
                 readDiaryButton.backgroundTintList =
                     ColorStateList.valueOf(
-                        ContextCompat.getColor(
-                            this,
-                            R.color.btn_violet
-                        )
+                        ContextCompat.getColor(this, R.color.btn_violet)
                     )
             } else {
                 readDiaryButton.isEnabled = false
                 readDiaryButton.backgroundTintList =
                     ContextCompat.getColorStateList(this, R.color.gray)
             }
+
+            currentPhotoList.clear()
+            entry?.photoUrls?.let { photoString ->
+                if (photoString.isNotEmpty()) {
+                    currentPhotoList.addAll(photoString.split(","))
+                }
+            }
+            updatePhotoGalleryUI()
         }
     }
 
@@ -483,6 +521,7 @@ class DailyWriteActivity : AppCompatActivity() {
 
     private fun startWaveAnimation() {
         waveAnimatorSet?.cancel()
+
         val anim1 = ObjectAnimator.ofFloat(waveBar1, "scaleY", 1.0f, 0.3f, 0.7f, 1.0f).apply {
             duration = 400
             repeatCount = ValueAnimator.INFINITE
@@ -500,6 +539,7 @@ class DailyWriteActivity : AppCompatActivity() {
             repeatCount = ValueAnimator.INFINITE
             repeatMode = ValueAnimator.REVERSE
         }
+
         waveAnimatorSet = AnimatorSet().apply {
             playTogether(anim1, anim2, anim3)
             start()
@@ -526,7 +566,7 @@ class DailyWriteActivity : AppCompatActivity() {
             type = memoType
         )
 
-        Log.d("test", "$content / $currentTime / $date / ${memoAdapter.itemCount}  / $memoType")
+        Log.d("test", "$content / $currentTime / $date / ${memoAdapter.itemCount} / $memoType")
         memoViewModel.insert(newMemo)
         memoListView.smoothScrollToPosition(memoAdapter.itemCount)
     }
@@ -556,57 +596,97 @@ class DailyWriteActivity : AppCompatActivity() {
         }
     }
 
-    private fun refreshGalleryItems() {
-        val items = mutableListOf<GalleryItem>()
-        photoUrls.forEach { url ->
-            items.add(GalleryItem.Photo(url))
-        }
-        // 마지막에 + 카드 하나 추가
-        items.add(GalleryItem.Add)
+    // 사진 저장 / 복원 / UI 갱신
+    private fun addPhotos(uris: List<Uri>) {
+        var addedCount = 0
 
+        uris.forEach { uri ->
+            val uriString = uri.toString()
+            if (!currentPhotoList.contains(uriString)) {
+                currentPhotoList.add(uriString)
+                addedCount++
+            }
+        }
+
+        updatePhotoGalleryUI()
+        savePhotoUrls()
+
+        if (addedCount > 0) {
+            Toast.makeText(this, "${addedCount}장의 사진이 추가되었습니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun updatePhotoGalleryUI() {
+        val items = currentPhotoList.map { GalleryItem.Photo(it) } + GalleryItem.Add
         photoGalleryAdapter.submitList(items)
     }
 
-    private fun showImagePreviewDialog(url: String) {
-        // XML 없이 코드로만 ImageView 생성 (layout 필요 X)
+    private fun savePhotoUrls() {
+        val photoDataString = currentPhotoList.joinToString(",")
+        dailyEntryViewModel.updateEntry(
+            date = date,
+            photoUrls = photoDataString
+        )
+    }
+
+    private fun showPhotoDialog(photoString: String) {
+        val isDarkMode =
+            AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
+
+        val dialog = Dialog(
+            this,
+            if (isDarkMode) android.R.style.Theme_Black_NoTitleBar_Fullscreen
+            else android.R.style.Theme_Light_NoTitleBar_Fullscreen
+        )
+
+        val bgColor =
+            if (isDarkMode) getColor(R.color.dark_item_card_background)
+            else getColor(android.R.color.white)
+
         val imageView = ImageView(this).apply {
-            adjustViewBounds = true
+            setBackgroundColor(bgColor)
             scaleType = ImageView.ScaleType.FIT_CENTER
-            setPadding(16, 16, 16, 16)
         }
 
-        // Base64 / 일반 URI 모두 지원
+        val isUriOrPath =
+            photoString.startsWith("content://") ||
+                    photoString.startsWith("file://") ||
+                    photoString.startsWith("http://") ||
+                    photoString.startsWith("https://") ||
+                    photoString.startsWith("/")
+
         try {
-            val bytes = Base64.decode(url, Base64.DEFAULT)
-            Glide.with(this)
-                .load(bytes)
-                .error(android.R.drawable.ic_menu_report_image)
-                .into(imageView)
-        } catch (e: IllegalArgumentException) {
-            Glide.with(this)
-                .load(url)
-                .error(android.R.drawable.ic_menu_report_image)
-                .into(imageView)
+            if (isUriOrPath) {
+                Glide.with(this)
+                    .load(Uri.parse(photoString))
+                    .into(imageView)
+            } else {
+                val imageBytes = Base64.decode(photoString, Base64.DEFAULT)
+                Glide.with(this)
+                    .load(imageBytes)
+                    .into(imageView)
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "이미지를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
         }
 
-        AlertDialog.Builder(this)
-            .setView(imageView)
-            .setPositiveButton("닫기") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .create()
-            .show()
+        dialog.setContentView(imageView)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        imageView.setOnClickListener { dialog.dismiss() }
+
+        dialog.show()
     }
 
     private fun showDeletePhotoDialog(position: Int) {
-        // photoUrls는 실제 사진만 저장 → 마지막 Add 셀 제외
-        if (position < 0 || position >= photoUrls.size) return
+        if (position !in currentPhotoList.indices) return
 
         AlertDialog.Builder(this)
             .setMessage("이 사진을 삭제할까요?")
             .setPositiveButton("삭제") { dialog, _ ->
-                photoUrls.removeAt(position)
-                refreshGalleryItems()
+                currentPhotoList.removeAt(position)
+                updatePhotoGalleryUI()
+                savePhotoUrls()
                 dialog.dismiss()
             }
             .setNegativeButton("취소") { dialog, _ ->
@@ -614,49 +694,5 @@ class DailyWriteActivity : AppCompatActivity() {
             }
             .create()
             .show()
-    }
-
-    override fun onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.END)) {
-            drawerLayout.closeDrawer(GravityCompat.END)
-        } else {
-            super.onBackPressed()
-        }
-    }
-}
-
-/**
- * 그리드 형태 RecyclerView에 간격을 주기 위한 ItemDecoration
- */
-class GridSpacingItemDecoration(
-    private val spanCount: Int,
-    private val spacing: Int,      // px 단위
-    private val includeEdge: Boolean
-) : RecyclerView.ItemDecoration() {
-
-    override fun getItemOffsets(
-        outRect: Rect,
-        view: View,
-        parent: RecyclerView,
-        state: RecyclerView.State
-    ) {
-        val position = parent.getChildAdapterPosition(view) // item position
-        val column = position % spanCount                   // item column
-
-        if (includeEdge) {
-            outRect.left = spacing - column * spacing / spanCount
-            outRect.right = (column + 1) * spacing / spanCount
-
-            if (position < spanCount) {
-                outRect.top = spacing
-            }
-            outRect.bottom = spacing
-        } else {
-            outRect.left = column * spacing / spanCount
-            outRect.right = spacing - (column + 1) * spacing / spanCount
-            if (position >= spanCount) {
-                outRect.top = spacing
-            }
-        }
     }
 }

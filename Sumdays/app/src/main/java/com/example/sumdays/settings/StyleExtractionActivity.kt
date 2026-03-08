@@ -32,7 +32,11 @@ import com.example.sumdays.utils.FileUtil
 import com.example.sumdays.utils.setupEdgeToEdge
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -46,7 +50,7 @@ import kotlin.coroutines.CoroutineContext
 
 class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
 
-    lateinit var binding: ActivityStyleExtractionBinding
+    private lateinit var binding: ActivityStyleExtractionBinding
     private lateinit var styleViewModel: UserStyleViewModel
 
     private var isBlocking = false
@@ -70,14 +74,14 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
         binding = ActivityStyleExtractionBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // ViewModel 초기화
-        styleViewModel = ViewModelProvider(this).get(UserStyleViewModel::class.java)
+        styleViewModel = ViewModelProvider(this)[UserStyleViewModel::class.java]
 
         setupHeader()
         initializeImagePicker()
         setupPhotoGallery()
         setupListeners()
         setBackCallback()
+        updateImageCountUi()
 
         val rootView = findViewById<View>(R.id.setting_style_extraction_root)
         setupEdgeToEdge(rootView)
@@ -124,7 +128,6 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
         binding.runExtractionButton.setOnClickListener {
             handleExtractStyle()
         }
-        // 필요하면 여기서 다른 버튼 리스너 추가
     }
 
     private fun updateImageCountUi() {
@@ -162,7 +165,6 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
                 val imageParts = createImageParts(currentPhotoUris)
 
                 callApi(diaryPart, imageParts)
-
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
@@ -198,45 +200,28 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
 
     // --- 3. Retrofit API 호출 ---
     private fun callApi(diaryPart: RequestBody, imageParts: List<MultipartBody.Part>) {
-        currentExtractCall = ApiClient.api.extractStyle(
-            diaryPart,
-            imageParts
-        )
-        currentExtractCall!!
-            .enqueue(object : Callback<StyleExtractionResponse> {
+        currentExtractCall = ApiClient.api.extractStyle(diaryPart, imageParts)
 
-                override fun onResponse(
-                    call: Call<StyleExtractionResponse>,
-                    response: Response<StyleExtractionResponse>
-                ) {
-                    launch {
-                        if (response.isSuccessful) {
-                            val styleResponse = response.body()
-                            if (styleResponse != null && styleResponse.style_vector != null) {
-                                saveStyleData(styleResponse)
-                                withContext(Dispatchers.Main) {
-                                    Toast.makeText(
-                                        this@StyleExtractionActivity,
-                                        "스타일 추출 완료! 설정 목록에서 확인하세요.",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                    isExtracting = false
-                                    showLoading(false)
-                                    resetUi()
-                                    finish()
-                                }
-                            } else {
-                                withContext(Dispatchers.Main) {
-                                    isExtracting = false
-                                    showLoading(false)
-                                    resetUi()
-                                    Toast.makeText(
-                                        this@StyleExtractionActivity,
-                                        styleResponse?.message
-                                            ?: "스타일 추출에 필요한 데이터가 서버로부터 오지 않았습니다.",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
+        currentExtractCall!!.enqueue(object : Callback<StyleExtractionResponse> {
+            override fun onResponse(
+                call: Call<StyleExtractionResponse>,
+                response: Response<StyleExtractionResponse>
+            ) {
+                launch {
+                    if (response.isSuccessful) {
+                        val styleResponse = response.body()
+                        if (styleResponse != null && styleResponse.style_vector != null) {
+                            saveStyleData(styleResponse)
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(
+                                    this@StyleExtractionActivity,
+                                    "스타일 추출 완료! 설정 목록에서 확인하세요.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                isExtracting = false
+                                showLoading(false)
+                                resetUi()
+                                finish()
                             }
                         } else {
                             withContext(Dispatchers.Main) {
@@ -245,27 +230,40 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
                                 resetUi()
                                 Toast.makeText(
                                     this@StyleExtractionActivity,
-                                    "서버 응답 오류 (코드: ${response.code()})",
+                                    styleResponse?.message
+                                        ?: "스타일 추출에 필요한 데이터가 서버로부터 오지 않았습니다.",
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
                         }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            isExtracting = false
+                            showLoading(false)
+                            resetUi()
+                            Toast.makeText(
+                                this@StyleExtractionActivity,
+                                "서버 응답 오류 (코드: ${response.code()})",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                     }
                 }
+            }
 
-                override fun onFailure(call: Call<StyleExtractionResponse>, t: Throwable) {
-                    launch(Dispatchers.Main) {
-                        isExtracting = false
-                        showLoading(false)
-                        resetUi()
-                        Toast.makeText(
-                            this@StyleExtractionActivity,
-                            "네트워크 오류: ${t.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+            override fun onFailure(call: Call<StyleExtractionResponse>, t: Throwable) {
+                launch(Dispatchers.Main) {
+                    isExtracting = false
+                    showLoading(false)
+                    resetUi()
+                    Toast.makeText(
+                        this@StyleExtractionActivity,
+                        "네트워크 오류: ${t.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
-            })
+            }
+        })
     }
 
     // --- 4. Room DB 저장 로직 ---
@@ -371,15 +369,20 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
     }
 
     private fun addPhoto(uri: Uri) {
-        currentPhotoUris.add(uri)
-        updatePhotoGalleryUI()
-        updateImageCountUi()
+        if (!currentPhotoUris.contains(uri)) {
+            currentPhotoUris.add(uri)
+            updatePhotoGalleryUI()
+            updateImageCountUi()
+        } else {
+            Toast.makeText(this, "이미 추가된 사진입니다.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun updatePhotoGalleryUI() {
         val items = currentPhotoUris.map { GalleryItem.Photo(it.toString()) } + GalleryItem.Add
         photoGalleryAdapter.submitList(items)
-        binding.photoGalleryRecyclerView.visibility = View.VISIBLE
+        binding.photoGalleryRecyclerView.visibility =
+            if (items.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun setupPhotoGallery() {
@@ -427,18 +430,21 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
         if (position in currentPhotoUris.indices) {
             currentPhotoUris.removeAt(position)
             updatePhotoGalleryUI()
+            updateImageCountUi()
             Toast.makeText(this, "사진이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
         }
-        updateImageCountUi()
     }
 
     private fun showPhotoDialog(photoUrl: String) {
         val dialog = Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
-        val imageView = ImageView(this)
-        imageView.setBackgroundColor(getColor(android.R.color.black))
-        imageView.scaleType = ImageView.ScaleType.FIT_CENTER
+        val imageView = ImageView(this).apply {
+            setBackgroundColor(getColor(android.R.color.black))
+            scaleType = ImageView.ScaleType.FIT_CENTER
+        }
 
-        Glide.with(this).load(photoUrl).into(imageView)
+        Glide.with(this)
+            .load(Uri.parse(photoUrl))
+            .into(imageView)
 
         imageView.setOnClickListener { dialog.dismiss() }
         dialog.setContentView(imageView)
