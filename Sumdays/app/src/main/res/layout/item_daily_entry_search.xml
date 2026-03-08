@@ -49,7 +49,7 @@
         android:layout_height="wrap_content"
         android:maxLines="1"
         android:ellipsize="end"
-        android:text="키워드: 공부;카페;친구"
+        android:text="키워드: 공부,카페,친구"
         android:textSize="12sp"
         android:layout_marginTop="6dp"
         android:textColor="@color/black"
