@@ -4,12 +4,9 @@ import android.app.DatePickerDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Base64
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -34,16 +31,13 @@ import com.example.sumdays.databinding.ActivityDailyReadBinding
 import com.example.sumdays.image.GalleryItem
 import com.example.sumdays.image.PhotoGalleryAdapter
 import com.example.sumdays.settings.prefs.ThemeState
+import com.example.sumdays.ui.component.NavBarController
+import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import com.example.sumdays.ui.component.NavBarController
-import com.example.sumdays.ui.component.NavSource
 
 class DailyReadActivity : AppCompatActivity() {
 
@@ -55,7 +49,7 @@ class DailyReadActivity : AppCompatActivity() {
 
     private lateinit var photoGalleryAdapter: PhotoGalleryAdapter
 
-    // 🔹 DB에 저장/로드하는 Base64 문자열 리스트
+    // Uri 문자열 저장 리스트
     private val currentPhotoList = mutableListOf<String>()
 
     private val repoKeyFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -69,7 +63,6 @@ class DailyReadActivity : AppCompatActivity() {
         binding = ActivityDailyReadBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 하단 네비게이션
         navBarController = NavBarController(this)
         navBarController.setNavigationBar(NavSource.READ)
 
@@ -100,82 +93,45 @@ class DailyReadActivity : AppCompatActivity() {
     }
 
     // ──────────────────────────────────
-    //  사진 선택 → Base64 변환
+    // 사진 선택 → Uri 문자열 저장
     // ──────────────────────────────────
     private fun initializeImagePicker() {
         pickImageLauncher =
             registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
                 if (uri != null) {
-                    processImageUriToBase64(uri)
+                    persistUriPermissionIfPossible(uri)
+                    addPhoto(uri.toString())
                 }
             }
     }
 
-    /**
-     * 이미지를 리사이징하고 Base64 String으로 변환하여 리스트에 추가
-     */
-    private fun processImageUriToBase64(uri: Uri) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                // 1. Uri -> Bitmap 변환
-                val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    ImageDecoder.decodeBitmap(ImageDecoder.createSource(contentResolver, uri))
-                } else {
-                    @Suppress("DEPRECATION")
-                    MediaStore.Images.Media.getBitmap(contentResolver, uri)
-                }
-
-                // 2. 리사이징 (DB 용량 초과 방지를 위해 축소)
-                val scaledBitmap = resizeBitmap(bitmap, 400)
-
-                // 3. 압축 및 Base64 변환
-                val outputStream = ByteArrayOutputStream()
-                scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
-
-                val byteArray = outputStream.toByteArray()
-                val base64String = Base64.encodeToString(byteArray, Base64.DEFAULT)
-
-                // 4. UI 업데이트 (메인 스레드)
-                withContext(Dispatchers.Main) {
-                    addPhoto(base64String)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        this@DailyReadActivity,
-                        "이미지 변환 실패: 용량이 너무 큽니다.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
+    private fun persistUriPermissionIfPossible(uri: Uri) {
+        try {
+            contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } catch (_: SecurityException) {
+            // provider가 persistable permission 미지원일 수 있음
+        } catch (_: Exception) {
         }
     }
 
-    // 비트맵 리사이징 함수
-    private fun resizeBitmap(bitmap: Bitmap, maxSize: Int): Bitmap {
-        var width = bitmap.width
-        var height = bitmap.height
-        val bitmapRatio = width.toFloat() / height.toFloat()
-        if (bitmapRatio > 1) {
-            width = maxSize
-            height = (width / bitmapRatio).toInt()
+    private fun addPhoto(uriString: String) {
+        if (!currentPhotoList.contains(uriString)) {
+            currentPhotoList.add(uriString)
+            updatePhotoGalleryUI()
+            savePhotoUrls()
+            Toast.makeText(this, "사진이 추가되었습니다.", Toast.LENGTH_SHORT).show()
         } else {
-            height = maxSize
-            width = (height * bitmapRatio).toInt()
+            Toast.makeText(this, "이미 추가된 사진입니다.", Toast.LENGTH_SHORT).show()
         }
-        return Bitmap.createScaledBitmap(bitmap, width, height, true)
-    }
-
-    private fun addPhoto(base64String: String) {
-        currentPhotoList.add(base64String)
-        updatePhotoGalleryUI()
-        savePhotoUrls()
     }
 
     private fun updatePhotoGalleryUI() {
         val items = currentPhotoList.map { GalleryItem.Photo(it) } + GalleryItem.Add
         photoGalleryAdapter.submitList(items)
+
         binding.photoGalleryRecyclerView.visibility =
             if (currentPhotoList.isEmpty()) View.GONE else View.VISIBLE
     }
@@ -183,11 +139,14 @@ class DailyReadActivity : AppCompatActivity() {
     private fun savePhotoUrls() {
         val dateKey = repoKeyFormatter.format(currentDate.time)
         val photoDataString = currentPhotoList.joinToString(",")
-        viewModel.updateEntry(date = dateKey, photoUrls = photoDataString)
+        viewModel.updateEntry(
+            date = dateKey,
+            photoUrls = photoDataString
+        )
     }
 
     // ──────────────────────────────────
-    //  DB 관찰 & UI 갱신
+    // DB 관찰 & UI 갱신
     // ──────────────────────────────────
     private fun observeEntry() {
         val dateKey = repoKeyFormatter.format(currentDate.time)
@@ -228,7 +187,6 @@ class DailyReadActivity : AppCompatActivity() {
         }
         binding.foxFaceImage.setImageResource(foxFaceResId)
 
-        // 📸 DB에서 불러온 String을 Base64 리스트로 복구
         currentPhotoList.clear()
         entry?.photoUrls?.let { urls ->
             if (urls.isNotEmpty()) {
@@ -239,7 +197,7 @@ class DailyReadActivity : AppCompatActivity() {
     }
 
     // ──────────────────────────────────
-    //  날짜 초기화 & 이동
+    // 날짜 초기화 & 이동
     // ──────────────────────────────────
     private fun initializeDate() {
         val dateString = intent.getStringExtra("date")
@@ -270,22 +228,19 @@ class DailyReadActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
-        // 말풍선 on/off
+
         binding.foxFaceImage.setOnClickListener {
-            if (binding.commentText.visibility == View.VISIBLE) {
-                binding.commentText.visibility = View.GONE
-            } else {
-                binding.commentText.visibility = View.VISIBLE
-            }        }
+            binding.commentText.visibility =
+                if (binding.commentText.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        }
     }
 
     // ──────────────────────────────────
-    //  사진 갤러리 RecyclerView + Adapter
+    // 사진 갤러리 RecyclerView + Adapter
     // ──────────────────────────────────
     private fun setupPhotoGallery() {
         photoGalleryAdapter = PhotoGalleryAdapter(
             onPhotoClick = { photoString ->
-                // Base64 / Uri 모두 대응
                 showPhotoDialog(photoString)
             },
             onDeleteClick = { position ->
@@ -316,7 +271,9 @@ class DailyReadActivity : AppCompatActivity() {
                 deletePhoto(position)
                 dialog.dismiss()
             }
-            .setNegativeButton("취소") { dialog, _ -> dialog.dismiss() }
+            .setNegativeButton("취소") { dialog, _ ->
+                dialog.dismiss()
+            }
             .show()
     }
 
@@ -331,7 +288,7 @@ class DailyReadActivity : AppCompatActivity() {
 
     /**
      * 전체 화면 사진 보기
-     * - Base64 / Uri 문자열 둘 다 지원
+     * Uri 문자열 저장 방식 기준
      */
     private fun showPhotoDialog(photoString: String) {
         val dialog = Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
@@ -348,12 +305,10 @@ class DailyReadActivity : AppCompatActivity() {
 
         try {
             if (isUriOrPath) {
-                // 혹시라도 Uri 형태가 들어올 경우 대비
                 Glide.with(this)
                     .load(Uri.parse(photoString))
                     .into(imageView)
             } else {
-                // 기본은 Base64 로 가정
                 val imageBytes = Base64.decode(photoString, Base64.DEFAULT)
                 Glide.with(this)
                     .load(imageBytes)
@@ -369,7 +324,7 @@ class DailyReadActivity : AppCompatActivity() {
     }
 
     // ──────────────────────────────────
-    //  날짜 선택 & 이동
+    // 날짜 선택 & 이동
     // ──────────────────────────────────
     private fun showDatePickerDialog() {
         val year = currentDate.get(Calendar.YEAR)
@@ -416,7 +371,7 @@ class DailyReadActivity : AppCompatActivity() {
     }
 
     // ──────────────────────────────────
-    //  일기 수정 / 재분석
+    // 일기 수정 / 재분석
     // ──────────────────────────────────
     private fun toggleEditMode(isEditing: Boolean) {
         if (isEditing) {
