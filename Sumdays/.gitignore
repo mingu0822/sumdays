@@ -1,16 +1,35 @@
+# Android Studio
 *.iml
 .gradle
 /local.properties
+
+# IDEA
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/deviceStreaming.xml
+/.idea/deviceStreaming/
+
+# run configs는 공유
 !/.idea/runConfigurations
+
+# macOS
 .DS_Store
+
+# Build
 /build
 /captures
 .externalNativeBuild
 .cxx
+
+# local
 local.properties
+
+# 추가 추천
+.idea/shelf
+.idea/compiler.xml
+.idea/deploymentTargetDropDown.xml
+.idea/vcs.xml
