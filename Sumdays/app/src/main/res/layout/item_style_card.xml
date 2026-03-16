@@ -8,7 +8,7 @@
     app:cardUseCompatPadding="true"
     app:cardBackgroundColor="@color/dark_item_card_background"
     app:strokeWidth="0dp"
-    app:strokeColor="@color/btn_violet">
+    app:strokeColor="@color/btn_foxrange">
 
     <LinearLayout
         android:orientation="vertical"

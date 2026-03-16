@@ -54,8 +54,10 @@
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"
+                    android:backgroundTint="@color/btn_orange"
                     app:cornerRadius="12dp" />
             </LinearLayout>
+
 
             <!-- 구분선 -->
             <View

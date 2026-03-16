@@ -32,6 +32,8 @@
     <color name="dark_item_photo_background">#555555</color>
 
     <color name="btn_violet">#8B008B</color>
+    <color name="btn_orange">#f28b48</color>
+    <color name="btn_foxrange">#d03b2f</color>
 
     <color name="icon_color">#777777</color>
     <color name="dark_divider">#E0E0E0</color>
@@ -40,7 +42,9 @@
     <color name="text_highlight_red">#CC0000</color>
 
     <!-- res/values/colors.xml (라이트용) -->
-    <color name="background">#FFFFFF</color>
+    <color name="background">#F7F4F1</color>
     <color name="textColor">#000000</color>
+    <color name="item_background">#746358</color>
+    <color name="item_card_background">#D1BB9C</color>
 
 </resources>

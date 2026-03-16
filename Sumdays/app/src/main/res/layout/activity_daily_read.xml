@@ -58,7 +58,7 @@
             android:id="@+id/edit_memos_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/btn_violet"
+            android:backgroundTint="@color/btn_foxrange"
             android:minHeight="0dp"
             android:paddingVertical="8dp"
             android:text="메모 보기"
