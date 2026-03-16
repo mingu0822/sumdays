@@ -21,7 +21,7 @@ class WeekSummaryWorker(
 
     override suspend fun doWork(): Result {
         return try {
-            val isTestMode = inputData.getBoolean("IS_TEST_MODE", false)
+            val isTestMode = inputData.getBoolean("IS_TEST_MODE", true)
             Log.d("WeekSummaryWorker", "작업 시작 (테스트 모드: $isTestMode)")
 
             // 1. 날짜 범위 계산: '지난주 월요일' ~ '지난주 일요일'
