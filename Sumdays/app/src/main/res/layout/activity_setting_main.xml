@@ -70,6 +70,7 @@
                     style="@style/TextAppearance.App.Normal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
                     android:text="알림 설정" />
             </LinearLayout>
 
@@ -83,6 +84,7 @@
                     style="@style/TextAppearance.App.Normal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
                     android:text="튜토리얼 다시보기" />
             </LinearLayout>
 
@@ -95,6 +97,7 @@
                     style="@style/TextAppearance.App.Normal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
                     android:text="주간통계 수동 추가" />
             </LinearLayout>
 

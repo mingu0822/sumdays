@@ -47,7 +47,7 @@
         android:text="이동하기"
         android:textSize="@dimen/text_size_S"
         android:textStyle="bold"
-        app:backgroundTint="@color/btn_violet"
+        app:backgroundTint="@color/btn_foxrange"
         app:cornerRadius="12dp"/>
 
 </LinearLayout>

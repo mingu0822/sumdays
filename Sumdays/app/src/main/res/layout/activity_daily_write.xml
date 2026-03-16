@@ -42,7 +42,7 @@
                 android:id="@+id/read_diary_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="12dp"
+                android:layout_marginRight="8dp"
                 android:backgroundTint="@color/btn_foxrange"
                 android:text="일기 보기"
                 app:layout_constraintBottom_toBottomOf="parent"

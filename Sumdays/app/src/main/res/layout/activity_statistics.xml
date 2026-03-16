@@ -34,15 +34,24 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipChildren="false"
-        android:clipToPadding="false" />
+        android:clipToPadding="false" >
+
+        <View
+            android:id="@+id/loading_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#000000"
+            android:visibility="gone"
+            tools:visibility="visible" />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top"
         android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/bg_image_drawer_rounded_light"
+        android:layout_marginTop="36dp"
+        android:background="@drawable/bg_image_drawer_rounded_light_alpha80"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="16dp">
@@ -135,13 +144,6 @@
         android:clipChildren="false"
         android:clipToPadding="false">
 
-        <View
-            android:id="@+id/loading_overlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#000000"
-            android:visibility="gone"
-            tools:visibility="visible" />
     </FrameLayout>
 
     <ImageView
