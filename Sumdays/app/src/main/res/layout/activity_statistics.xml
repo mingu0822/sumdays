@@ -10,26 +10,25 @@
         android:id="@+id/statistics_background_1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src="@drawable/statistics_background_morning"
+        android:adjustViewBounds="true"
         android:scaleType="centerCrop"
-        android:adjustViewBounds="true"/>
+        android:src="@drawable/statistics_background_morning" />
 
     <ImageView
         android:id="@+id/statistics_background_2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src="@drawable/statistics_background_evening"
-        android:scaleType="centerCrop"
         android:adjustViewBounds="true"
-        android:alpha="0"/>
+        android:alpha="0"
+        android:scaleType="centerCrop"
+        android:src="@drawable/statistics_background_evening" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        />
+        android:clipChildren="false"
+        android:clipToPadding="false" />
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -40,91 +39,93 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:background="@color/overlay_background"
         android:layout_gravity="top"
-        android:gravity="center_vertical">
-
-    <!-- 1.1. 뒤로 가기 버튼 -->
-    <ImageButton
-        android:id="@+id/btn_back"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_arrow_back_white"
-        android:background="@android:color/transparent"
-        android:contentDescription="뒤로 가기"
-        android:padding="8dp"/>
-
-    <!-- 1.2. 지표 컨테이너 -->
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/bg_image_drawer_rounded_light"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:gravity="end"
-        android:layout_marginEnd="16dp"
+        android:padding="16dp">
 
-        >
-
-        <!-- A. 스트라이크 (Strike) -->
-        <TextView
-            android:id="@+id/tv_strike_count"
+        <!-- 1.1. 뒤로 가기 버튼 -->
+        <ImageButton
+            android:id="@+id/btn_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🔥 15"
-            android:textSize="@dimen/text_size_M"
-            android:textColor="@android:color/white"
-            android:layout_marginEnd="16dp"/>
+            android:background="@android:color/transparent"
+            android:contentDescription="뒤로 가기"
+            android:padding="8dp"
+            android:src="@drawable/ic_arrow_back_black" />
 
-        <!-- B. 잎 개수 (Week Summary Count) -->
-        <TextView
-            android:id="@+id/tv_leaf_count"
-            android:layout_width="wrap_content"
+        <!-- 1.2. 지표 컨테이너 -->
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="🍃 45"
-            android:textSize="@dimen/text_size_M"
-            android:textColor="@android:color/white"
-            android:layout_marginEnd="16dp"/>
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:orientation="horizontal"
 
-        <!-- C. 포도 개수 (Month Summary Count) -->
-        <TextView
-            android:id="@+id/tv_grape_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🍇 3"
-            android:textSize="@dimen/text_size_M"
-            android:textColor="@android:color/white"/>
+            >
 
+            <!-- A. 스트라이크 (Strike) -->
+            <TextView
+                android:id="@+id/tv_strike_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="🔥 15"
+                android:textColor="@android:color/black"
+                android:textSize="@dimen/text_size_M" />
+
+            <!-- B. 잎 개수 (Week Summary Count) -->
+            <TextView
+                android:id="@+id/tv_leaf_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="🍃 45"
+                android:textColor="@android:color/black"
+                android:textSize="@dimen/text_size_M" />
+
+            <!-- C. 포도 개수 (Month Summary Count) -->
+            <TextView
+                android:id="@+id/tv_grape_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🍇 3"
+                android:textColor="@android:color/black"
+                android:textSize="@dimen/text_size_M" />
+
+        </LinearLayout>
     </LinearLayout>
-</LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="80dp">
+        android:layout_marginBottom="80dp"
+        android:orientation="vertical">
 
         <ImageButton
-        android:id="@+id/btn_move_to_latest_leaf"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_marginBottom="8dp"
-        android:src="@drawable/ic_arrow_up_white"
-        android:background="@drawable/statistics_shape_circle_button_black"
-        android:elevation="4dp"
-        android:contentDescription="최신 잎으로 이동" />
+            android:id="@+id/btn_move_to_latest_leaf"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/statistics_shape_circle_button_black"
+            android:contentDescription="최신 잎으로 이동"
+            android:elevation="4dp"
+            android:src="@drawable/ic_arrow_up_white" />
 
         <ImageButton
             android:id="@+id/btn_move_to_bottom_leaf"
             android:layout_width="56dp"
             android:layout_height="56dp"
-            android:src="@drawable/ic_arrow_down_white"
             android:background="@drawable/statistics_shape_circle_button_black"
+            android:contentDescription="가장 오래된 기록으로 이동"
             android:elevation="4dp"
-            android:contentDescription="가장 오래된 기록으로 이동" />
+            android:src="@drawable/ic_arrow_down_white" />
 
     </LinearLayout>
 
@@ -132,7 +133,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipChildren="false"
-        android:clipToPadding="false" >
+        android:clipToPadding="false">
 
         <View
             android:id="@+id/loading_overlay"
@@ -147,8 +148,8 @@
         android:id="@+id/loading_gif_view"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:visibility="gone"
         android:layout_gravity="center"
+        android:visibility="gone"
         tools:src="@drawable/sumdays_logo"
         tools:visibility="visible" />
 </FrameLayout>
