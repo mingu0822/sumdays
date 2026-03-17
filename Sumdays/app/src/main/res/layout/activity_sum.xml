@@ -95,7 +95,6 @@
         android:layout_height="40dp"
         android:src="@drawable/sum_icon_text"
         android:padding="4dp"
-        android:elevation="50dp"
         android:contentDescription="장식 이미지"
         android:background="@color/background"
         app:layout_constraintStart_toStartOf="@id/memo_list_view"
