@@ -122,19 +122,21 @@
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:layout_marginBottom="8dp"
-            android:background="@drawable/statistics_shape_circle_button_black"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/bg_image_drawer_rounded_light_alpha80"
             android:contentDescription="최신 잎으로 이동"
             android:elevation="4dp"
-            android:src="@drawable/ic_arrow_up_white" />
+            android:src="@drawable/ic_arrow_up_black" />
 
         <ImageButton
             android:id="@+id/btn_move_to_bottom_leaf"
             android:layout_width="56dp"
             android:layout_height="56dp"
-            android:background="@drawable/statistics_shape_circle_button_black"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/bg_image_drawer_rounded_light_alpha80"
             android:contentDescription="가장 오래된 기록으로 이동"
             android:elevation="4dp"
-            android:src="@drawable/ic_arrow_down_white" />
+            android:src="@drawable/ic_arrow_down_black" />
 
     </LinearLayout>
 
