@@ -109,18 +109,31 @@ class ProfileActivity : AppCompatActivity() {
         ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
 
         if (ThemeState.isDarkMode){
+            binding.UserBock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_dark)
             binding.nickname.setTextColor(getColor(R.color.white))
+
+            binding.diaryStyleBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_dark)
             binding.diaryStyleBlockText.setTextColor(getColor(R.color.white))
+            binding.labsBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_dark)
             binding.labsBlockText.setTextColor(getColor(R.color.white))
+            binding.accountBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_dark)
             binding.accountBlockText.setTextColor(getColor(R.color.white))
+            binding.accountBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_dark)
             binding.themeBlockText.setTextColor(getColor(R.color.white))
+            binding.themeBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_dark)
         }
         else{
-            binding.nickname.setTextColor(getColor(R.color.white))
-            binding.diaryStyleBlockText.setTextColor(getColor(R.color.white))
-            binding.labsBlockText.setTextColor(getColor(R.color.white))
-            binding.accountBlockText.setTextColor(getColor(R.color.white))
-            binding.themeBlockText.setTextColor(getColor(R.color.white))
+            binding.UserBock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
+            binding.nickname.setTextColor(getColor(R.color.black))
+
+            binding.diaryStyleBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
+            binding.diaryStyleBlockText.setTextColor(getColor(R.color.black))
+            binding.labsBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
+            binding.labsBlockText.setTextColor(getColor(R.color.black))
+            binding.accountBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
+            binding.accountBlockText.setTextColor(getColor(R.color.black))
+            binding.themeBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
+            binding.themeBlockText.setTextColor(getColor(R.color.black))
         }
     }
 

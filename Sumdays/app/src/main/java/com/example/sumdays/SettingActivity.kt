@@ -71,25 +71,23 @@ class SettingActivity : AppCompatActivity() {
             binding.notificationBlockText.setTextColor(getColor(R.color.white))
             binding.tutorialBlockText.setTextColor(getColor(R.color.white))
             binding.summaryBlockText.setTextColor(getColor(R.color.white))
+
             binding.btnBack.setImageResource(R.drawable.ic_arrow_back_white)
-            binding.notificationBlock.setBackgroundResource(R.drawable.settings_rounded_card)
-            binding.tutorialBlockText.setTextColor(getColor(R.color.white))
-            binding.tutorialBlock.setBackgroundResource(R.drawable.settings_rounded_card)
-            binding.tutorialBlockText.setTextColor(getColor(R.color.white))
-            binding.summaryBlock.setBackgroundResource(R.drawable.settings_rounded_card)
-            binding.tutorialBlockText.setTextColor(getColor(R.color.white))
+
+            binding.notificationBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_dark)
+            binding.tutorialBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_dark)
+            binding.summaryBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_dark)
         }
         else{
-            binding.notificationBlockText.setTextColor(getColor(R.color.white))
-            binding.tutorialBlockText.setTextColor(getColor(R.color.white))
-            binding.summaryBlockText.setTextColor(getColor(R.color.white))
-            binding.btnBack.setImageResource(R.drawable.ic_arrow_back_black)
-            binding.notificationBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
             binding.notificationBlockText.setTextColor(getColor(R.color.black))
-            binding.tutorialBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
             binding.tutorialBlockText.setTextColor(getColor(R.color.black))
-            binding.summaryBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
             binding.summaryBlockText.setTextColor(getColor(R.color.black))
+
+            binding.btnBack.setImageResource(R.drawable.ic_arrow_back_black)
+
+            binding.notificationBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
+            binding.tutorialBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
+            binding.summaryBlock.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
         }
     }
 }

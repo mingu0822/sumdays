@@ -56,7 +56,7 @@
         android:text="선택하기"
         android:textAllCaps="false"
         app:cornerRadius="12dp"
-        app:backgroundTint="@color/btn_violet"
+        app:backgroundTint="@color/btn_foxrange"
         android:layout_margin="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

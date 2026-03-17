@@ -107,7 +107,7 @@
                         android:layout_marginTop="12dp"
                         app:haloColor="#FFFFFF"
                         app:thumbColor="#FFFFFF"
-                        app:trackColor="#889C27B0"/>
+                        app:trackColor="#88d03b2f"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

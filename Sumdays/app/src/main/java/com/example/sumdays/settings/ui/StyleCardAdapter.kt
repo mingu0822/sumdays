@@ -121,7 +121,7 @@ class StyleCardAdapter(
             // 선택 상태(외부 버튼에서 처리하므로 카드에는 시각 피드백만)
             val isActive = (style.styleId == activeId)
             b.cardRoot.strokeWidth = if (isActive) (4 * b.root.resources.displayMetrics.density).toInt() else 0
-            b.cardRoot.strokeColor = 0xFF8B008B.toInt()
+            b.cardRoot.strokeColor = 0xFFd03b2f.toInt()
         }
 
         private fun showRenameDialog(style: UserStyle) {

@@ -88,7 +88,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="변경"
-                    app:backgroundTint="@color/btn_violet"
+                    app:backgroundTint="@color/btn_foxrange"
                     android:layout_marginStart="10dp"/>
             </LinearLayout>
 
@@ -151,7 +151,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="비밀번호 변경"
-                app:backgroundTint="@color/btn_violet"
+                app:backgroundTint="@color/btn_foxrange"
                 android:layout_marginTop="24dp"
                 android:layout_marginHorizontal="20dp"/>
 

@@ -33,7 +33,8 @@
 
     <color name="btn_violet">#8B008B</color>
     <color name="btn_orange">#f28b48</color>
-    <color name="btn_foxrange">#d03b2f</color>
+    <color name="btn_foxrange">#d03b2f</color> //white
+
 
     <color name="icon_color">#777777</color>
     <color name="dark_divider">#E0E0E0</color>
