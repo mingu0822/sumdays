@@ -50,7 +50,7 @@ class MemoAdapter : ListAdapter<Memo, MemoAdapter.MemoViewHolder>(MemoDiffCallba
 
             // 텍스트 색상 기본값으로 복원
             holder.content.setTextColor(ContextCompat.getColor(holder.itemView.context, android.R.color.black))
-            holder.timestamp.setTextColor(ContextCompat.getColor(holder.itemView.context, android.R.color.darker_gray)) // 시간 텍스트도 복원
+            holder.timestamp.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.dark_foxrange)) // 시간 텍스트도 복원
     }
 
     // 아이템 위치를 직접 변경하는 함수

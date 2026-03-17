@@ -6,15 +6,18 @@
     android:background="@drawable/memo_fox_bubble"
     android:layout_marginTop="-3dp"
     android:layout_marginBottom="6dp"
-    android:paddingBottom="0dp">
+    android:paddingBottom="0dp"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
 
     <TextView
         android:id="@+id/memo_text"
-        android:layout_width="220dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="15dp"
         android:gravity="center"
+        android:layout_marginLeft="22dp"
         android:includeFontPadding="false"
         android:text="내용"
         android:textColor="@android:color/black"
@@ -33,11 +36,11 @@
         android:layout_height="wrap_content"
         android:text="21:05"
         android:textSize="@dimen/text_size_XS"
-        android:textColor="@color/text_color_hint"
+        android:textColor="#7c0200"
         android:layout_gravity="start|top"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="0dp"/>
+        android:layout_marginStart="-16dp"
+        android:layout_marginTop="-22dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
