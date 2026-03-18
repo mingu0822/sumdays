@@ -35,6 +35,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import androidx.activity.OnBackPressedCallback
+import com.example.sumdays.settings.prefs.PersonaPrefs
 
 class DailySumActivity : AppCompatActivity() {
 
@@ -171,6 +172,7 @@ class DailySumActivity : AppCompatActivity() {
         finish()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun getTodayDate(): String{
         val today = LocalDate.now()
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -178,17 +180,25 @@ class DailySumActivity : AppCompatActivity() {
         return todayStr
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun saveDiary(mergedResult: String){
         val todayStr = getTodayDate()
         // 일기 작성 연속일 수 계산
         StreakPrefs.onDiarySaved(this, todayStr)
-
+        // 로컬 db에 일기 저장
         viewModel.updateEntry(date = date, diary = mergedResult)
-        AnalysisRepository.requestAnalysis(date, mergedResult, viewModel)
+        // 일기 분석 요청
+        AnalysisRepository.requestAnalysis(
+            date = date,
+            diary = mergedResult,
+            personaId = PersonaPrefs.getSelectedPersonaId(this),
+            context = this,
+            viewModel = viewModel)
     }
 
     private var mergeSheetShowing = false  // 중복 방지용
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun showAllMergedSheet() {
         if (mergeSheetShowing) return
         mergeSheetShowing = true

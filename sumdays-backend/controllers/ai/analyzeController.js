@@ -122,11 +122,14 @@ const analyzeController = {
     // Controller method for daily diary analysis (Example: POST /api/ai/analyze)
     /* POST http://localhost:3000/api/ai/analyze
     POSTMAN raw json
-    {"diary":"오늘은 산책하면서 생각이 많았던 하루였다."}
+    {
+    "diary":"오늘은 산책하면서 생각이 많았던 하루였다.",
+    "persona": {"system_prompt": "너는 불필요한 위로보다 해결책을 제시하는 '이성적인 여우'야. [지침: 1. 일기의 내용을 요약하여 핵심 문제를 짚을 것. 2. 감정적인 공감보다는 내일 당장 실천할 수 있는 행동 1가지를 제안할 것. 3. 냉철하지만 무례하지 않은 말투를 유지할 것.]"}
+    }
     */
     analyze: async (req, res) => {
         try {
-            const { diary } = req.body;
+            const { diary, persona } = req.body;
 
             if (!diary) {
                 return res.status(400).json({
@@ -135,7 +138,14 @@ const analyzeController = {
                 })
             }
 
-            const response = await axios.post(`${PYTHON_SERVER_URL}/analysis/diary`, { diary });
+            if (!persona) {
+                return res.status(400).json({
+                    success: false,
+                    message: "No Persona input."
+                });
+            }
+
+            const response = await axios.post(`${PYTHON_SERVER_URL}/analysis/diary`, { diary, persona });
             
             if (!response.data) {
                 return res.status(500).json({

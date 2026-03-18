@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.kapt) apply false
 
     // ktlint 플러그인 선언만 (하위 모듈에서 apply)
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.1" apply false
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0" apply false
 }
 
 // 모든 하위 모듈(app 등)에 ktlint 적용 + 공통 설정

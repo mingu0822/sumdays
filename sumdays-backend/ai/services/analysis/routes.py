@@ -9,19 +9,31 @@ analysis_bp = Blueprint("analysis", __name__, url_prefix="/analysis")
 @analysis_bp.route("/diary", methods=["POST"])
 def analyze_diary():
     """ POST http://localhost:5001/analysis/diary
-    \{"diary": "오늘은 친구들과 카페에 가서 이야기를 많이 나눴다."\}
+    \{
+        "diary": "오늘은 친구들과 카페에 가서 이야기를 많이 나눴다.",
+        "persona": {
+            "id": 1,
+            "system_prompt": "너는 여우다",
+            ...
+        }
+    \}
     """
     try:
         data = request.get_json()
         diary = data.get("diary", "")
+        persona = data.get("persona")
+        if not persona:
+            return jsonify({"error": "Persona information is required for feedback."}), 400
+
         result = analyzer.analyze(diary)
+        feedback = analyzer.generate_feedback(diary, result, persona)
 
         response = {
             "entry_date": data.get("entry_date"),
             "user_id": data.get("user_id"),
             "diary": diary,
             "icon": result["emoji"],
-            "ai_comment": result["feedback"],
+            "ai_comment": feedback,
             "analysis": {
                 "keywords": result["keywords"],
                 "emotion_score": result["emotion_score"]

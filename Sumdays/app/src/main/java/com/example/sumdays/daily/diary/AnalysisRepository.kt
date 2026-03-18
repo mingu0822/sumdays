@@ -1,45 +1,48 @@
 package com.example.sumdays.daily.diary
 
+import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.example.sumdays.network.ApiClient
 import com.google.gson.JsonObject
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
+import com.example.sumdays.utils.PersonaManager
 import com.google.gson.annotations.SerializedName
 
 object AnalysisRepository {
     
     // 요청 후 DB에 저장
-    suspend fun requestAnalysis(date: String, diary : String?, viewModel: DailyEntryViewModel): AnalysisResponse? {
+    suspend fun requestAnalysis(
+        date: String,
+        diary : String?,
+        personaId: Int,
+        context: Context,
+        viewModel: DailyEntryViewModel
+    ): AnalysisResponse? {
         return withContext(Dispatchers.IO) {
             try {
-                /* 임시 testing 부분
-                viewModel.updateEntry(
-                    date = date,
-                    keywords = "${date};1;2;3;4;",
-                    aiComment = "${date} 일기인 거 같아요 ",
-                    emotionScore = 100.0,
-                    themeIcon = "abc"
-                )
-                return@withContext null
-                임시 testing 부분 */
-
-
                 Log.d("AnalysisRepository", "서버에 '$date' 분석 결과 요청...")
+
                 if (diary == null) {
                     Log.e("AnalysisRepository", "Date cannot be null for analysis request")
                     return@withContext null // Null이면 더 진행하지 않음
                 }
+
+                // personaId를 통해 피드백 페르소나 불러오기
+                val persona = PersonaManager(context).getPersonaById(personaId)
+                    ?: throw IllegalArgumentException("Invalid Persona ID: $personaId")
+
                 // 요청 객체 생성
-                val request = AnalysisRequest(diary = diary)
+                val request = AnalysisRequest(diary = diary, persona = persona)
+
                 // API 호출
                 val response = ApiClient.api.diaryAnalyze(request)
 
                 val json = response.body() ?: throw IllegalStateException("Empty body")
                 val analysis = extractAnalysis(json)
-                //  analysisCache[date] = analysis
 
+                // update db
                 viewModel.updateEntry(
                     date = date,
                     diary = analysis.diary, // ?

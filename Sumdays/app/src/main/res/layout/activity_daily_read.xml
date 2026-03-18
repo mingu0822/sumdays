@@ -143,20 +143,24 @@
     <TextView
         android:id="@+id/comment_text"
         android:layout_width="0dp"
-        android:layout_height="100dp"
+        android:layout_height="0dp"
         android:background="@drawable/dailyread_speechbubble_background"
         android:gravity="top|start"
         android:lineSpacingExtra="4sp"
         android:paddingStart="40dp"
         android:paddingTop="16dp"
         android:paddingEnd="40dp"
-        android:paddingBottom="16dp"
+        android:paddingBottom="50dp"
         android:textColor="@android:color/black"
         android:textSize="@dimen/text_size_S"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
         app:layout_constraintBottom_toTopOf="@+id/fox_face_image"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintWidth_max="400dp"
+        app:layout_constraintHeight_max="150dp"
+        app:layout_constraintHeight_default="wrap"
         tools:text="산책 속에서 생각이 많았지만 차분한 자아성찰로 마무리된 하루였습니다." />
 
     <!-- 일기 내용 영역 (보기 / 수정 모드 전환) -->

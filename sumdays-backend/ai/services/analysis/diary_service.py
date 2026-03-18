@@ -9,7 +9,9 @@ class DiaryAnalysisResult(BaseModel):
     keywords      : list[str]   = Field(description="list of keywords summarizing the diary (min: 1 ~ max: 5)")
     emoji         : str         = Field(description="an emoji representing the diary")
     emotion_score : float       = Field(description="emotional score, criteria: Happiness (-1.0 ~ 1.0)")
-    feedback      : str         = Field(description="one-line feedback(Maximum 50 characters)")
+
+class FeedbackResult(BaseModel):
+    feedback      : str         = Field(description="one-line feedback(Maximum 100 characters)")
 
 
 class DiaryAnalyzer:
@@ -32,13 +34,6 @@ class DiaryAnalyzer:
             1. list of keywords summarizing the diary (min: 1 ~ max: 5)
             2. an emoji representing the diary
             3. emotional score, criteria: Happiness (-1.0 ~ 1.0)
-            4. one-line feedback
-                - Maximum 50 characters.
-                - Write in a warm, supportive, and respectful tone (Polite '존댓말').
-                - Focus on being a empathetic listener who truly understands the user's day.
-                - Mention specific details from the diary to show you're paying attention.
-                - (Example 1: "원하던 팀이 승리해서 정말 기분 좋은 저녁이었겠네요!")
-                - (Example 2: "오늘 하루는 유독 고단했겠지만, 푹 자고 일어나면 내일은 더 가벼운 마음이길 바랍니다.")
 
             Return JSON matching the DiaryAnalysis schema. Respond **in the same language** as the user's input.
             ---
@@ -53,7 +48,34 @@ class DiaryAnalyzer:
             return {
                 "keywords": result.keywords,
                 "emoji": result.emoji,
-                "emotion_score": result.emotion_score,
-                "feedback": result.feedback
+                "emotion_score": result.emotion_score
             }
 
+    def generate_feedback(self, diary: str, analysis_results: Dict[str, Any], persona: Dict[str, Any]) -> str:
+        prompt_text = """
+        {system_prompt}
+
+        ### Context
+        - User's Diary: {diary}
+        - Emotion Score: {emotion_score}
+        - Main Keywords: {keywords}
+
+        ### Instructions
+        1. 위 제공된 Context(일기 내용, 감정 점수, 키워드)를 충분히 반영하여 답변하세요.
+        2. 당신의 페르소나 지침({system_prompt})을 엄격히 준수하세요.
+        3. 단순한 위로보다는 일기 내용의 구체적인 부분을 언급하며 대화하듯 작성하세요.
+        4. 응답은 반드시 사용자의 언어로 작성하세요.
+        """
+
+        prompt = PromptTemplate.from_template(prompt_text)
+        llm = self.model.with_structured_output(FeedbackResult)
+
+        chain = prompt | llm
+        result = chain.invoke({
+            "system_prompt": persona["system_prompt"],
+            "diary": diary,
+            "emotion_score": analysis_results["emotion_score"],
+            "keywords": ", ".join(analysis_results["keywords"])
+        })
+
+        return result.feedback
