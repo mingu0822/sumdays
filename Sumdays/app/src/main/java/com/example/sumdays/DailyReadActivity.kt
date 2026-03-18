@@ -30,6 +30,7 @@ import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.databinding.ActivityDailyReadBinding
 import com.example.sumdays.image.GalleryItem
 import com.example.sumdays.image.PhotoGalleryAdapter
+import com.example.sumdays.settings.prefs.PersonaPrefs
 import com.example.sumdays.settings.prefs.ThemeState
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
@@ -399,7 +400,12 @@ class DailyReadActivity : AppCompatActivity() {
             .setMessage("일기 내용을 수정했습니다. AI 코멘트와 분석 결과도 새로고침할까요?")
             .setPositiveButton("예 (새로 분석)") { dialog, _ ->
                 lifecycleScope.launch {
-                    AnalysisRepository.requestAnalysis(dateKey, updatedContent, viewModel)
+                    AnalysisRepository.requestAnalysis(
+                        date = dateKey,
+                        diary = updatedContent,
+                        personaId = PersonaPrefs.getSelectedPersonaId(this@DailyReadActivity),
+                        context = this@DailyReadActivity,
+                        viewModel = viewModel)
                 }
                 toggleEditMode(false)
                 dialog.dismiss()
