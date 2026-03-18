@@ -66,6 +66,7 @@ class DailyReadActivity : AppCompatActivity() {
 
         navBarController = NavBarController(this)
         navBarController.setNavigationBar(NavSource.READ)
+        binding.commentText.movementMethod = android.text.method.ScrollingMovementMethod()
 
         initializeImagePicker()
         initializeDate()
