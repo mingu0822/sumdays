@@ -37,6 +37,14 @@
 
     <color name="dark_foxrange">#7c0200</color>
 
+    <color name="calendar_basic">#d5c4b6</color>
+    <color name="calendar_basic_Dark">#3d4452</color>
+    <color name="calendar_isDiary">#c18d80</color>
+    <color name="calendar_isDiary_Dark">#5e514f</color>
+    <color name="calendar_today">#ad574b</color>
+
+    <color name="btn_middle_white">#65615e</color>
+
 
     <color name="icon_color">#777777</color>
     <color name="dark_divider">#E0E0E0</color>

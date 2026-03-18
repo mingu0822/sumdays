@@ -14,6 +14,7 @@ import com.example.sumdays.ProfileActivity
 import com.example.sumdays.StatisticsActivity
 import com.example.sumdays.R
 import com.example.sumdays.SearchActivity
+import com.example.sumdays.settings.prefs.ThemeState
 import org.threeten.bp.LocalDate
 
 
@@ -47,7 +48,8 @@ class NavBarController(
         centerContainer.removeAllViews()
         val resource = when (from) {
             NavSource.WRITE -> R.layout.include_nav_center_sum
-            else -> R.layout.include_nav_center_write
+            else -> if(ThemeState.isDarkMode)R.layout.include_nav_center_write
+                    else R.layout.include_nav_center_write_white
         }
         val centerRoot = LayoutInflater.from(activity)
             .inflate(resource, centerContainer, true)

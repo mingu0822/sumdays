@@ -20,6 +20,8 @@ import org.threeten.bp.DayOfWeek
 import org.threeten.bp.YearMonth
 import com.example.sumdays.DailyWriteActivity
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
+import com.example.sumdays.settings.prefs.ThemeState
 
 class DayAdapter(
     private val days: List<DateCell>,
@@ -75,23 +77,65 @@ class DayAdapter(
             }
             tvDayNumber.setTextColor(textColor)
 
-            val hasDiary = activity.currentStatusMap[cell.dateString]?.first ?: false
-            val emoji = activity.currentStatusMap[cell.dateString]?.second
+            val statusPair = activity.currentStatusMap[cell.dateString]
+            val hasDiary = statusPair?.first ?: false
+            val emoji = statusPair?.second
+            val context = itemView.context
+            val isDarkMode = ThemeState.isDarkMode ?: false
 
-            when {
+// 1. [도형 ID, 색상 리소스 ID, 글꼴 굵기] 결정
+            val (targetDrawableId, tintColorId, isBold) = when {
                 isToday -> {
-                    tvCircle.background = ContextCompat.getDrawable(itemView.context, R.drawable.calendar_shape_fox_today)
-                    tvDayNumber.setTypeface(null, Typeface.BOLD)
+                    val color = R.color.calendar_today
+                    Triple(R.drawable.calendar_shape_fox_today, color, true)
                 }
                 hasDiary -> {
-                    tvCircle.background = ContextCompat.getDrawable(itemView.context, R.drawable.calendar_shape_fox_date_gray_completed)
-                    tvDayNumber.setTypeface(null, Typeface.NORMAL)
+                    val color = if (isDarkMode) R.color.calendar_isDiary_Dark else R.color.calendar_isDiary
+                    Triple(R.drawable.calendar_shape_fox, color, false)
                 }
                 else -> {
-                    tvCircle.background = ContextCompat.getDrawable(itemView.context, R.drawable.calendar_shape_fox_date_gray)
-                    tvDayNumber.setTypeface(null, Typeface.NORMAL)
+                    val color = if (isDarkMode) R.color.calendar_basic_Dark else R.color.calendar_basic
+                    Triple(R.drawable.calendar_shape_fox, color, false)
                 }
             }
+
+// 2. 메인 도형 가져와서 색상 입히기 (Fill)
+            val mainDrawable = ContextCompat.getDrawable(context, targetDrawableId)?.mutate()
+            mainDrawable?.setTint(ContextCompat.getColor(context, tintColorId))
+
+// 3. 윤곽선 처리 (isToday일 때 윤곽선이 묻힌다면 레이어 추가)
+            if (isToday) {
+                // 윤곽선만 있는 XML을 하나 더 가져옵니다. (없다면 fox_today와 같은 모양의 stroke 전용 XML 권장)
+                val strokeDrawable = ContextCompat.getDrawable(context, R.drawable.calendar_shape_fox_today)?.mutate()
+
+                // 만약 윤곽선 전용 XML이 없다면, 기존 mainDrawable 위에 strokeDrawable을 겹친 LayerDrawable 생성
+                // (이때 strokeDrawable은 내부 fillColor가 투명하고 stroke만 있는 상태여야 함)
+                val layers = if (strokeDrawable != null) {
+                    LayerDrawable(arrayOf(mainDrawable, strokeDrawable))
+                } else {
+                    mainDrawable
+                }
+                tvCircle.background = layers
+            } else {
+                tvCircle.background = mainDrawable
+            }
+
+// 4. 텍스트 스타일 적용
+            tvDayNumber.setTypeface(null, if (isBold) Typeface.BOLD else Typeface.NORMAL)
+//            when {
+//                isToday -> {
+//                    tvCircle.background = ContextCompat.getDrawable(itemView.context, R.drawable.calendar_shape_fox_today)
+//                    tvDayNumber.setTypeface(null, Typeface.BOLD)
+//                }
+//                hasDiary -> {
+//                    tvCircle.background = ContextCompat.getDrawable(itemView.context, R.drawable.calendar_shape_fox_completed)
+//                    tvDayNumber.setTypeface(null, Typeface.NORMAL)
+//                }
+//                else -> {
+//                    tvCircle.background = ContextCompat.getDrawable(itemView.context, R.drawable.calendar_shape_fox)
+//                    tvDayNumber.setTypeface(null, Typeface.NORMAL)
+//                }
+//            }
 
             if (!emoji.isNullOrEmpty()) {
                 tvEmoji.text = emoji
