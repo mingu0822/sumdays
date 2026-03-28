@@ -31,7 +31,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.settings.ThemeSettingsActivity
-import com.example.sumdays.settings.prefs.ThemeState
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 
@@ -89,6 +90,8 @@ class ProfileActivity : AppCompatActivity() {
         super.onResume()
         // 화면이 다시 보일 때마다 UI를 최신 상태로 갱신합니다.
         updateAuthUI()
+
+        applyThemeModeSettings()
     }
     private fun updateAuthUI() {
         val isLoggedIn = SessionManager.isLoggedIn()
@@ -105,23 +108,27 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun applyThemeModeSettings(){
-        // Apply dark mode
-        ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+        val themeKey = ThemePrefs.getTheme(this)
+        val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-        if (ThemeState.isDarkMode){
-            binding.nickname.setTextColor(getColor(R.color.white))
-            binding.diaryStyleBlockText.setTextColor(getColor(R.color.white))
-            binding.labsBlockText.setTextColor(getColor(R.color.white))
-            binding.accountBlockText.setTextColor(getColor(R.color.white))
-            binding.themeBlockText.setTextColor(getColor(R.color.white))
-        }
-        else{
-            binding.nickname.setTextColor(getColor(R.color.white))
-            binding.diaryStyleBlockText.setTextColor(getColor(R.color.white))
-            binding.labsBlockText.setTextColor(getColor(R.color.white))
-            binding.accountBlockText.setTextColor(getColor(R.color.white))
-            binding.themeBlockText.setTextColor(getColor(R.color.white))
-        }
+        val backgroundColor = currentTheme.backgroundColor
+        val blockColor = currentTheme.blockColor
+        val primaryColor = currentTheme.primaryColor
+
+        binding.root.setBackgroundResource(backgroundColor)
+
+        binding.diaryStyleBlock.setBackgroundResource(blockColor)
+        binding.labsBlock.setBackgroundResource(blockColor)
+        binding.accountBlock.setBackgroundResource(blockColor)
+        binding.themeBlock.setBackgroundResource(blockColor)
+
+        binding.userBlock.setBackgroundResource(blockColor)
+
+        binding.nickname.setTextColor(getColor(primaryColor))
+        binding.diaryStyleBlockText.setTextColor(getColor(primaryColor))
+        binding.labsBlockText.setTextColor(getColor(primaryColor))
+        binding.accountBlockText.setTextColor(getColor(primaryColor))
+        binding.themeBlockText.setTextColor(getColor(primaryColor))
     }
 
 

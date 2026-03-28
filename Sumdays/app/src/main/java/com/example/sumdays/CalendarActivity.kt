@@ -17,6 +17,7 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.viewpager2.widget.ViewPager2
@@ -24,7 +25,9 @@ import com.example.sumdays.calendar.CalendarLanguage
 import com.example.sumdays.calendar.MonthAdapter
 import com.example.sumdays.data.viewModel.CalendarViewModel
 import com.example.sumdays.settings.ThemeSettingsActivity
-import com.example.sumdays.settings.prefs.ThemeState
+import com.example.sumdays.theme.FoxChar
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.jakewharton.threetenabp.AndroidThreeTen
@@ -46,6 +49,7 @@ class CalendarActivity : AppCompatActivity() {
     private lateinit var btnNextMonth: ImageButton
     private lateinit var btnSetting: ImageButton
     private lateinit var navBarController: NavBarController
+    private lateinit var rootLayout: ConstraintLayout
 
     private val viewModel: CalendarViewModel by viewModels()
     var currentStatusMap: Map<String, Pair<Boolean, String?>> = emptyMap()
@@ -53,6 +57,7 @@ class CalendarActivity : AppCompatActivity() {
     private var currentLanguage: CalendarLanguage = CalendarLanguage.KOREAN
     private val today: LocalDate by lazy { LocalDate.now() }
     private val CENTER_POSITION = Int.MAX_VALUE / 2
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,8 +70,6 @@ class CalendarActivity : AppCompatActivity() {
         btnPrevMonth = findViewById(R.id.btn_prev_month)
         btnNextMonth = findViewById(R.id.btn_next_month)
         btnSetting = findViewById(R.id.setting_menu)
-
-        applyThemeModeSettings()
 
         setCustomCalendar()
         navBarController = NavBarController(this)
@@ -82,8 +85,9 @@ class CalendarActivity : AppCompatActivity() {
             overridePendingTransition(0, 0)
         }
         
-        val rootView = findViewById<View>(R.id.root_layout)
-        setupEdgeToEdge(rootView)
+        rootLayout = findViewById(R.id.root_layout)
+        setupEdgeToEdge(rootLayout)
+        applyThemeModeSettings()
 
         val pref: SharedPreferences = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE)
         val checkFirst = pref.getBoolean("checkFirst", false)
@@ -98,20 +102,25 @@ class CalendarActivity : AppCompatActivity() {
     }
 
     private fun applyThemeModeSettings(){
-        // Apply dark mode
-        ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+        val themeRepo = ThemeRepository
+        val themeKey = ThemePrefs.getTheme(this)
+        val currentTheme = themeRepo.ownedThemes.get(themeKey)
 
-        if (ThemeState.isDarkMode){
-            btnPrevMonth.setImageResource(R.drawable.ic_arrow_back_white)
-            btnNextMonth.setImageResource(R.drawable.ic_arrow_forward_white)
-            btnSetting.setImageResource(R.drawable.ic_setting_menu_gray)
+        val themePreviewImage = currentTheme!!.themePreviewImage
+        val primaryColor = currentTheme!!.primaryColor
+        val buttonColor = currentTheme!!.buttonColor
+        val backgroundColor = currentTheme!!.backgroundColor
+        val blockColor = currentTheme!!.blockColor
+        val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
+        val memoImage = currentTheme!!.memoImage
+        val foxIcon = currentTheme!!.foxIcon
+        rootLayout.setBackgroundResource(backgroundColor)
+
+        btnPrevMonth.setImageResource(R.drawable.ic_arrow_back_white)
+        btnNextMonth.setImageResource(R.drawable.ic_arrow_forward_white)
+        btnSetting.setImageResource(R.drawable.ic_setting_menu_gray)
         }
-        else{
-            btnPrevMonth.setImageResource(R.drawable.ic_arrow_back_black)
-            btnNextMonth.setImageResource(R.drawable.ic_arrow_forward_black)
-            btnSetting.setImageResource(R.drawable.ic_setting_menu_black)
-        }
-    }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setCustomCalendar() {
@@ -129,16 +138,21 @@ class CalendarActivity : AppCompatActivity() {
         val dayNamesENG = listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
         val dayNames = if (currentLanguage == CalendarLanguage.KOREAN) dayNamesKOR else dayNamesENG
 
+        val themeRepo = ThemeRepository
+        val themeKey = ThemePrefs.getTheme(this)
+        val currentTheme = themeRepo.ownedThemes.get(themeKey)
+
         for (dayName in dayNames) {
             val tv = TextView(this).apply {
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f)
                 gravity = Gravity.CENTER
                 text = dayName
+
                 setTextColor(
                     when (dayName) {
                         "일", "SUN" -> ContextCompat.getColor(this@CalendarActivity, android.R.color.holo_red_dark)
                         "토", "SAT" -> ContextCompat.getColor(this@CalendarActivity, android.R.color.holo_blue_dark)
-                        else -> if (ThemeState.isDarkMode) Color.WHITE else Color.BLACK
+                        else -> currentTheme!!.primaryColor
                     }
                 )
             }

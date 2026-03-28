@@ -3,6 +3,9 @@ package com.example.sumdays.theme
 data class Theme(
     val name: String,
 
+    // 테마 미리보기 이미지
+    val themePreviewImage: Int,
+
     // 주요 멘트 색상
     val primaryColor: Int,
 

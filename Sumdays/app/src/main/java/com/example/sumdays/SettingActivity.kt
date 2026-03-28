@@ -19,7 +19,8 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.sumdays.data.AppDatabase
-import com.example.sumdays.settings.prefs.ThemeState
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 
 class SettingActivity : AppCompatActivity() {
 
@@ -34,6 +35,7 @@ class SettingActivity : AppCompatActivity() {
         setSettingsBtnListener()
         applyThemeModeSettings()
     }
+
     private fun setSettingsBtnListener() = with(binding) {
         // 세부 설정 페이지
         binding.notificationBlock.setOnClickListener {
@@ -63,21 +65,23 @@ class SettingActivity : AppCompatActivity() {
         }
     }
 
-    private fun applyThemeModeSettings(){
-        // Apply dark mode
-        ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+    private fun applyThemeModeSettings() {
+        val themeRepo = ThemeRepository
+        val themeKey = ThemePrefs.getTheme(this)
+        val currentTheme = themeRepo.ownedThemes.get(themeKey)
 
-        if (ThemeState.isDarkMode){
-            binding.notificationBlockText.setTextColor(getColor(R.color.white))
-            binding.tutorialBlockText.setTextColor(getColor(R.color.white))
-            binding.summaryBlockText.setTextColor(getColor(R.color.white))
-            binding.btnBack.setImageResource(R.drawable.ic_arrow_back_white)
-        }
-        else{
-            binding.notificationBlockText.setTextColor(getColor(R.color.white))
-            binding.tutorialBlockText.setTextColor(getColor(R.color.white))
-            binding.summaryBlockText.setTextColor(getColor(R.color.white))
-            binding.btnBack.setImageResource(R.drawable.ic_arrow_back_black)
-        }
+        val themePreviewImage = currentTheme!!.themePreviewImage
+        val primaryColor = currentTheme!!.primaryColor
+        val buttonColor = currentTheme!!.buttonColor
+        val backgroundColor = currentTheme!!.backgroundColor
+        val blockColor = currentTheme!!.blockColor
+        val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
+        val memoImage = currentTheme!!.memoImage
+        val foxIcon = currentTheme!!.foxIcon
+        binding.root.setBackgroundResource(backgroundColor)
+        binding.notificationBlockText.setTextColor(getColor(R.color.white))
+        binding.tutorialBlockText.setTextColor(getColor(R.color.white))
+        binding.summaryBlockText.setTextColor(getColor(R.color.white))
+        binding.btnBack.setImageResource(R.drawable.ic_arrow_back_black)
     }
 }

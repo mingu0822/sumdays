@@ -18,7 +18,8 @@ import com.example.sumdays.network.ChangePasswordRequest
 import com.example.sumdays.network.ChangePasswordResponse
 import com.example.sumdays.network.UpdateNicknameRequest
 import com.example.sumdays.network.UpdateNicknameResponse
-import com.example.sumdays.settings.prefs.ThemeState
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
 
 class AccountSettingsActivity : AppCompatActivity() {
@@ -47,20 +48,32 @@ class AccountSettingsActivity : AppCompatActivity() {
         setupEdgeToEdge(rootView)
     }
 
-    private fun applyThemeModeSettings(){
-        // Apply dark mode
-        ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+    private fun applyThemeModeSettings() {
+        val themeKey = ThemePrefs.getTheme(this)
+        val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-        if (ThemeState.isDarkMode){
-            binding.header.headerBackIcon.setImageResource(R.drawable.ic_arrow_back_white)
-            binding.updateNicknameButton.setTextColor(getColor(R.color.white))
-            binding.changePasswordButton.setTextColor(getColor(R.color.white))
-        }
-        else{
-            binding.header.headerBackIcon.setImageResource(R.drawable.ic_arrow_back_black)
-            binding.updateNicknameButton.setTextColor(getColor(R.color.white))
-            binding.changePasswordButton.setTextColor(getColor(R.color.white))
-        }
+        val primaryColor = currentTheme.primaryColor
+        val buttonColor = currentTheme.buttonColor
+        val backgroundColor = currentTheme.backgroundColor
+        val blockColor = currentTheme.blockColor
+
+        binding.root.setBackgroundResource(backgroundColor)
+
+        binding.newNicknameInputEditText.setBackgroundResource(blockColor)
+        binding.currentPasswordInputEditText.setBackgroundResource(blockColor)
+        binding.newPasswordInputEditText.setBackgroundResource(blockColor)
+        binding.confirmPasswordInputEditText.setBackgroundResource(blockColor)
+
+        binding.currentNicknameTextView.setTextColor(getColor(primaryColor))
+        binding.header.headerTitle.setTextColor(getColor(primaryColor))
+
+        binding.updateNicknameButton.setBackgroundColor(getColor(buttonColor))
+        binding.changePasswordButton.setBackgroundColor(getColor(buttonColor))
+
+        binding.updateNicknameButton.setTextColor(getColor(R.color.white))
+        binding.changePasswordButton.setTextColor(getColor(R.color.white))
+
+        binding.header.headerBackIcon.setColorFilter(getColor(primaryColor))
     }
 
     private fun setupHeaderListener() {

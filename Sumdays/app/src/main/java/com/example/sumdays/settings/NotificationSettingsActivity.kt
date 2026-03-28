@@ -1,24 +1,28 @@
 package com.example.sumdays.settings
 
-import android.os.Bundle
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.sumdays.databinding.ActivitySettingsNotificationBinding
-import com.example.sumdays.reminder.ReminderPrefs
-import com.example.sumdays.reminder.ReminderScheduler
-import java.util.Calendar
 import android.app.AlarmManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.provider.Settings
 import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sumdays.R
+import com.example.sumdays.databinding.ActivitySettingsNotificationBinding
+import com.example.sumdays.reminder.ReminderPrefs
+import com.example.sumdays.reminder.ReminderScheduler
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
+import java.util.Calendar
 
 class NotificationSettingsActivity : AppCompatActivity() {
 
@@ -33,7 +37,6 @@ class NotificationSettingsActivity : AppCompatActivity() {
 
         reminderPrefs = ReminderPrefs(this)
 
-        // DUMMY: AlarmAdapter 초기화 (실제 프로젝트에서는 AlarmAdapter 클래스가 존재해야 함)
         alarmAdapter = AlarmAdapter(
             onTimeClicked = { position, currentTime -> showTimePicker(position, currentTime) },
             onDeleteClicked = { position -> deleteAlarm(position) }
@@ -43,22 +46,73 @@ class NotificationSettingsActivity : AppCompatActivity() {
         setupRecyclerView()
         setupMasterSwitch()
         setupListeners()
-
-        // 화면 진입 시 알람 목록 로드 및 UI 업데이트
+        applyThemeModeSettings()
         loadAlarmSettings()
 
-        // 상태바, 네비게이션바 같은 색으로
         val rootView = findViewById<View>(R.id.setting_notification_root)
         setupEdgeToEdge(rootView)
     }
 
-    // 정확한 알람 권한 확인 및 요청 함수
+    private fun applyThemeModeSettings() {
+        val themeKey = ThemePrefs.getTheme(this)
+        val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
+
+        val primaryColor = ContextCompat.getColor(this, currentTheme.primaryColor)
+        val buttonColor = ContextCompat.getColor(this, currentTheme.buttonColor)
+        val backgroundColor = currentTheme.backgroundColor
+        val blockColor = currentTheme.blockColor
+
+        // 전체 배경
+        binding.root.setBackgroundResource(backgroundColor)
+
+        // 헤더
+        binding.header.headerTitle.setTextColor(primaryColor)
+        binding.header.headerBackIcon.setColorFilter(primaryColor)
+
+        // 알람 리스트 영역
+        binding.alarmListContainer.setBackgroundResource(blockColor)
+        binding.alarmTimeRecyclerView.setBackgroundResource(blockColor)
+
+        // 추가 버튼
+        binding.addAlarmButton.backgroundTintList = ColorStateList.valueOf(buttonColor)
+        binding.addAlarmButton.setTextColor(
+            ContextCompat.getColor(this, android.R.color.white)
+        )
+
+        // 마스터 스위치
+        binding.masterSwitch.thumbTintList = ColorStateList(
+            arrayOf(
+                intArrayOf(android.R.attr.state_checked),
+                intArrayOf()
+            ),
+            intArrayOf(
+                ContextCompat.getColor(this, android.R.color.white),
+                ContextCompat.getColor(this, android.R.color.white)
+            )
+        )
+
+        binding.masterSwitch.trackTintList = ColorStateList(
+            arrayOf(
+                intArrayOf(android.R.attr.state_checked),
+                intArrayOf()
+            ),
+            intArrayOf(
+                buttonColor,
+                ContextCompat.getColor(this, android.R.color.darker_gray)
+            )
+        )
+    }
+
     private fun checkExactAlarmPermission(context: Context): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
             if (!alarmManager.canScheduleExactAlarms()) {
-                Toast.makeText(context, "정확한 알람 설정을 위해 권한이 필요합니다.", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context,
+                    "정확한 알람 설정을 위해 권한이 필요합니다.",
+                    Toast.LENGTH_LONG
+                ).show()
 
                 val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
                     data = Uri.fromParts("package", context.packageName, null)
@@ -66,68 +120,52 @@ class NotificationSettingsActivity : AppCompatActivity() {
                 }
                 context.startActivity(intent)
 
-                return false // 권한이 없으므로 알람 등록 중단
+                return false
             }
         }
-        return true // 권한이 있거나 API 레벨이 낮아 권한이 불필요함
+        return true
     }
-
 
     private fun setupHeader() {
         binding.header.headerTitle.text = "리마인더 설정"
         binding.header.headerBackIcon.setOnClickListener { finish() }
     }
 
-    // --- 1. 마스터 스위치 로직 ---
-
     private fun setupMasterSwitch() {
-        // 1. 초기 상태 로드
         val isMasterOn = reminderPrefs.isMasterOn()
         binding.masterSwitch.isChecked = isMasterOn
         updateUiState(isMasterOn)
 
-        // 2. 스위치 변경 리스너
         binding.masterSwitch.setOnCheckedChangeListener { _, isChecked ->
             reminderPrefs.setMasterSwitch(isChecked)
             updateUiState(isChecked)
 
             if (isChecked) {
-                // ON: 권한 확인 후 알람 등록
                 if (checkExactAlarmPermission(this)) {
                     ReminderScheduler.scheduleAllReminders(this)
                     Toast.makeText(this, "리마인더가 활성화되었습니다.", Toast.LENGTH_SHORT).show()
                 } else {
-                    // 권한 요청으로 넘어갔으므로 스위치를 OFF 상태로 되돌리고 알람 등록 중단
                     binding.masterSwitch.isChecked = false
                     reminderPrefs.setMasterSwitch(false)
                     updateUiState(false)
                 }
             } else {
-                // OFF: 모든 알람 취소
                 ReminderScheduler.cancelAllReminders(this)
                 Toast.makeText(this, "리마인더가 비활성화되었습니다.", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    /**
-     * 알람 마스터 스위치 상태에 따라 UI 활성화/비활성화 및 흐림 효과 적용
-     */
     private fun updateUiState(isOn: Boolean) {
         val alpha = if (isOn) 1.0f else 0.5f
 
-        // Container의 alpha와 isEnabled 상태 변경
         binding.alarmListContainer.alpha = alpha
         binding.alarmListContainer.isEnabled = isOn
 
-        // 어댑터에도 상태를 전달하여 개별 아이템의 상태 업데이트 유도
         alarmAdapter.isMasterOn = isOn
     }
 
-    // --- 2. RecyclerView 및 Adapter 설정 ---
-
     private fun setupRecyclerView() {
-        // 콜백 함수 정의
         alarmAdapter = AlarmAdapter(
             onTimeClicked = { position, currentTime -> showTimePicker(position, currentTime) },
             onDeleteClicked = { position -> deleteAlarm(position) }
@@ -142,23 +180,18 @@ class NotificationSettingsActivity : AppCompatActivity() {
     private fun loadAlarmSettings() {
         val times = reminderPrefs.getAlarmTimes()
         alarmAdapter.updateList(times)
-
-        // 마스터 스위치 상태에 따라 초기 UI 상태 설정
         updateUiState(reminderPrefs.isMasterOn())
     }
 
     private fun setupListeners() {
         binding.addAlarmButton.setOnClickListener {
-            // 최대 10개 제한 확인
             if (alarmAdapter.itemCount >= 10) {
                 Toast.makeText(this, "알림은 최대 10개까지 설정할 수 있습니다.", Toast.LENGTH_SHORT).show()
             } else {
-                showTimePicker(null, null) // 새 알람 추가 모드
+                showTimePicker(null, null)
             }
         }
     }
-
-    // --- 3. 시간 선택기(Time Picker) 로직 ---
 
     private fun showTimePicker(position: Int?, currentTime: String?) {
         val calendar = Calendar.getInstance()
@@ -168,11 +201,12 @@ class NotificationSettingsActivity : AppCompatActivity() {
             currentTime?.split(":")?.get(1)?.toIntOrNull() ?: calendar.get(Calendar.MINUTE)
 
         val picker = MaterialTimePicker.Builder()
-            .setTimeFormat(TimeFormat.CLOCK_12H) // 또는 24H
+            .setTimeFormat(TimeFormat.CLOCK_12H)
             .setHour(initialHour)
             .setMinute(initialMinute)
             .setTitleText(if (position == null) "새 알림 시간 설정" else "알림 시간 수정")
             .build()
+
         picker.show(supportFragmentManager, "time_picker_tag")
 
         picker.addOnPositiveButtonClickListener {
@@ -184,40 +218,28 @@ class NotificationSettingsActivity : AppCompatActivity() {
     private fun saveOrUpdateAlarm(position: Int?, newTime: String) {
         val currentTimes = reminderPrefs.getAlarmTimes().toMutableList()
 
-        // 1. 중복 검사 로직
-        // 이미 저장된 리스트(currentTimes)에 새로 설정하려는 시간(newTime)이 있는지 확인합니다.
         if (currentTimes.contains(newTime)) {
-            // (1) 새 알람 추가인데 이미 있는 경우 -> 중복 차단
             if (position == null) {
                 Toast.makeText(this, "이미 $newTime 에 설정된 알람이 있습니다.", Toast.LENGTH_SHORT).show()
                 return
-            }
-            // (2) 수정 중인데, 자기 자신이 아닌 다른 알람과 겹치는 경우 -> 중복 차단
-            // position 위치의 값(원래 시간)이 newTime(바꿀 시간)과 다르면, 다른 알람과 겹친다는 뜻입니다.
-            else if (currentTimes[position] != newTime) {
+            } else if (currentTimes[position] != newTime) {
                 Toast.makeText(this, "이미 $newTime 에 설정된 알람이 있습니다.", Toast.LENGTH_SHORT).show()
                 return
             }
-            // 참고: 수정 중인데 자기 자신과 같은 시간(12:00 -> 12:00)인 경우는 그대로 진행(통과)
         }
 
-        // 2. 권한 확인 (중복이 아닐 때만 실행)
         if (!checkExactAlarmPermission(this)) {
             return
         }
 
-        // 3. 저장 로직
         if (position == null) {
-            // 추가 모드
             currentTimes.add(newTime)
             Toast.makeText(this, "$newTime 알림이 추가되었습니다.", Toast.LENGTH_SHORT).show()
         } else {
-            // 수정 모드
             currentTimes[position] = newTime
             Toast.makeText(this, "$newTime 으로 알림이 수정되었습니다.", Toast.LENGTH_SHORT).show()
         }
 
-        // 4. 반영
         reminderPrefs.setAlarmTimes(currentTimes)
         loadAlarmSettings()
 
@@ -226,8 +248,6 @@ class NotificationSettingsActivity : AppCompatActivity() {
         }
     }
 
-    // --- 4. 기타 알람 관리 로직 ---
-
     private fun deleteAlarm(position: Int) {
         val currentTimes = reminderPrefs.getAlarmTimes().toMutableList()
         val deletedTime = currentTimes.removeAt(position)
@@ -235,10 +255,8 @@ class NotificationSettingsActivity : AppCompatActivity() {
         reminderPrefs.setAlarmTimes(currentTimes)
         Toast.makeText(this, "$deletedTime 알림이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
 
-        // UI 및 스케줄러 업데이트
         loadAlarmSettings()
 
-        // 권한 확인 후 안전하게 호출
         if (reminderPrefs.isMasterOn()) {
             if (checkExactAlarmPermission(this)) {
                 ReminderScheduler.scheduleAllReminders(this)

@@ -30,7 +30,8 @@ import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.databinding.ActivityDailyReadBinding
 import com.example.sumdays.image.GalleryItem
 import com.example.sumdays.image.PhotoGalleryAdapter
-import com.example.sumdays.settings.prefs.ThemeState
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
@@ -78,18 +79,23 @@ class DailyReadActivity : AppCompatActivity() {
     }
 
     private fun applyThemeModeSettings() {
-        ThemeState.isDarkMode =
-            (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+        val themeRepo = ThemeRepository
+        val themeKey = ThemePrefs.getTheme(this)
+        val currentTheme = themeRepo.ownedThemes.get(themeKey)
 
-        if (ThemeState.isDarkMode) {
-            binding.editMemosButton.setTextColor(getColor(R.color.white))
-            binding.prevDayButton.setImageResource(R.drawable.ic_arrow_back_white)
-            binding.nextDayButton.setImageResource(R.drawable.ic_arrow_forward_white)
-        } else {
-            binding.editMemosButton.setTextColor(getColor(R.color.white))
-            binding.prevDayButton.setImageResource(R.drawable.ic_arrow_back_black)
-            binding.nextDayButton.setImageResource(R.drawable.ic_arrow_forward_black)
-        }
+        val themePreviewImage = currentTheme!!.themePreviewImage
+        val primaryColor = currentTheme!!.primaryColor
+        val buttonColor = currentTheme!!.buttonColor
+        val backgroundColor = currentTheme!!.backgroundColor
+        val blockColor = currentTheme!!.blockColor
+        val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
+        val memoImage = currentTheme!!.memoImage
+        val foxIcon = currentTheme!!.foxIcon
+
+        binding.root.setBackgroundResource(backgroundColor)
+        binding.editMemosButton.setTextColor(getColor(R.color.white))
+        binding.prevDayButton.setImageResource(R.drawable.ic_arrow_back_black)
+        binding.nextDayButton.setImageResource(R.drawable.ic_arrow_forward_black)
     }
 
     // ──────────────────────────────────

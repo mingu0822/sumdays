@@ -20,6 +20,8 @@ import org.threeten.bp.DayOfWeek
 import org.threeten.bp.YearMonth
 import com.example.sumdays.DailyWriteActivity
 import android.graphics.drawable.GradientDrawable
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 
 class DayAdapter(
     private val days: List<DateCell>,
@@ -46,12 +48,23 @@ class DayAdapter(
         private val tvDayNumber: TextView = itemView.findViewById(R.id.tv_day_number)
         private val tvEmoji: TextView = itemView.findViewById(R.id.tv_emoji)
 
+        private fun applyThemeModeSettings(itemView: View){
+            val themeRepo = ThemeRepository
+            val themeKey = ThemePrefs.getTheme(itemView.context)
+            val currentTheme = themeRepo.ownedThemes.get(themeKey)
+            val backgroundColor = currentTheme!!.backgroundColor
+            itemView.setBackgroundResource(backgroundColor)
+        }
+
         fun bind(
             cell: DateCell,
             activity: CalendarActivity,
             today: LocalDate,
             maxYearMonth: YearMonth
         ) {
+            /** 달력 배경색 수정 **/
+            applyThemeModeSettings(itemView)
+
             if (cell.day <= 0 || cell.day > 31) {
                 tvCircle.background = null
                 tvDayNumber.text = ""

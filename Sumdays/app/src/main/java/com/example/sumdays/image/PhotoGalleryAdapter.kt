@@ -6,10 +6,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.sumdays.R
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 
 class PhotoGalleryAdapter(
     private val onPhotoClick: (String) -> Unit,
@@ -45,17 +49,22 @@ class PhotoGalleryAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val item = getItem(position)) {
-            is GalleryItem.Photo -> (holder as PhotoViewHolder).bind(
-                url = item.url,
-                position = position,
-                onClick = onPhotoClick,
-                onDeleteClick = onDeleteClick
-            )
-            is GalleryItem.Add -> (holder as AddViewHolder).bind(onAddClick)
+            is GalleryItem.Photo -> {
+                (holder as PhotoViewHolder).bind(
+                    url = item.url,
+                    position = position,
+                    onClick = onPhotoClick,
+                    onDeleteClick = onDeleteClick
+                )
+            }
+            is GalleryItem.Add -> {
+                (holder as AddViewHolder).bind(onAddClick)
+            }
         }
     }
 
     class PhotoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val cardView: CardView = itemView as CardView
         private val imageView: ImageView = itemView.findViewById(R.id.gallery_image)
         private val deleteButton: ImageView = itemView.findViewById(R.id.btn_delete_image)
 
@@ -65,6 +74,8 @@ class PhotoGalleryAdapter(
             onClick: (String) -> Unit,
             onDeleteClick: (Int) -> Unit
         ) {
+            applyTheme()
+
             val isUriOrPath = url.startsWith("content://") ||
                     url.startsWith("file://") ||
                     url.startsWith("http://") ||
@@ -97,11 +108,39 @@ class PhotoGalleryAdapter(
             imageView.setOnClickListener { onClick(url) }
             deleteButton.setOnClickListener { onDeleteClick(position) }
         }
+
+        private fun applyTheme() {
+            val context = itemView.context
+            val themeKey = ThemePrefs.getTheme(context)
+            val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
+
+            val blockColor = ContextCompat.getColor(context, currentTheme.blockColor)
+            val primaryColor = ContextCompat.getColor(context, currentTheme.primaryColor)
+
+            cardView.setCardBackgroundColor(blockColor)
+            deleteButton.setColorFilter(primaryColor)
+        }
     }
 
     class AddViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val cardView: CardView = itemView as CardView
+        private val addIcon: ImageView = itemView.findViewById(R.id.add_icon)
+
         fun bind(onClick: () -> Unit) {
+            applyTheme()
             itemView.setOnClickListener { onClick() }
+        }
+
+        private fun applyTheme() {
+            val context = itemView.context
+            val themeKey = ThemePrefs.getTheme(context)
+            val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
+
+            val blockColor = ContextCompat.getColor(context, currentTheme.blockColor)
+            val primaryColor = ContextCompat.getColor(context, currentTheme.primaryColor)
+
+            cardView.setCardBackgroundColor(blockColor)
+            addIcon.setColorFilter(primaryColor)
         }
     }
 }

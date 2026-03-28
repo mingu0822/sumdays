@@ -16,11 +16,12 @@ import com.example.sumdays.R
 import com.example.sumdays.databinding.ActivityProfileDiaryStyleBinding
 import com.example.sumdays.data.style.UserStyle
 import com.example.sumdays.data.style.UserStyleViewModel
-import com.example.sumdays.settings.prefs.ThemeState
 import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.settings.ui.CenterScaleOnScrollListener
 import com.example.sumdays.settings.ui.HorizontalMarginItemDecoration
 import com.example.sumdays.settings.ui.StyleCardAdapter
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
 import kotlinx.coroutines.*
 
@@ -60,18 +61,31 @@ open class DiaryStyleSettingsActivity : AppCompatActivity(), CoroutineScope by M
         job.cancel()
     }
 
-    private fun applyThemeModeSettings(){
-        // Apply dark mode
-        ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+    private fun applyThemeModeSettings() {
+        val themeKey = ThemePrefs.getTheme(this)
+        val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-        if (ThemeState.isDarkMode){
-            binding.header.headerBackIcon.setImageResource(R.drawable.ic_arrow_back_white)
-            binding.selectButton.setTextColor(getColor(R.color.white))
-        }
-        else{
-            binding.header.headerBackIcon.setImageResource(R.drawable.ic_arrow_back_black)
-            binding.selectButton.setTextColor(getColor(R.color.white))
-        }
+        val primaryColor = currentTheme.primaryColor
+        val buttonColor = currentTheme.buttonColor
+        val backgroundColor = currentTheme.backgroundColor
+        val blockColor = currentTheme.blockColor
+
+        // 전체 배경
+        binding.root.setBackgroundResource(backgroundColor)
+
+        // 카드 리스트 영역 배경
+        binding.styleRecycler.setBackgroundResource(backgroundColor)
+
+        // 선택 버튼
+        binding.selectButton.setBackgroundColor(getColor(buttonColor))
+        binding.selectButton.setTextColor(getColor(R.color.white))
+
+        // 헤더
+        binding.header.headerTitle.setTextColor(getColor(primaryColor))
+        binding.header.headerBackIcon.setColorFilter(getColor(primaryColor))
+
+        // 설명 문구
+        binding.descText.setTextColor(getColor(primaryColor))
     }
 
     protected open fun provideUserStatsPrefs(): UserStatsPrefs = UserStatsPrefs(this)

@@ -14,6 +14,7 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,7 +23,8 @@ import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.repository.DailyEntryRepository
 import com.example.sumdays.search.DailyEntrySearchAdapter
 import com.example.sumdays.search.DailySearchViewModelFactory
-import com.example.sumdays.settings.prefs.ThemeState
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 
@@ -97,16 +99,33 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun applyThemeModeSettings() {
-        ThemeState.isDarkMode =
-            (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+        val themeKey = ThemePrefs.getTheme(this)
+        val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-        if (ThemeState.isDarkMode) {
-            btnBack.setImageResource(R.drawable.ic_arrow_back_white)
-            searchBox.setBackgroundResource(R.drawable.bg_search_round_white)
-        } else {
-            btnBack.setImageResource(R.drawable.ic_arrow_back_black)
-            searchBox.setBackgroundResource(R.drawable.bg_search_round_gray)
-        }
+        val primaryColor = currentTheme.primaryColor
+        val buttonColor = currentTheme.buttonColor
+        val backgroundColor = currentTheme.backgroundColor
+        val blockColor = currentTheme.blockColor
+
+        // 화면 전체 배경
+        findViewById<android.view.View>(android.R.id.content).setBackgroundResource(backgroundColor)
+
+        // 검색창 배경
+        searchBox.setBackgroundResource(blockColor)
+
+        // 검색 입력창 글자/힌트 색
+        etQuery.setTextColor(ContextCompat.getColor(this, primaryColor))
+        etQuery.setHintTextColor(ContextCompat.getColor(this, primaryColor))
+
+        // 빈 결과 텍스트
+        tvEmpty.setTextColor(ContextCompat.getColor(this, primaryColor))
+
+        // 검색 결과 리스트 배경
+        rvResults.setBackgroundResource(backgroundColor)
+
+        // 아이콘 색
+        btnBack.setColorFilter(ContextCompat.getColor(this, primaryColor))
+        btnClear.setColorFilter(ContextCompat.getColor(this, primaryColor))
     }
 
     private fun setButtonClickListener() {

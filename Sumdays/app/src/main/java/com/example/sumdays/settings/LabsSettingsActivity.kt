@@ -9,7 +9,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import com.example.sumdays.R
 import com.example.sumdays.databinding.ActivityProfileLabsBinding
 import com.example.sumdays.settings.prefs.LabsPrefs
-import com.example.sumdays.settings.prefs.ThemeState
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
 
 class LabsSettingsActivity : AppCompatActivity() {
@@ -39,15 +40,47 @@ class LabsSettingsActivity : AppCompatActivity() {
         setupEdgeToEdge(rootView)
     }
 
-    private fun applyThemeModeSettings(){
-        // Apply dark mode
-        ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+    private fun applyThemeModeSettings() {
+        val themeKey = ThemePrefs.getTheme(this)
+        val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-        if (ThemeState.isDarkMode){
-            binding.header.headerBackIcon.setImageResource(R.drawable.ic_arrow_back_white)
-        }
-        else{
-            binding.header.headerBackIcon.setImageResource(R.drawable.ic_arrow_back_black)
+        val primaryColor = currentTheme.primaryColor
+        val buttonColor = currentTheme.buttonColor
+        val backgroundColor = currentTheme.backgroundColor
+        val blockColor = currentTheme.blockColor
+
+        // 전체 배경
+        binding.root.setBackgroundResource(backgroundColor)
+
+        // 헤더
+        binding.header.headerTitle.setTextColor(getColor(primaryColor))
+        binding.header.headerBackIcon.setColorFilter(getColor(primaryColor))
+
+        // 텍스트
+        binding.descText.setTextColor(getColor(primaryColor))
+        binding.lengthLevelExampleText.setTextColor(getColor(primaryColor))
+
+        // 슬라이더
+        binding.lengthLevelSlider.trackActiveTintList =
+            android.content.res.ColorStateList.valueOf(getColor(buttonColor))
+        binding.lengthLevelSlider.trackInactiveTintList =
+            android.content.res.ColorStateList.valueOf(getColor(blockColor))
+        binding.lengthLevelSlider.thumbTintList =
+            android.content.res.ColorStateList.valueOf(getColor(primaryColor))
+        binding.lengthLevelSlider.haloTintList =
+            android.content.res.ColorStateList.valueOf(getColor(buttonColor))
+
+        // 카드뷰들 배경색 변경
+        val scrollChild = (binding.root.getChildAt(1) as? android.widget.ScrollView)?.getChildAt(0)
+                as? android.widget.LinearLayout
+
+        scrollChild?.let { container ->
+            for (i in 0 until container.childCount) {
+                val child = container.getChildAt(i)
+                if (child is androidx.cardview.widget.CardView) {
+                    child.setCardBackgroundColor(getColor(blockColor))
+                }
+            }
         }
     }
 

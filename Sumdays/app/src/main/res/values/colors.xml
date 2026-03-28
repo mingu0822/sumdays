@@ -43,4 +43,18 @@
     <color name="background">#FFFFFF</color>
     <color name="textColor">#000000</color>
 
+
+    <color name="background_dark">#282d35</color>
+    <color name="textColor_dark">#FFFFFF</color>
+
+    <!-- forest 테마 주요 색 -->
+    <color name="theme_forest_green">#2E7D32</color>
+    <color name="theme_forest_bg">#F1F8F4</color>
+    <color name="theme_forest_block">#C8E6C9</color>
+
+    <color name="theme_default">#FFFFFF</color>
+    <color name="theme_default_primary">#000000</color>
+    <color name="theme_default_background">#282d35</color>
+    <color name="theme_default_block">#777777</color>
+
 </resources>

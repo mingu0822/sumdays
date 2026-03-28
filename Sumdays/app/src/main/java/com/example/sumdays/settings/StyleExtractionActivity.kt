@@ -1,6 +1,7 @@
 package com.example.sumdays.settings
 
 import android.app.Dialog
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -12,6 +13,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -28,6 +30,8 @@ import com.example.sumdays.image.PhotoGalleryAdapter
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.StyleExtractionResponse
 import com.example.sumdays.settings.prefs.LabsPrefs
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.FileUtil
 import com.example.sumdays.utils.setupEdgeToEdge
 import com.google.gson.Gson
@@ -59,12 +63,10 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
 
     private lateinit var backCallback: OnBackPressedCallback
 
-    // 코루틴 스코프
     private val job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
-    /*--------------------------- PhotoGallery 관련 필드 ------------------*/
     private lateinit var photoGalleryAdapter: PhotoGalleryAdapter
     private lateinit var pickImageLauncher: ActivityResultLauncher<PickVisualMediaRequest>
     private val currentPhotoUris = mutableListOf<Uri>()
@@ -82,6 +84,7 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
         setupListeners()
         setBackCallback()
         updateImageCountUi()
+        applyThemeModeSettings()
 
         val rootView = findViewById<View>(R.id.setting_style_extraction_root)
         setupEdgeToEdge(rootView)
@@ -91,6 +94,40 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
         super.onDestroy()
         currentExtractCall?.cancel()
         job.cancel()
+    }
+
+    private fun applyThemeModeSettings() {
+        val themeKey = ThemePrefs.getTheme(this)
+        val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
+
+        val primaryColor = ContextCompat.getColor(this, currentTheme.primaryColor)
+        val buttonColor = ContextCompat.getColor(this, currentTheme.buttonColor)
+        val backgroundColor = currentTheme.backgroundColor
+        val blockColor = currentTheme.blockColor
+
+        // 전체 배경
+        binding.root.setBackgroundResource(backgroundColor)
+
+        // 헤더
+        binding.header.headerTitle.setTextColor(primaryColor)
+        binding.header.headerBackIcon.setColorFilter(primaryColor)
+
+        // 안내/카운트 텍스트
+        binding.selectedImageCount.setTextColor(primaryColor)
+
+        // 텍스트 입력창
+        binding.diaryTextInput.setBackgroundResource(blockColor)
+        binding.diaryTextInput.setTextColor(primaryColor)
+        binding.diaryTextInput.setHintTextColor(primaryColor)
+
+        // 갤러리 영역
+        binding.photoGalleryRecyclerView.setBackgroundResource(backgroundColor)
+
+        // 실행 버튼
+        binding.runExtractionButton.backgroundTintList = ColorStateList.valueOf(buttonColor)
+        binding.runExtractionButton.setTextColor(
+            ContextCompat.getColor(this, android.R.color.white)
+        )
     }
 
     private fun setBackCallback() {
@@ -134,7 +171,6 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
         binding.selectedImageCount.text = "선택된 이미지: ${currentPhotoUris.size}개"
     }
 
-    // --- 1. 스타일 추출 실행 (유효성 검사 포함) ---
     private fun handleExtractStyle() {
         val textInput = binding.diaryTextInput.text.toString().trim()
 
@@ -180,7 +216,6 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
         }
     }
 
-    // --- 2. Multipart 구성 도우미 함수 ---
     private fun createTextPart(diaries: List<String>): RequestBody {
         val jsonDiaries = Gson().toJson(diaries)
         return jsonDiaries.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
@@ -198,7 +233,6 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
         }
     }
 
-    // --- 3. Retrofit API 호출 ---
     private fun callApi(diaryPart: RequestBody, imageParts: List<MultipartBody.Part>) {
         currentExtractCall = ApiClient.api.extractStyle(diaryPart, imageParts)
 
@@ -266,7 +300,6 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
         })
     }
 
-    // --- 4. Room DB 저장 로직 ---
     private suspend fun saveStyleData(response: StyleExtractionResponse) {
         val styleVector = response.style_vector
         val styleExamples = response.style_examples
@@ -356,8 +389,6 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
             }
         }
     }
-
-    /*--------------------------- PhotoGallery 관련 구현 ------------------*/
 
     private fun initializeImagePicker() {
         pickImageLauncher =

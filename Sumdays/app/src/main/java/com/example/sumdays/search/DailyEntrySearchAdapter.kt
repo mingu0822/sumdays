@@ -11,7 +11,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.R
 import com.example.sumdays.data.DailyEntry
-import com.example.sumdays.settings.prefs.ThemeState
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 
 class DailyEntrySearchAdapter(
     private val onClick: (DailyEntry) -> Unit
@@ -83,23 +84,25 @@ class DailyEntrySearchAdapter(
         }
 
         private fun applyThemeModeSettings(){
-            ThemeState.isDarkMode = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+            val themeRepo = ThemeRepository
+            val themeKey = ThemePrefs.getTheme(itemView.context)
+            val currentTheme = themeRepo.ownedThemes.get(themeKey)
 
-            if (ThemeState.isDarkMode){
-                tvDate.setTextColor(ContextCompat.getColor(itemView.context, R.color.white))
-                tvIcons.setTextColor(ContextCompat.getColor(itemView.context, R.color.white))
-                tvPreview.setTextColor(ContextCompat.getColor(itemView.context, R.color.white))
-                tvKeywords.setTextColor(ContextCompat.getColor(itemView.context, R.color.white))
-            }
-            else{
-                tvDate.setTextColor(ContextCompat.getColor(itemView.context, R.color.black))
-                tvIcons.setTextColor(ContextCompat.getColor(itemView.context, R.color.black))
-                tvPreview.setTextColor(ContextCompat.getColor(itemView.context, R.color.black))
-                tvKeywords.setTextColor(ContextCompat.getColor(itemView.context, R.color.black))
+            val themePreviewImage = currentTheme!!.themePreviewImage
+            val primaryColor = currentTheme!!.primaryColor
+            val buttonColor = currentTheme!!.buttonColor
+            val backgroundColor = currentTheme!!.backgroundColor
+            val blockColor = currentTheme!!.blockColor
+            val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
+            val memoImage = currentTheme!!.memoImage
+            val foxIcon = currentTheme!!.foxIcon
+            tvDate.setTextColor(ContextCompat.getColor(itemView.context, R.color.black))
+            tvIcons.setTextColor(ContextCompat.getColor(itemView.context, R.color.black))
+            tvPreview.setTextColor(ContextCompat.getColor(itemView.context, R.color.black))
+            tvKeywords.setTextColor(ContextCompat.getColor(itemView.context, R.color.black))
             }
         }
 
-    }
 
 
     companion object {

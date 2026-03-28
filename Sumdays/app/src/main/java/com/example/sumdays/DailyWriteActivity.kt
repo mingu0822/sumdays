@@ -51,7 +51,8 @@ import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.image.GalleryItem
 import com.example.sumdays.image.GridSpacingItemDecoration
 import com.example.sumdays.image.PhotoGalleryAdapter
-import com.example.sumdays.settings.prefs.ThemeState
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
@@ -168,32 +169,30 @@ class DailyWriteActivity : AppCompatActivity() {
     }
 
     private fun applyThemeModeSettings() {
-        ThemeState.isDarkMode =
-            (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+        val themeRepo = ThemeRepository
+        val themeKey = ThemePrefs.getTheme(this)
+        val currentTheme = themeRepo.ownedThemes.get(themeKey)
 
-        if (ThemeState.isDarkMode) {
-            imageDrawerContainer.setBackgroundResource(R.drawable.bg_image_drawer_rounded_dark)
-            imageRecyclerView.setBackgroundColor(getColor(R.color.dark_item_card_background))
-            imagePanelTitle.setTextColor(getColor(android.R.color.white))
+        val themePreviewImage = currentTheme!!.themePreviewImage
+        val primaryColor = currentTheme!!.primaryColor
+        val buttonColor = currentTheme!!.buttonColor
+        val backgroundColor = currentTheme!!.backgroundColor
+        val blockColor = currentTheme!!.blockColor
+        val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
+        val memoImage = currentTheme!!.memoImage
+        val foxIcon = currentTheme!!.foxIcon
+        val rootView = findViewById<View>(R.id.write)
+        rootView.setBackgroundResource(backgroundColor)
+        imageDrawerContainer.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
+        imageRecyclerView.setBackgroundColor(getColor(android.R.color.white))
+        imagePanelTitle.setTextColor(getColor(android.R.color.black))
 
-            readDiaryButton.setTextColor(getColor(R.color.white))
-            memoInputEditText.setTextColor(getColor(R.color.black))
-            memoInputEditText.setHintTextColor(getColor(R.color.black))
-            sendIcon.setImageResource(R.drawable.ic_send_white)
-            micIcon.setImageResource(R.drawable.ic_mic_white)
-            imageIcon.setImageResource(R.drawable.ic_image_white)
-        } else {
-            imageDrawerContainer.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
-            imageRecyclerView.setBackgroundColor(getColor(android.R.color.white))
-            imagePanelTitle.setTextColor(getColor(android.R.color.black))
-
-            readDiaryButton.setTextColor(getColor(R.color.white))
-            memoInputEditText.setTextColor(getColor(R.color.black))
-            memoInputEditText.setHintTextColor(getColor(R.color.black))
-            sendIcon.setImageResource(R.drawable.ic_send_black)
-            micIcon.setImageResource(R.drawable.ic_mic_black)
-            imageIcon.setImageResource(R.drawable.ic_image_black)
-        }
+        readDiaryButton.setTextColor(getColor(R.color.white))
+        memoInputEditText.setTextColor(getColor(R.color.black))
+        memoInputEditText.setHintTextColor(getColor(R.color.black))
+        sendIcon.setImageResource(R.drawable.ic_send_black)
+        micIcon.setImageResource(R.drawable.ic_mic_black)
+        imageIcon.setImageResource(R.drawable.ic_image_black)
     }
 
     private fun createAudioRecorderHelper(): AudioRecorderHelper {
