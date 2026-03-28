@@ -91,6 +91,8 @@
         <activity android:name=".settings.ThemeSettingsActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
+        <activity android:name=".social.SocialActivity"
+            android:exported="false" />
 
         <activity
             android:name=".settings.StyleExtractionActivity"

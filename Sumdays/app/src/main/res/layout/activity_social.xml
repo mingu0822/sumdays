@@ -10,31 +10,18 @@
     tools:context=".CalendarActivity">
 
 
-    <ScrollView
-        android:padding="20dp"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-
-            <LinearLayout
-                android:id="@+id/themeBlock"
-                style="@style/SettingsItemStyle">
-                <TextView
-                    android:id="@+id/themeBlockText"
-                    android:text="소셜입니다"
-                    style="@style/TextAppearance.App.Normal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-
-
-        </LinearLayout>
-    </ScrollView>
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Social"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#222222"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="40dp"
+        android:layout_marginStart="20dp"/>
 
     <include
         android:id="@+id/navigation_bar"
