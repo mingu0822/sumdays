@@ -24,6 +24,7 @@ import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.sync.BackupScheduler
 import com.example.sumdays.data.sync.InitialSyncWorker
 import com.example.sumdays.settings.LabsSettingsActivity
+import com.example.sumdays.SocialActivity
 import com.example.sumdays.statistics.WeekSummaryWorker
 import com.example.sumdays.utils.setupEdgeToEdge
 import androidx.lifecycle.lifecycleScope
@@ -114,6 +115,7 @@ class ProfileActivity : AppCompatActivity() {
             binding.labsBlockText.setTextColor(getColor(R.color.white))
             binding.accountBlockText.setTextColor(getColor(R.color.white))
             binding.themeBlockText.setTextColor(getColor(R.color.white))
+            binding.socialBlockText.setTextColor(getColor(R.color.white))
         }
         else{
             binding.nickname.setTextColor(getColor(R.color.white))
@@ -121,6 +123,7 @@ class ProfileActivity : AppCompatActivity() {
             binding.labsBlockText.setTextColor(getColor(R.color.white))
             binding.accountBlockText.setTextColor(getColor(R.color.white))
             binding.themeBlockText.setTextColor(getColor(R.color.white))
+            binding.socialBlockText.setTextColor(getColor(R.color.white))
         }
     }
 
@@ -140,6 +143,10 @@ class ProfileActivity : AppCompatActivity() {
 
         binding.themeBlock.setOnClickListener {
             startActivity(Intent(this@ProfileActivity, ThemeSettingsActivity::class.java))
+        }
+
+        binding.socialBlock.setOnClickListener {
+            startActivity(Intent(this@ProfileActivity, SocialActivity::class.java))
         }
 
     }
