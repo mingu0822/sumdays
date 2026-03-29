@@ -111,7 +111,7 @@ dependencies {
     // 코루틴 사용할 수 있게 해줌
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     // Room 관련 의존성 추가
-    val roomVersion = "2.6.1" // Room의 최신 안정화 버전으로 교체
+    val roomVersion = "2.8.4" // Room의 최신 안정화 버전으로 교체
     // Room 라이브러리
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.sqlite:sqlite-ktx:2.4.0")

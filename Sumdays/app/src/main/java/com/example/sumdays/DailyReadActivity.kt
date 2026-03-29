@@ -405,7 +405,13 @@ class DailyReadActivity : AppCompatActivity() {
             .setMessage("일기 내용을 수정했습니다. AI 코멘트와 분석 결과도 새로고침할까요?")
             .setPositiveButton("예 (새로 분석)") { dialog, _ ->
                 lifecycleScope.launch {
-                    AnalysisRepository.requestAnalysis(dateKey, updatedContent, viewModel)
+                    AnalysisRepository.requestAnalysis(
+                        date = dateKey,
+                        diary = updatedContent,
+                        personaId = 1, // 임시 하드코딩
+                        context = this@DailyReadActivity,
+                        viewModel = viewModel
+                    )
                 }
                 toggleEditMode(false)
                 dialog.dismiss()
