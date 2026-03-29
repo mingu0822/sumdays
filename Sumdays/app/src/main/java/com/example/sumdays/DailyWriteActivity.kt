@@ -51,6 +51,7 @@ import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.image.GalleryItem
 import com.example.sumdays.image.GridSpacingItemDecoration
 import com.example.sumdays.image.PhotoGalleryAdapter
+import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
@@ -125,8 +126,8 @@ class DailyWriteActivity : AppCompatActivity() {
         audioRecorderHelper = createAudioRecorderHelper()
         handleIntent(intent)
         setupClickListeners()
-        applyThemeModeSettings()
 
+        updateOwned()
         navBarController = NavBarController(this)
         navBarController.setNavigationBar(NavSource.WRITE) {
             val currentMemos = memoAdapter.currentList
@@ -135,6 +136,7 @@ class DailyWriteActivity : AppCompatActivity() {
                 putParcelableArrayListExtra("memo_list", ArrayList(currentMemos))
             }
         }
+        applyThemeModeSettings()
 
         onBackPressedDispatcher.addCallback(this) {
             if (drawerLayout.isDrawerOpen(GravityCompat.END)) {
@@ -146,6 +148,12 @@ class DailyWriteActivity : AppCompatActivity() {
 
         val rootView = findViewById<View>(R.id.write)
         setupEdgeToEdge(rootView)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateOwned()
+        applyThemeModeSettings()
     }
 
     private fun initializeImagePicker() {
@@ -168,31 +176,68 @@ class DailyWriteActivity : AppCompatActivity() {
             }
     }
 
+    private fun updateOwned(){
+        ThemeRepository.updateOwned()
+        FoxRepository.updateOwned()
+    }
+
     private fun applyThemeModeSettings() {
-        val themeRepo = ThemeRepository
+
+        ThemeRepository.updateOwned()
+        FoxRepository.updateOwned()
+
         val themeKey = ThemePrefs.getTheme(this)
-        val currentTheme = themeRepo.ownedThemes.get(themeKey)
+        val foxKey = ThemePrefs.getFox(this)
 
-        val themePreviewImage = currentTheme!!.themePreviewImage
-        val primaryColor = currentTheme!!.primaryColor
-        val buttonColor = currentTheme!!.buttonColor
-        val backgroundColor = currentTheme!!.backgroundColor
-        val blockColor = currentTheme!!.blockColor
-        val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
-        val memoImage = currentTheme!!.memoImage
-        val foxIcon = currentTheme!!.foxIcon
+        val currentTheme =
+            ThemeRepository.ownedThemes[themeKey]
+                ?: ThemeRepository.allThemeMap[themeKey]
+
+        val currentFox =
+            FoxRepository.ownedFoxes[foxKey]
+                ?: FoxRepository.allFoxMap[foxKey]
+
+        if (currentTheme == null || currentFox == null) {
+            Log.e("ThemeError", "Theme or Fox is null")
+            return
+        }
+
+        val backgroundColor = currentTheme.backgroundColor
+        val foxFaceImage = currentFox.commentFoxIcon
+
         val rootView = findViewById<View>(R.id.write)
-        rootView.setBackgroundResource(backgroundColor)
-        imageDrawerContainer.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)
-        imageRecyclerView.setBackgroundColor(getColor(android.R.color.white))
-        imagePanelTitle.setTextColor(getColor(android.R.color.black))
 
-        readDiaryButton.setTextColor(getColor(R.color.white))
-        memoInputEditText.setTextColor(getColor(R.color.black))
-        memoInputEditText.setHintTextColor(getColor(R.color.black))
+        rootView.setBackgroundResource(backgroundColor)
+
+        imageDrawerContainer.setBackgroundResource(
+            R.drawable.bg_image_drawer_rounded_light
+        )
+
+        imageRecyclerView.setBackgroundColor(
+            getColor(android.R.color.white)
+        )
+
+        imagePanelTitle.setTextColor(
+            getColor(android.R.color.black)
+        )
+
+        readDiaryButton.setTextColor(
+            getColor(R.color.white)
+        )
+
+        memoInputEditText.setTextColor(
+            getColor(android.R.color.black)
+        )
+
+        memoInputEditText.setHintTextColor(
+            getColor(android.R.color.black)
+        )
+
         sendIcon.setImageResource(R.drawable.ic_send_black)
         micIcon.setImageResource(R.drawable.ic_mic_black)
         imageIcon.setImageResource(R.drawable.ic_image_black)
+
+        navBarController.setCenterSumIcon(foxFaceImage)
     }
 
     private fun createAudioRecorderHelper(): AudioRecorderHelper {

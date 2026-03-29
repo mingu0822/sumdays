@@ -1,10 +1,9 @@
-
-// DayAdapter.kt
 package com.example.sumdays.calendar
 
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,14 +13,11 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.CalendarActivity
 import com.example.sumdays.DailyReadActivity
-import com.example.sumdays.R
-import org.threeten.bp.LocalDate
-import org.threeten.bp.DayOfWeek
-import org.threeten.bp.YearMonth
 import com.example.sumdays.DailyWriteActivity
-import android.graphics.drawable.GradientDrawable
-import com.example.sumdays.theme.ThemePrefs
-import com.example.sumdays.theme.ThemeRepository
+import com.example.sumdays.R
+import org.threeten.bp.DayOfWeek
+import org.threeten.bp.LocalDate
+import org.threeten.bp.YearMonth
 
 class DayAdapter(
     private val days: List<DateCell>,
@@ -48,22 +44,14 @@ class DayAdapter(
         private val tvDayNumber: TextView = itemView.findViewById(R.id.tv_day_number)
         private val tvEmoji: TextView = itemView.findViewById(R.id.tv_emoji)
 
-        private fun applyThemeModeSettings(itemView: View){
-            val themeRepo = ThemeRepository
-            val themeKey = ThemePrefs.getTheme(itemView.context)
-            val currentTheme = themeRepo.ownedThemes.get(themeKey)
-            val backgroundColor = currentTheme!!.backgroundColor
-            itemView.setBackgroundResource(backgroundColor)
-        }
-
         fun bind(
             cell: DateCell,
             activity: CalendarActivity,
             today: LocalDate,
             maxYearMonth: YearMonth
         ) {
-            /** 달력 배경색 수정 **/
-            applyThemeModeSettings(itemView)
+            // CalendarActivity에 있는 테마 적용 함수 호출
+            activity.applyThemeModeSettings(itemView)
 
             if (cell.day <= 0 || cell.day > 31) {
                 tvCircle.background = null
@@ -93,15 +81,26 @@ class DayAdapter(
 
             when {
                 isToday -> {
-                    tvCircle.background = ContextCompat.getDrawable(itemView.context, R.drawable.calendar_shape_fox_today)
+                    tvCircle.background = ContextCompat.getDrawable(
+                        itemView.context,
+                        R.drawable.calendar_shape_fox_today
+                    )
                     tvDayNumber.setTypeface(null, Typeface.BOLD)
                 }
+
                 hasDiary -> {
-                    tvCircle.background = ContextCompat.getDrawable(itemView.context, R.drawable.calendar_shape_fox_date_gray_completed)
+                    tvCircle.background = ContextCompat.getDrawable(
+                        itemView.context,
+                        R.drawable.calendar_shape_fox_date_gray_completed
+                    )
                     tvDayNumber.setTypeface(null, Typeface.NORMAL)
                 }
+
                 else -> {
-                    tvCircle.background = ContextCompat.getDrawable(itemView.context, R.drawable.calendar_shape_fox_date_gray)
+                    tvCircle.background = ContextCompat.getDrawable(
+                        itemView.context,
+                        R.drawable.calendar_shape_fox_date_gray
+                    )
                     tvDayNumber.setTypeface(null, Typeface.NORMAL)
                 }
             }
@@ -122,6 +121,7 @@ class DayAdapter(
                 tvDayNumber.alpha = 1.0f
                 tvCircle.alpha = 1.0f
             }
+
             if (isToday) {
                 val density = itemView.context.resources.displayMetrics.density
                 val width = (20 * density).toInt()
@@ -132,17 +132,19 @@ class DayAdapter(
                 params.height = height
                 tvDayNumber.layoutParams = params
 
-                val drawable = GradientDrawable()
-                drawable.shape = GradientDrawable.RECTANGLE
-                drawable.setColor(Color.WHITE)
-                drawable.cornerRadius = 5 * density
+                val drawable = GradientDrawable().apply {
+                    shape = GradientDrawable.RECTANGLE
+                    setColor(Color.WHITE)
+                    cornerRadius = 5 * density
+                }
 
                 tvDayNumber.background = drawable
-
-                // 글자색 검은색, 굵게
                 tvDayNumber.setTextColor(Color.BLACK)
                 tvDayNumber.setTypeface(null, Typeface.BOLD)
+            } else {
+                tvDayNumber.background = null
             }
+
             if (isFutureDay) {
                 itemView.isClickable = false
                 itemView.isFocusable = false
@@ -152,17 +154,13 @@ class DayAdapter(
                     Toast.makeText(activity, "미래의 일기로는 이동할 수 없습니다.", Toast.LENGTH_SHORT).show()
                 }
             } else {
-                // 과거/오늘만 클릭 허용
                 if (cell.dateString.isNotEmpty()) {
                     itemView.setOnClickListener {
-                        // 캘린더에서 가져온 '일기 존재 여부' 플래그 확인
                         if (hasDiary) {
-                            // 일기가 있으면 DailyReadActivity로
                             val intent = Intent(activity, DailyReadActivity::class.java)
                             intent.putExtra("date", cell.dateString)
                             activity.startActivity(intent)
                         } else {
-                            // 일기가 없으면 DailyWriteActivity로
                             Toast.makeText(activity, "이 날의 일기가 없습니다.", Toast.LENGTH_SHORT).show()
                             val intent = Intent(activity, DailyWriteActivity::class.java)
                             intent.putExtra("date", cell.dateString)

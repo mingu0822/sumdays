@@ -31,6 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.settings.ThemeSettingsActivity
+import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
@@ -86,11 +87,16 @@ class ProfileActivity : AppCompatActivity() {
         setupEdgeToEdge(rootView)
     }
 
+    fun updateOwned(){
+        ThemeRepository.updateOwned()
+        FoxRepository.updateOwned()
+    }
+
     override fun onResume() {
         super.onResume()
         // 화면이 다시 보일 때마다 UI를 최신 상태로 갱신합니다.
         updateAuthUI()
-
+        updateOwned()
         applyThemeModeSettings()
     }
     private fun updateAuthUI() {

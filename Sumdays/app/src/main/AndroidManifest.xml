@@ -52,6 +52,11 @@
             android:exported="false" />
         <activity
             android:name=".SettingActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".ShopActivity"
+            android:screenOrientation="portrait"
             android:exported="false" />
         <activity
             android:name=".CalendarActivity"

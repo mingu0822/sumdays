@@ -6,6 +6,7 @@ import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.annotation.RequiresApi
 import com.example.sumdays.CalendarActivity
@@ -13,10 +14,8 @@ import com.example.sumdays.DailyWriteActivity
 import com.example.sumdays.ProfileActivity
 import com.example.sumdays.StatisticsActivity
 import com.example.sumdays.R
-import com.example.sumdays.SearchActivity
+import com.example.sumdays.ShopActivity
 import org.threeten.bp.LocalDate
-
-
 
 enum class NavSource {
     CALENDAR,
@@ -31,31 +30,40 @@ class NavBarController(
 ) {
     private val today: LocalDate by lazy { LocalDate.now() }
 
+    private var centerRoot: View? = null
+
+    fun setCenterSumIcon(drawableRes: Int) {
+        val centerIcon = centerRoot?.findViewById<ImageView>(R.id.btnSum)
+        centerIcon?.setImageResource(drawableRes)
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun setNavigationBar(
-        from : NavSource,
+        from: NavSource,
         sumIntentProvider: (() -> Intent)? = null
     ) {
         val btnCalendar = activity.findViewById<ImageButton>(R.id.btnCalendar)
         val btnStatistic = activity.findViewById<ImageButton>(R.id.statistic_btn)
-        val btnSearch = activity.findViewById<ImageButton>(R.id.btnSearch)
+        val btnShop = activity.findViewById<ImageButton>(R.id.btnShop)
         val btnInfo = activity.findViewById<ImageButton>(R.id.btnInfo)
 
-        // center는 따로
         val centerContainer =
             activity.findViewById<LinearLayout>(R.id.nav_center_container)
         centerContainer.removeAllViews()
+
         val resource = when (from) {
             NavSource.WRITE -> R.layout.include_nav_center_sum
             else -> R.layout.include_nav_center_write
         }
-        val centerRoot = LayoutInflater.from(activity)
-            .inflate(resource, centerContainer, true)
-        val btnCenter = centerRoot.findViewWithTag<View>("nav_center")
 
-        // callback 함수 지정
+        LayoutInflater.from(activity).inflate(resource, centerContainer, true)
+
+        centerRoot = centerContainer.getChildAt(0)
+
+        val btnCenter = centerRoot?.findViewWithTag<View>("nav_center")
+
         btnCalendar.setOnClickListener {
-            if(from != NavSource.CALENDAR) {
+            if (from != NavSource.CALENDAR) {
                 activity.startActivity(
                     Intent(activity, CalendarActivity::class.java)
                 )
@@ -70,14 +78,13 @@ class NavBarController(
             activity.overridePendingTransition(0, 0)
         }
 
-        btnCenter.setOnClickListener {
+        btnCenter?.setOnClickListener {
             if (from == NavSource.WRITE) {
                 val intent = requireNotNull(sumIntentProvider) {
-                    "NavSource.READ requires centerIntentProvider"
+                    "NavSource.WRITE requires sumIntentProvider"
                 }.invoke()
                 activity.startActivity(intent)
-            }
-            else {
+            } else {
                 activity.startActivity(
                     Intent(activity, DailyWriteActivity::class.java)
                         .putExtra("date", today.toString())
@@ -87,10 +94,10 @@ class NavBarController(
             activity.overridePendingTransition(0, 0)
         }
 
-        btnSearch.setOnClickListener {
+        btnShop.setOnClickListener {
             if (from != NavSource.SEARCH) {
                 activity.startActivity(
-                    Intent(activity, SearchActivity::class.java)
+                    Intent(activity, ShopActivity::class.java)
                 )
                 activity.overridePendingTransition(0, 0)
             }
