@@ -47,6 +47,8 @@ class CalendarActivity : AppCompatActivity() {
     private lateinit var btnPrevMonth: ImageButton
     private lateinit var btnNextMonth: ImageButton
     private lateinit var btnSetting: ImageButton
+
+    private lateinit var btnSearch: ImageButton
     private lateinit var navBarController: NavBarController
     private lateinit var rootLayout: ConstraintLayout
 
@@ -72,6 +74,7 @@ class CalendarActivity : AppCompatActivity() {
         btnPrevMonth = findViewById(R.id.btn_prev_month)
         btnNextMonth = findViewById(R.id.btn_next_month)
         btnSetting = findViewById(R.id.setting_menu)
+        btnSearch = findViewById(R.id.search_btn)
         rootLayout = findViewById(R.id.root_layout)
 
         navBarController = NavBarController(this)
@@ -87,6 +90,12 @@ class CalendarActivity : AppCompatActivity() {
 
         btnSetting.setOnClickListener {
             val intent = Intent(this@CalendarActivity, SettingActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+        }
+
+        btnSearch.setOnClickListener {
+            val intent = Intent(this@CalendarActivity, SearchActivity::class.java)
             startActivity(intent)
             overridePendingTransition(0, 0)
         }

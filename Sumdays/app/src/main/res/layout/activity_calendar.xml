@@ -23,6 +23,13 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageButton
+                android:id="@+id/search_btn"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@drawable/ic_search"
+                android:background="@android:color/transparent" />
+
+            <ImageButton
                 android:id="@+id/setting_menu"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
