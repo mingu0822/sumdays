@@ -24,7 +24,7 @@ import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.sync.BackupScheduler
 import com.example.sumdays.data.sync.InitialSyncWorker
 import com.example.sumdays.settings.LabsSettingsActivity
-import com.example.sumdays.SocialActivity
+import com.example.sumdays.social.SocialActivity
 import com.example.sumdays.statistics.WeekSummaryWorker
 import com.example.sumdays.utils.setupEdgeToEdge
 import androidx.lifecycle.lifecycleScope
@@ -50,6 +50,7 @@ class ProfileActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // 인스턴스 초기화
+        SessionManager.init(applicationContext)
         userStatsPrefs = UserStatsPrefs(this)
         viewModel = ViewModelProvider(this)[DailyEntryViewModel::class.java]
 
