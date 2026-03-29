@@ -22,6 +22,8 @@ import androidx.viewpager2.widget.ViewPager2
 import com.example.sumdays.calendar.CalendarLanguage
 import com.example.sumdays.calendar.MonthAdapter
 import com.example.sumdays.data.viewModel.CalendarViewModel
+import com.example.sumdays.shop.AllFoxMap
+import com.example.sumdays.shop.AllThemeMap
 import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.Theme
 import com.example.sumdays.theme.ThemePrefs
@@ -60,6 +62,7 @@ class CalendarActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ensureDefaultOwned()
         updateOwned()
         setContentView(R.layout.activity_calendar)
         AndroidThreeTen.init(this)
@@ -96,6 +99,15 @@ class CalendarActivity : AppCompatActivity() {
             val intent = Intent(this, TutorialActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    private fun ensureDefaultOwned() {
+
+        val themeKey = ThemePrefs.getTheme(this)
+        val foxKey = ThemePrefs.getFox(this)
+
+        AllThemeMap.allThemeMap[themeKey]?.isOwned = true
+        AllFoxMap.allFoxMap[foxKey]?.isOwned = true
     }
 
     private fun getCurrentThemeOrNull(): Theme? {

@@ -21,7 +21,7 @@ object AllFoxMap {
             description = "화난 여우",
             price = 400,
             sumFoxIcon = R.drawable.dailyread_fox_face_level_1,
-            commentFoxIcon = R.drawable.dailyread_fox_face_level_5,
+            commentFoxIcon = R.drawable.dailyread_fox_face_level_1,
             isOwned = false
         ),
     )

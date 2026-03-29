@@ -80,29 +80,47 @@ class DailyReadActivity : AppCompatActivity() {
     }
 
     private fun applyThemeModeSettings() {
+
         val themeRepo = ThemeRepository
-        val themeKey = ThemePrefs.getTheme(this)
-        val currentTheme = themeRepo.ownedThemes.get(themeKey)
-
         val foxRepo = FoxRepository
+
+        // ⭐ owned 목록 갱신 (이거 매우 중요)
+        themeRepo.updateOwned()
+        foxRepo.updateOwned()
+
+        val themeKey = ThemePrefs.getTheme(this)
         val foxKey = ThemePrefs.getFox(this)
-        val currentFox = foxRepo.ownedFoxes.get(foxKey)
 
-        val themePreviewImage = currentTheme!!.themePreviewImage
-        val primaryColor = currentTheme!!.primaryColor
-        val buttonColor = currentTheme!!.buttonColor
-        val backgroundColor = currentTheme!!.backgroundColor
-        val blockColor = currentTheme!!.blockColor
-        val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
-        val memoImage = currentTheme!!.memoImage
+        val currentTheme =
+            themeRepo.ownedThemes[themeKey]
+                ?: themeRepo.allThemeMap[themeKey]
 
-        val foxFaceImage = currentFox!!.commentFoxIcon
+        val currentFox =
+            foxRepo.ownedFoxes[foxKey]
+                ?: foxRepo.allFoxMap[foxKey]
+
+        // ⭐ null 방어
+        if (currentTheme == null || currentFox == null) {
+            Toast.makeText(this, "기본 테마를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val backgroundColor = currentTheme.backgroundColor
+        val commentFoxFaceImage = currentFox.commentFoxIcon
 
         binding.root.setBackgroundResource(backgroundColor)
+
         binding.editMemosButton.setTextColor(getColor(R.color.white))
-        binding.prevDayButton.setImageResource(R.drawable.ic_arrow_back_black)
-        binding.nextDayButton.setImageResource(R.drawable.ic_arrow_forward_black)
-        binding.foxFaceImage.setImageResource(foxFaceImage)
+
+        binding.prevDayButton.setImageResource(
+            R.drawable.ic_arrow_back_black
+        )
+
+        binding.nextDayButton.setImageResource(
+            R.drawable.ic_arrow_forward_black
+        )
+
+        binding.foxFaceImage.setImageResource(commentFoxFaceImage)
     }
 
     // ──────────────────────────────────
@@ -445,5 +463,16 @@ class DailyReadActivity : AppCompatActivity() {
     private fun hideKeyboard(view: View) {
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+
+    fun updateOwned(){
+        ThemeRepository.updateOwned()
+        FoxRepository.updateOwned()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateOwned()
+        applyThemeModeSettings()
     }
 }
