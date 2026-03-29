@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardShopItem"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="2dp"
+    app:strokeColor="#EEE4D8"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="104dp"
+        android:orientation="horizontal"
+        android:padding="14dp">
+
+        <!-- 아이템 썸네일 -->
+        <FrameLayout
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:background="#F6F1EA">
+
+            <ImageView
+                android:id="@+id/ivShopItemImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="12dp"
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_menu_gallery"
+                tools:ignore="ContentDescription" />
+
+            <!-- 구매 완료 배지 -->
+            <TextView
+                android:id="@+id/tvPurchasedBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="6dp"
+                android:background="#CC8E7CFF"
+                android:paddingStart="8dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp"
+                android:text="보유중"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </FrameLayout>
+
+        <!-- 아이템 정보 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvShopItemCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#F3EEFF"
+                android:paddingStart="8dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp"
+                android:text="테마"
+                android:textColor="#8E7CFF"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                tools:text="테마" />
+
+            <TextView
+                android:id="@+id/tvShopItemName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="보라빛 저녁 테마"
+                android:textColor="#2D2A26"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                tools:text="보라빛 저녁 테마" />
+
+            <TextView
+                android:id="@+id/tvShopItemDescription"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:maxLines="2"
+                android:text="차분한 저녁 분위기의 배경과 포인트 색상을 적용해요"
+                android:textColor="#7A726A"
+                android:textSize="13sp"
+                tools:text="차분한 저녁 분위기의 배경과 포인트 색상을 적용해요" />
+        </LinearLayout>
+
+        <!-- 가격 / 버튼 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvShopItemPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="320P"
+                android:textColor="#8E7CFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="320P" />
+
+            <Button
+                android:id="@+id/btnShopItemAction"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="#8E7CFF"
+                android:minWidth="72dp"
+                android:text="구매"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                tools:text="구매" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

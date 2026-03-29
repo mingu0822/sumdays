@@ -3,6 +3,12 @@ package com.example.sumdays.theme
 data class Theme(
     val name: String,
 
+    val id: Int,
+
+    val description: String,
+
+    val price: Int,
+
     // 테마 미리보기 이미지
     val themePreviewImage: Int,
 
@@ -26,4 +32,6 @@ data class Theme(
 
     // 여우 캐릭터
     val foxIcon: FoxChar,
+
+    var isOwned: Boolean,
 )

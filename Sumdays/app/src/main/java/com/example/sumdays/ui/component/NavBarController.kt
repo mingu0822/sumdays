@@ -14,6 +14,7 @@ import com.example.sumdays.ProfileActivity
 import com.example.sumdays.StatisticsActivity
 import com.example.sumdays.R
 import com.example.sumdays.SearchActivity
+import com.example.sumdays.ShopActivity
 import org.threeten.bp.LocalDate
 
 
@@ -38,7 +39,7 @@ class NavBarController(
     ) {
         val btnCalendar = activity.findViewById<ImageButton>(R.id.btnCalendar)
         val btnStatistic = activity.findViewById<ImageButton>(R.id.statistic_btn)
-        val btnSearch = activity.findViewById<ImageButton>(R.id.btnSearch)
+        val btnShop = activity.findViewById<ImageButton>(R.id.btnShop)
         val btnInfo = activity.findViewById<ImageButton>(R.id.btnInfo)
 
         // center는 따로
@@ -87,10 +88,10 @@ class NavBarController(
             activity.overridePendingTransition(0, 0)
         }
 
-        btnSearch.setOnClickListener {
+        btnShop.setOnClickListener {
             if (from != NavSource.SEARCH) {
                 activity.startActivity(
-                    Intent(activity, SearchActivity::class.java)
+                    Intent(activity, ShopActivity::class.java)
                 )
                 activity.overridePendingTransition(0, 0)
             }

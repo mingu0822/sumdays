@@ -62,6 +62,7 @@ class CalendarActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        updateOwned()
         setContentView(R.layout.activity_calendar)
         AndroidThreeTen.init(this)
 
@@ -99,6 +100,10 @@ class CalendarActivity : AppCompatActivity() {
             val intent = Intent(this, TutorialActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    private fun updateOwned(){
+        ThemeRepository.updateOwned()
     }
 
     private fun applyThemeModeSettings(){
