@@ -19,11 +19,6 @@ object AllThemeMap {
             blockColor = R.color.theme_default_block,
             calendarBackgroundImage = R.drawable.theme_default_background,
             memoImage = R.drawable.memo_fox_bubble,
-            foxIcon = FoxChar(
-                name = "default_fox",
-                sumFoxIcon = R.drawable.dailyread_fox_face_level_3,
-                commentFoxIcon = R.drawable.dailyread_fox_face_level_3
-            ),
             isOwned = true
         ),
 
@@ -39,11 +34,6 @@ object AllThemeMap {
             blockColor = R.color.theme_forest_block,
             calendarBackgroundImage = R.drawable.statistics_background_morning,
             memoImage = R.drawable.memo_fox_bubble,
-            foxIcon = FoxChar(
-                name = "forest_fox",
-                sumFoxIcon = R.drawable.dailyread_fox_face_level_1,
-                commentFoxIcon = R.drawable.dailyread_fox_face_level_5
-            ),
             isOwned = true,
         )
     )

@@ -180,7 +180,7 @@ class DailyWriteActivity : AppCompatActivity() {
         val blockColor = currentTheme!!.blockColor
         val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
         val memoImage = currentTheme!!.memoImage
-        val foxIcon = currentTheme!!.foxIcon
+//        val foxIcon = currentTheme!!.foxIcon
         val rootView = findViewById<View>(R.id.write)
         rootView.setBackgroundResource(backgroundColor)
         imageDrawerContainer.setBackgroundResource(R.drawable.bg_image_drawer_rounded_light)

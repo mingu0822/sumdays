@@ -8,7 +8,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.sumdays.shop.AllFoxMap
 import com.example.sumdays.shop.AllThemeMap
+import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.ThemeShopItem
 
 class ShopActivity : AppCompatActivity() {
@@ -92,9 +94,9 @@ class ShopActivity : AppCompatActivity() {
     }
 
     private fun loadItems() {
-        val allThemeMap = AllThemeMap.allThemeMap
-
         allItems.clear()
+
+        val allThemeMap = AllThemeMap.allThemeMap
         for ((name, theme) in allThemeMap) {
             allItems.add(
                 ThemeShopItem(
@@ -107,12 +109,26 @@ class ShopActivity : AppCompatActivity() {
                 )
             )
         }
+
+        val allFoxMap = AllFoxMap.allFoxMap
+        for ((name, fox) in allFoxMap) {
+            allItems.add(
+                FoxShopItem(
+                    id = fox.id,
+                    name = name,
+                    description = fox.description,
+                    price = fox.price,
+                    isOwned = fox.isOwned,
+                    fox = fox,
+                )
+            )
+        }
     }
 
     private fun setupCategoryChips() {
         chipAll.setOnClickListener { filterItems("all") }
         chipTheme.setOnClickListener { filterItems("theme") }
-        chipFox.setOnClickListener { filterItems("sticker") }
+        chipFox.setOnClickListener { filterItems("fox") }
         chipSticker.setOnClickListener { filterItems("sticker") }
     }
 

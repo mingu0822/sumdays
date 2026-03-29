@@ -30,8 +30,5 @@ data class Theme(
     // 메모 이미지
     val memoImage: Int,
 
-    // 여우 캐릭터
-    val foxIcon: FoxChar,
-
     var isOwned: Boolean,
 )

@@ -7,7 +7,7 @@ object ThemeRepository {
     val ownedThemes: MutableMap<String, Theme> = mutableMapOf()
     val allThemeMap: MutableMap<String, Theme> = AllThemeMap.allThemeMap
 
-    public fun updateOwned() {
+    fun updateOwned() {
 
         ownedThemes.clear()
 

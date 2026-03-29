@@ -77,7 +77,7 @@ class SettingActivity : AppCompatActivity() {
         val blockColor = currentTheme!!.blockColor
         val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
         val memoImage = currentTheme!!.memoImage
-        val foxIcon = currentTheme!!.foxIcon
+//        val foxIcon = currentTheme!!.foxIcon
         binding.root.setBackgroundResource(backgroundColor)
         binding.notificationBlockText.setTextColor(getColor(R.color.white))
         binding.tutorialBlockText.setTextColor(getColor(R.color.white))

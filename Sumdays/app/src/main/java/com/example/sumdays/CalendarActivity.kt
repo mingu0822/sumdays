@@ -118,7 +118,7 @@ class CalendarActivity : AppCompatActivity() {
         val blockColor = currentTheme!!.blockColor
         val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
         val memoImage = currentTheme!!.memoImage
-        val foxIcon = currentTheme!!.foxIcon
+//        val foxIcon = currentTheme!!.foxIcon
         rootLayout.setBackgroundResource(backgroundColor)
 
         btnPrevMonth.setImageResource(R.drawable.ic_arrow_back_white)

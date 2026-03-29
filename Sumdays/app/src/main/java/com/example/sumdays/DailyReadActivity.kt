@@ -90,7 +90,7 @@ class DailyReadActivity : AppCompatActivity() {
         val blockColor = currentTheme!!.blockColor
         val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
         val memoImage = currentTheme!!.memoImage
-        val foxIcon = currentTheme!!.foxIcon
+//        val foxIcon = currentTheme!!.foxIcon
 
         binding.root.setBackgroundResource(backgroundColor)
         binding.editMemosButton.setTextColor(getColor(R.color.white))

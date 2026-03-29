@@ -95,7 +95,7 @@ class DailyEntrySearchAdapter(
             val blockColor = currentTheme!!.blockColor
             val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
             val memoImage = currentTheme!!.memoImage
-            val foxIcon = currentTheme!!.foxIcon
+//            val foxIcon = currentTheme!!.foxIcon
             tvDate.setTextColor(ContextCompat.getColor(itemView.context, R.color.black))
             tvIcons.setTextColor(ContextCompat.getColor(itemView.context, R.color.black))
             tvPreview.setTextColor(ContextCompat.getColor(itemView.context, R.color.black))
