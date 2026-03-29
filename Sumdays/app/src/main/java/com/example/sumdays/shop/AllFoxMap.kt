@@ -12,7 +12,7 @@ object AllFoxMap {
             price = 300,
             sumFoxIcon = R.drawable.dailyread_fox_face_level_3,
             commentFoxIcon = R.drawable.dailyread_fox_face_level_3,
-            isOwned = false
+            isOwned = true
         ),
 
         "angry" to FoxChar(
@@ -22,7 +22,7 @@ object AllFoxMap {
             price = 400,
             sumFoxIcon = R.drawable.dailyread_fox_face_level_1,
             commentFoxIcon = R.drawable.dailyread_fox_face_level_5,
-            isOwned = true
+            isOwned = false
         ),
     )
 }

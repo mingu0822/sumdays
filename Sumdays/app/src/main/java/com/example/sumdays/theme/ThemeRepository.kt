@@ -1,6 +1,5 @@
 package com.example.sumdays.theme
 
-import com.example.sumdays.R
 import com.example.sumdays.shop.AllThemeMap
 
 object ThemeRepository {

@@ -7,10 +7,9 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import androidx.room.util.query
-import com.example.sumdays.shop.AllThemeMap
-import com.example.sumdays.theme.Theme
-import com.example.sumdays.theme.ThemeRepository
+import com.example.sumdays.shop.FoxShopItem
+import com.example.sumdays.shop.ThemeShopItem
+import com.example.sumdays.theme.ThemePrefs
 
 class ShopAdapter(
     private val items: List<ShopItem>,
@@ -30,15 +29,6 @@ class ShopAdapter(
 
     override fun getItemCount(): Int = items.size
 
-    private fun purchaseTheme(themeName: String) {
-        val themeRepo = ThemeRepository
-
-        val theme = AllThemeMap.allThemeMap[themeName] ?: return
-
-        theme.isOwned = true
-        themeRepo.updateOwned()
-    }
-
     inner class ShopViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val ivShopItemImage: ImageView = itemView.findViewById(R.id.ivShopItemImage)
         private val tvShopItemCategory: TextView = itemView.findViewById(R.id.tvShopItemCategory)
@@ -49,22 +39,53 @@ class ShopAdapter(
         private val btnShopItemAction: Button = itemView.findViewById(R.id.btnShopItemAction)
 
         fun bind(item: ShopItem) {
-            tvShopItemCategory.text = item.category
+            val context = itemView.context
+
             tvShopItemName.text = item.name
             tvShopItemDescription.text = item.description
             tvShopItemPrice.text = if (item.isOwned) "보유중" else "${item.price}P"
+            tvShopItemCategory.text = item.category
 
-            tvPurchasedBadge.visibility = if (item.isOwned) View.VISIBLE else View.GONE
-            btnShopItemAction.text = if (item.isOwned) "적용" else "구매"
+            val isApplied = when (item) {
+                is ThemeShopItem -> ThemePrefs.getTheme(context) == item.name
+                is FoxShopItem -> ThemePrefs.getFox(context) == item.name
+                else -> false
+            }
+
+            when {
+                isApplied -> {
+                    tvPurchasedBadge.visibility = View.VISIBLE
+                    tvPurchasedBadge.text = "적용중"
+                    tvPurchasedBadge.setBackgroundResource(R.drawable.bg_label_applied)
+                    tvPurchasedBadge.setTextColor(context.getColor(android.R.color.black))
+                    btnShopItemAction.text = "적용 중"
+                    btnShopItemAction.isEnabled = false
+                }
+
+                item.isOwned -> {
+                    tvPurchasedBadge.visibility = View.VISIBLE
+                    tvPurchasedBadge.text = "보유중"
+                    tvPurchasedBadge.setBackgroundResource(R.drawable.bg_label_owned)
+                    tvPurchasedBadge.setTextColor(context.getColor(android.R.color.white))
+                    btnShopItemAction.text = "적용"
+                    btnShopItemAction.isEnabled = true
+                }
+
+                else -> {
+                    tvPurchasedBadge.visibility = View.GONE
+                    btnShopItemAction.text = "구매"
+                    btnShopItemAction.isEnabled = true
+                }
+            }
 
             ivShopItemImage.setImageResource(android.R.drawable.ic_menu_gallery)
 
-            itemView.setOnClickListener {
-                onItemClick(item)
-            }
-
             btnShopItemAction.setOnClickListener {
                 onActionClick(item)
+            }
+
+            itemView.setOnClickListener {
+                onItemClick(item)
             }
         }
     }

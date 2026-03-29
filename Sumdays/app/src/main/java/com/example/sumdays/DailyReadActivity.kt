@@ -30,6 +30,7 @@ import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.databinding.ActivityDailyReadBinding
 import com.example.sumdays.image.GalleryItem
 import com.example.sumdays.image.PhotoGalleryAdapter
+import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
@@ -83,6 +84,10 @@ class DailyReadActivity : AppCompatActivity() {
         val themeKey = ThemePrefs.getTheme(this)
         val currentTheme = themeRepo.ownedThemes.get(themeKey)
 
+        val foxRepo = FoxRepository
+        val foxKey = ThemePrefs.getFox(this)
+        val currentFox = foxRepo.ownedFoxes.get(foxKey)
+
         val themePreviewImage = currentTheme!!.themePreviewImage
         val primaryColor = currentTheme!!.primaryColor
         val buttonColor = currentTheme!!.buttonColor
@@ -90,12 +95,14 @@ class DailyReadActivity : AppCompatActivity() {
         val blockColor = currentTheme!!.blockColor
         val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
         val memoImage = currentTheme!!.memoImage
-//        val foxIcon = currentTheme!!.foxIcon
+
+        val foxFaceImage = currentFox!!.commentFoxIcon
 
         binding.root.setBackgroundResource(backgroundColor)
         binding.editMemosButton.setTextColor(getColor(R.color.white))
         binding.prevDayButton.setImageResource(R.drawable.ic_arrow_back_black)
         binding.nextDayButton.setImageResource(R.drawable.ic_arrow_forward_black)
+        binding.foxFaceImage.setImageResource(foxFaceImage)
     }
 
     // ──────────────────────────────────

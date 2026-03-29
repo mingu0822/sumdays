@@ -1,7 +1,5 @@
 package com.example.sumdays.theme
 
-import com.example.sumdays.data.model.Persona
-
 data class FoxChar (
     val name: String,
 
@@ -17,5 +15,5 @@ data class FoxChar (
     // 평가해주는 여우
     val commentFoxIcon: Int,
 
-    val isOwned: Boolean,
+    var isOwned: Boolean,
 )

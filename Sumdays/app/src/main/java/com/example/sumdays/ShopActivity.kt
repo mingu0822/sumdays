@@ -11,7 +11,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.shop.AllFoxMap
 import com.example.sumdays.shop.AllThemeMap
 import com.example.sumdays.shop.FoxShopItem
+import com.example.sumdays.shop.OwnedPrefs
+import com.example.sumdays.shop.PointPrefs
 import com.example.sumdays.shop.ThemeShopItem
+import com.example.sumdays.theme.ThemePrefs
 
 class ShopActivity : AppCompatActivity() {
 
@@ -29,6 +32,8 @@ class ShopActivity : AppCompatActivity() {
     private lateinit var chipFox: TextView
     private lateinit var chipSticker: TextView
 
+    private lateinit var btnReset: TextView
+
     private lateinit var rvShopItems: RecyclerView
 
     private lateinit var shopAdapter: ShopAdapter
@@ -36,12 +41,14 @@ class ShopActivity : AppCompatActivity() {
     private val filteredItems = mutableListOf<ShopItem>()
 
     private var selectedItem: ShopItem? = null
-    private var currentPoint: Int = 1240
+    private var currentPoint: Int = 0
     private var selectedCategory: String = "all"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_shop)
+
+        currentPoint = PointPrefs.getPoint(this)
 
         initViews()
         setupRecyclerView()
@@ -68,6 +75,8 @@ class ShopActivity : AppCompatActivity() {
         chipFox = findViewById(R.id.chipFox)
         chipSticker = findViewById(R.id.chipSticker)
 
+        btnReset = findViewById(R.id.btn_reset)
+
         rvShopItems = findViewById(R.id.rvShopItems)
     }
 
@@ -82,7 +91,7 @@ class ShopActivity : AppCompatActivity() {
                 if (item.isOwned) {
                     selectedItem = item
                     updateSelectedItemUI()
-                    Toast.makeText(this, "${item.name} 적용", Toast.LENGTH_SHORT).show()
+                    applyItem(item)
                 } else {
                     tryPurchaseItem(item)
                 }
@@ -93,18 +102,61 @@ class ShopActivity : AppCompatActivity() {
         rvShopItems.adapter = shopAdapter
     }
 
+    private fun resetShop() {
+        val defaultThemeKey = "default"
+        val defaultFoxKey = "default"
+
+        // 1) 포인트 초기화
+        currentPoint = 1240
+        PointPrefs.savePoint(this, currentPoint)
+
+        // 2) 구매 상태 저장소 초기화
+        OwnedPrefs.clear(this)
+
+        // 3) 테마 구매 상태 초기화
+        for ((name, theme) in AllThemeMap.allThemeMap) {
+            theme.isOwned = (name == defaultThemeKey)
+        }
+
+        // 4) 여우 구매 상태 초기화
+        for ((name, fox) in AllFoxMap.allFoxMap) {
+            fox.isOwned = (name == defaultFoxKey)
+        }
+
+        // 5) 기본 테마/여우 다시 적용
+        ThemePrefs.saveTheme(this, defaultThemeKey)
+        ThemePrefs.saveFox(this, defaultFoxKey)
+
+        // 6) 기본 아이템은 다시 구매 상태로 저장
+        OwnedPrefs.saveOwned(this, defaultThemeKey)
+        OwnedPrefs.saveOwned(this, defaultFoxKey)
+
+        // 7) 화면 데이터 다시 불러오기
+        loadItems()
+        filterItems(selectedCategory)
+
+        updatePointUI()
+        updateSelectedItemUI()
+        shopAdapter.notifyDataSetChanged()
+
+        Toast.makeText(this, "상점이 초기화되었습니다.", Toast.LENGTH_SHORT).show()
+    }
+
     private fun loadItems() {
         allItems.clear()
 
         val allThemeMap = AllThemeMap.allThemeMap
         for ((name, theme) in allThemeMap) {
+
+            val owned = OwnedPrefs.isOwned(this, name)
+
             allItems.add(
                 ThemeShopItem(
                     id = theme.id,
                     name = name,
                     description = theme.description,
                     price = theme.price,
-                    isOwned = theme.isOwned,
+                    isOwned = owned,
                     theme = theme,
                 )
             )
@@ -112,13 +164,16 @@ class ShopActivity : AppCompatActivity() {
 
         val allFoxMap = AllFoxMap.allFoxMap
         for ((name, fox) in allFoxMap) {
+
+            val owned = OwnedPrefs.isOwned(this, name)
+
             allItems.add(
                 FoxShopItem(
                     id = fox.id,
                     name = name,
                     description = fox.description,
                     price = fox.price,
-                    isOwned = fox.isOwned,
+                    isOwned = owned,
                     fox = fox,
                 )
             )
@@ -130,6 +185,10 @@ class ShopActivity : AppCompatActivity() {
         chipTheme.setOnClickListener { filterItems("theme") }
         chipFox.setOnClickListener { filterItems("fox") }
         chipSticker.setOnClickListener { filterItems("sticker") }
+
+        btnReset.setOnClickListener {
+            resetShop()
+        }
     }
 
     private fun filterItems(category: String) {
@@ -208,14 +267,39 @@ class ShopActivity : AppCompatActivity() {
         }
     }
 
+    private fun applyItem(item: ShopItem) {
+        when (item) {
+            is ThemeShopItem -> {
+                ThemePrefs.saveTheme(this, item.name)
+                Toast.makeText(this, "${item.name} 테마 적용", Toast.LENGTH_SHORT).show()
+                recreate()
+            }
+
+            is FoxShopItem -> {
+                ThemePrefs.saveFox(this, item.name)
+                Toast.makeText(this, "${item.name} 여우 적용", Toast.LENGTH_SHORT).show()
+                recreate()
+            }
+
+            else -> {
+                Toast.makeText(this, "${item.name} 적용", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private fun tryPurchaseItem(item: ShopItem) {
+
         if (currentPoint < item.price) {
             Toast.makeText(this, "포인트가 부족합니다", Toast.LENGTH_SHORT).show()
             return
         }
 
         currentPoint -= item.price
+        PointPrefs.savePoint(this, currentPoint)
+
         item.isOwned = true
+
+        OwnedPrefs.saveOwned(this, item.name)
 
         updatePointUI()
         updateSelectedItemUI()

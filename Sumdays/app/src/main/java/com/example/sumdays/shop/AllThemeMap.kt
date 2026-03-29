@@ -34,7 +34,7 @@ object AllThemeMap {
             blockColor = R.color.theme_forest_block,
             calendarBackgroundImage = R.drawable.statistics_background_morning,
             memoImage = R.drawable.memo_fox_bubble,
-            isOwned = true,
+            isOwned = false,
         )
     )
 }
