@@ -9,7 +9,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.R
 
 class SocialAdapter(
-    private val socialUserList: List<SocialUser>
+    private val socialUserList: List<SocialUser>,
+    private val onItemClick : (SocialUser) -> Unit
 ) : RecyclerView.Adapter<SocialAdapter.SocialViewHolder>() {
 
     class SocialViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -34,6 +35,9 @@ class SocialAdapter(
         holder.tvSocialName.text = socialUser.name
         holder.tvSocialSummary.text = socialUser.summary
         holder.tvEmotion.text = socialUser.emotion
+        holder.itemView.setOnClickListener {
+            onItemClick(socialUser)
+        }
     }
 
     override fun getItemCount(): Int {

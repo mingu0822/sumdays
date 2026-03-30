@@ -38,7 +38,13 @@ class SocialActivity : AppCompatActivity() {
         )
 
         recyclerSocial.layoutManager = LinearLayoutManager(this)
-        recyclerSocial.adapter = SocialAdapter(socialUserList)
+        recyclerSocial.adapter = SocialAdapter(socialUserList){ socialUser ->
+            android.widget.Toast.makeText(
+                this,
+                "${socialUser.name} 클릭됨",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        }
 
         btnBack.setOnClickListener {
             finish()
