@@ -69,36 +69,25 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="전체 소셜"
+        android:text="친구 리스트"
         android:textColor="#222222"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="@id/etSearchSocial"
         app:layout_constraintTop_toBottomOf="@id/tvSocialRequests" />
 
-    <FrameLayout
-        android:id="@+id/socialListContainer"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerSocial"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="12dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:background="#F4EFE7"
+        android:layout_marginBottom="12dp"
         app:layout_constraintTop_toBottomOf="@id/tvAllSocialSection"
         app:layout_constraintBottom_toTopOf="@id/navigation_bar"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="여기에 소셜 리스트가 들어올 예정"
-            android:textColor="#8A8175"
-            android:textSize="15sp" />
-
-    </FrameLayout>
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <include
         android:id="@+id/navigation_bar"
