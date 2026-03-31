@@ -15,7 +15,7 @@
         android:padding="14dp">
 
         <TextView
-            android:id="@+id/tvProfileEmoji"
+            android:id="@+id/tvProfile"
             android:layout_width="54dp"
             android:layout_height="54dp"
             android:gravity="center"
@@ -31,42 +31,36 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tvSocialName"
+                android:id="@+id/tvUserName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="민수"
+                android:layout_marginStart="2dp"
                 android:textColor="#222222"
                 android:textSize="17sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tvSocialSummary"
+                android:id="@+id/tvUserInfo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:maxLines="2"
-                android:text="오늘은 좀 지쳤지만 그래도 버텼어"
+                android:text="🔥 15  🍃 45   🍇 3"
                 android:textColor="#555555"
-                android:textSize="14sp" />
+                android:textSize="16sp" />
 
-            <TextView
-                android:id="@+id/tvEmotion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="😌 평온 / 과제 / 회복"
-                android:textColor="#7A6E5F"
-                android:textSize="13sp" />
         </LinearLayout>
 
         <ImageButton
-            android:id="@+id/btnOpenSocial"
+            android:id="@+id/btnFriend"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_gravity="center_vertical"
             android:background="@android:color/transparent"
             android:contentDescription="open social"
-            android:src="@android:drawable/ic_media_next" />
+            android:src="@drawable/ic_star_black"
+            />
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

@@ -10,15 +10,15 @@ import com.example.sumdays.R
 
 class SocialAdapter(
     private val socialUserList: List<SocialUser>,
-    private val onItemClick : (SocialUser) -> Unit
+    private val onItemClick : (SocialUser) -> Unit,
+    private val onButtonClick : (SocialUser) -> Unit
 ) : RecyclerView.Adapter<SocialAdapter.SocialViewHolder>() {
 
     class SocialViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val tvProfileEmoji: TextView = itemView.findViewById(R.id.tvProfileEmoji)
-        val tvSocialName: TextView = itemView.findViewById(R.id.tvSocialName)
-        val tvSocialSummary: TextView = itemView.findViewById(R.id.tvSocialSummary)
-        val tvEmotion: TextView = itemView.findViewById(R.id.tvEmotion)
-        val btnOpenSocial: ImageButton = itemView.findViewById(R.id.btnOpenSocial)
+        val tvProfile: TextView = itemView.findViewById(R.id.tvProfile)
+        val tvUserName: TextView = itemView.findViewById(R.id.tvUserName)
+        val tvUserInfo: TextView = itemView.findViewById(R.id.tvUserInfo)
+        val btnFriend: ImageButton = itemView.findViewById(R.id.btnFriend)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SocialViewHolder {
@@ -31,12 +31,13 @@ class SocialAdapter(
     override fun onBindViewHolder(holder: SocialViewHolder, position: Int) {
         val socialUser = socialUserList[position]
 
-        holder.tvProfileEmoji.text = socialUser.profileEmoji
-        holder.tvSocialName.text = socialUser.name
-        holder.tvSocialSummary.text = socialUser.summary
-        holder.tvEmotion.text = socialUser.emotion
+        holder.tvProfile.text = socialUser.profileEmoji
+        holder.tvUserName.text = socialUser.name
         holder.itemView.setOnClickListener {
             onItemClick(socialUser)
+        }
+        holder.btnFriend.setOnClickListener {
+            onButtonClick(socialUser)
         }
     }
 
