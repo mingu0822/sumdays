@@ -29,6 +29,10 @@
         android:clipToPadding="false"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
+        android:fastScrollEnabled="true"
         />
 
     <FrameLayout
@@ -99,34 +103,34 @@
     </LinearLayout>
 </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="80dp">
+<!--    <LinearLayout-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="vertical"-->
+<!--        android:layout_gravity="bottom|end"-->
+<!--        android:layout_marginEnd="16dp"-->
+<!--        android:layout_marginBottom="80dp">-->
 
-        <ImageButton
-        android:id="@+id/btn_move_to_latest_leaf"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_marginBottom="8dp"
-        android:src="@drawable/ic_arrow_up_white"
-        android:background="@drawable/statistics_shape_circle_button_black"
-        android:elevation="4dp"
-        android:contentDescription="최신 잎으로 이동" />
+<!--        <ImageButton-->
+<!--        android:id="@+id/btn_move_to_latest_leaf"-->
+<!--        android:layout_width="56dp"-->
+<!--        android:layout_height="56dp"-->
+<!--        android:layout_marginBottom="8dp"-->
+<!--        android:src="@drawable/ic_arrow_up_white"-->
+<!--        android:background="@drawable/statistics_shape_circle_button_black"-->
+<!--        android:elevation="4dp"-->
+<!--        android:contentDescription="최신 잎으로 이동" />-->
 
-        <ImageButton
-            android:id="@+id/btn_move_to_bottom_leaf"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:src="@drawable/ic_arrow_down_white"
-            android:background="@drawable/statistics_shape_circle_button_black"
-            android:elevation="4dp"
-            android:contentDescription="가장 오래된 기록으로 이동" />
+<!--        <ImageButton-->
+<!--            android:id="@+id/btn_move_to_bottom_leaf"-->
+<!--            android:layout_width="56dp"-->
+<!--            android:layout_height="56dp"-->
+<!--            android:src="@drawable/ic_arrow_down_white"-->
+<!--            android:background="@drawable/statistics_shape_circle_button_black"-->
+<!--            android:elevation="4dp"-->
+<!--            android:contentDescription="가장 오래된 기록으로 이동" />-->
 
-    </LinearLayout>
+<!--    </LinearLayout>-->
 
     <FrameLayout
         android:layout_width="match_parent"
