@@ -2,10 +2,8 @@ package com.example.sumdays.settings
 
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import com.example.sumdays.R
 import com.example.sumdays.databinding.ActivityProfileLabsBinding
 import com.example.sumdays.settings.prefs.LabsPrefs

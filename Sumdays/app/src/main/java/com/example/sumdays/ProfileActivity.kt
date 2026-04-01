@@ -1,6 +1,7 @@
 package com.example.sumdays
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -10,6 +11,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.graphics.toColorInt
 import com.example.sumdays.databinding.ActivityProfileMainBinding
 import com.example.sumdays.settings.AccountSettingsActivity
 import com.example.sumdays.settings.DiaryStyleSettingsActivity
@@ -30,7 +32,12 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.settings.EditProfileActivity
 import com.example.sumdays.settings.ThemeSettingsActivity
+import com.example.sumdays.settings.prefs.ProfileImagePrefs
+import com.example.sumdays.settings.profileimage.ProfileImageCategory
+import com.example.sumdays.settings.profileimage.ProfileImageItem
+import com.example.sumdays.settings.profileimage.ProfileImageItemType
 import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
@@ -98,7 +105,9 @@ class ProfileActivity : AppCompatActivity() {
         updateAuthUI()
         updateOwned()
         applyThemeModeSettings()
+        updateProfileImagePreview()
     }
+
     private fun updateAuthUI() {
         val isLoggedIn = SessionManager.isLoggedIn()
 
@@ -139,21 +148,50 @@ class ProfileActivity : AppCompatActivity() {
 
 
     private fun setSettingsBtnListener() = with(binding) {
-        binding.diaryStyleBlock.setOnClickListener {
+        profileImageContainer.setOnClickListener {
+            startActivity(Intent(this@ProfileActivity, EditProfileActivity::class.java))
+        }
+
+        diaryStyleBlock.setOnClickListener {
             startActivity(Intent(this@ProfileActivity, DiaryStyleSettingsActivity::class.java))
         }
 
-        binding.accountBlock.setOnClickListener {
+        accountBlock.setOnClickListener {
             startActivity(Intent(this@ProfileActivity, AccountSettingsActivity::class.java))
         }
 
-        binding.labsBlock.setOnClickListener {
+        labsBlock.setOnClickListener {
             startActivity(Intent(this@ProfileActivity, LabsSettingsActivity::class.java))
         }
 
-        binding.themeBlock.setOnClickListener {
+        themeBlock.setOnClickListener {
             startActivity(Intent(this@ProfileActivity, ThemeSettingsActivity::class.java))
         }
-
     }
+
+    private fun updateProfileImagePreview() {
+        val faceId = ProfileImagePrefs.getFaceId(this)
+        val eyesId = ProfileImagePrefs.getEyesId(this)
+        val mouthId = ProfileImagePrefs.getMouthId(this)
+        val accId = ProfileImagePrefs.getAccId(this)
+
+        // TODO: 더미 데이터 에셋과 json으로 바꾸기
+        val items = listOf(
+            ProfileImageItem(1, ProfileImageItemType.FACE, R.drawable.nav_fox_button),
+            ProfileImageItem(2, ProfileImageItemType.FACE, R.drawable.dailyread_fox_face_level_5),
+            ProfileImageItem(3, ProfileImageItemType.FACE, 0),
+            ProfileImageItem(4, ProfileImageItemType.EYES, R.drawable.loading_animation),
+            ProfileImageItem(5, ProfileImageItemType.EYES, 0)
+        )
+
+        binding.imgBase.setImageResource(items.find { it.id == faceId }?.resId ?: 0)
+        binding.imgBase.setColorFilter("#FFE0BD".toColorInt())
+        binding.imgEyes.setImageResource(items.find { it.id == eyesId }?.resId ?: 0)
+        binding.imgEyes.setColorFilter(Color.BLACK)
+        binding.imgMouth.setImageResource(items.find { it.id == mouthId }?.resId ?: 0)
+        binding.imgMouth.setColorFilter(Color.CYAN)
+        binding.imgAccessory.setImageResource(items.find { it.id == accId }?.resId ?: 0)
+        binding.imgAccessory.setColorFilter(Color.YELLOW)
+    }
+
 }

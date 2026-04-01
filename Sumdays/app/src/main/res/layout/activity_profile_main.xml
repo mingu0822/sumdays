@@ -41,6 +41,43 @@
                         android:text="닉네임"
                         android:textSize="@dimen/text_size_M"
                         android:textStyle="bold" />
+
+                    <FrameLayout
+                        android:id="@+id/profileImageContainer"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:background="@color/background">
+
+                        <ImageView
+                            android:id="@+id/imgBase"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside" />
+
+                        <ImageView
+                            android:id="@+id/imgMouth"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside" />
+
+                        <ImageView
+                            android:id="@+id/imgEyes"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside" />
+
+                        <ImageView
+                            android:id="@+id/imgAccessory"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside" />
+
+                    </FrameLayout>
                 </RelativeLayout>
 
                 <Button
