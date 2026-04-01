@@ -96,6 +96,10 @@
         <activity android:name=".settings.ThemeSettingsActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
+        <activity
+            android:name=".settings.EditProfileActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
 
         <activity
             android:name=".settings.StyleExtractionActivity"
@@ -103,6 +107,7 @@
             android:label="스타일 추출"
             android:windowSoftInputMode="adjustPan"
             android:screenOrientation="portrait" />
+
         <!-- -->
 
 
