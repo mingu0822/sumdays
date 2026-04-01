@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
+    android:fitsSystemWindows="true"
     android:layout_height="match_parent"
     android:background="#FFFDF8">
 
@@ -32,7 +33,7 @@
         app:layout_constraintTop_toTopOf="@id/btnBack" />
 
     <ImageButton
-        android:id="@+id/btnSetting"
+        android:id="@+id/btnManage"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginStart="16dp"

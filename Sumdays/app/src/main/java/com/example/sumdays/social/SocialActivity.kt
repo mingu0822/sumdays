@@ -52,8 +52,8 @@ class SocialActivity : AppCompatActivity() {
         setContentView(R.layout.activity_social)
         navBarController = NavBarController(this)
         navBarController.setNavigationBar(NavSource.PROFILE)
-        val rootView = findViewById<View>(R.id.setting_main_root)
-        setupEdgeToEdge(rootView)
+        // val rootView = findViewById<View>(R.id.setting_main_root)
+        // setupEdgeToEdge(rootView)
 
         val btnBack = findViewById<ImageButton>(R.id.btnBack)
         recyclerSocial = findViewById(R.id.recyclerSocial)
