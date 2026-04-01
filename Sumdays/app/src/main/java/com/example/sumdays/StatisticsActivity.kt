@@ -29,7 +29,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.threeten.bp.LocalDate
 
 class StatisticsActivity : AppCompatActivity() {
     private lateinit var viewModel: DailyEntryViewModel
@@ -42,8 +41,8 @@ class StatisticsActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var lm: LinearLayoutManager
     private lateinit var treeDrawable: TreeTiledDrawable
-    private lateinit var btnMoveToLatestLeaf: ImageButton
-    private lateinit var btnMoveToBottom: ImageButton
+//    private lateinit var btnMoveToLatestLeaf: ImageButton
+//    private lateinit var btnMoveToBottom: ImageButton
     private lateinit var tvStrikeCount: TextView
     private lateinit var tvLeafCount: TextView
     private lateinit var tvGrapeCount: TextView
@@ -97,8 +96,8 @@ class StatisticsActivity : AppCompatActivity() {
 
 
         recyclerView = findViewById(R.id.recyclerView)
-        btnMoveToLatestLeaf = findViewById(R.id.btn_move_to_latest_leaf)
-        btnMoveToBottom = findViewById(R.id.btn_move_to_bottom_leaf)
+//        btnMoveToLatestLeaf = findViewById(R.id.btn_move_to_latest_leaf)
+//        btnMoveToBottom = findViewById(R.id.btn_move_to_bottom_leaf)
 
         // 1) 레이아웃 매니저: 바닥에서 시작
         lm = LinearLayoutManager(this, RecyclerView.VERTICAL, false).apply {
@@ -158,19 +157,19 @@ class StatisticsActivity : AppCompatActivity() {
                 }
             }
 
-            // 버튼 클릭 리스너: 스크롤 상하 이동
-            btnMoveToLatestLeaf.setOnClickListener {
-                recyclerView.post {
-                    recyclerView.scrollBy(0, -itemHeightPx * (currentDataCount + 10))
-                    recyclerView.scrollBy(0, itemHeightPx * 7)
-                }
-            }
-
-            btnMoveToBottom.setOnClickListener {
-                recyclerView.post {
-                    recyclerView.scrollBy(0, itemHeightPx * (currentDataCount + 10))
-                }
-            }
+//            // 버튼 클릭 리스너: 스크롤 상하 이동
+//            btnMoveToLatestLeaf.setOnClickListener {
+//                recyclerView.post {
+//                    recyclerView.scrollBy(0, -itemHeightPx * (currentDataCount + 10))
+//                    recyclerView.scrollBy(0, itemHeightPx * 7)
+//                }
+//            }
+//
+//            btnMoveToBottom.setOnClickListener {
+//                recyclerView.post {
+//                    recyclerView.scrollBy(0, itemHeightPx * (currentDataCount + 10))
+//                }
+//            }
         }
         loadingOverlay.post {
             showLoading(false)
