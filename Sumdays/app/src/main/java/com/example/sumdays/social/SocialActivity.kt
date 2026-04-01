@@ -16,12 +16,16 @@ import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
 import android.widget.EditText
 import android.text.TextWatcher
+import android.widget.TextView
+import com.example.sumdays.social.reqeust.FriendRequestDialog
 
 class SocialActivity : AppCompatActivity() {
     private lateinit var navBarController: NavBarController
     private lateinit var recyclerSocial: RecyclerView
     private lateinit var etSearchSocial: EditText
     private lateinit var socialAdapter: SocialAdapter
+
+    private lateinit var tvSocialRequests: TextView
 
     private val allSocialUserList = listOf(
         SocialUser(
@@ -52,13 +56,18 @@ class SocialActivity : AppCompatActivity() {
         setContentView(R.layout.activity_social)
         navBarController = NavBarController(this)
         navBarController.setNavigationBar(NavSource.PROFILE)
-        // val rootView = findViewById<View>(R.id.setting_main_root)
-        // setupEdgeToEdge(rootView)
+
 
         val btnBack = findViewById<ImageButton>(R.id.btnBack)
         recyclerSocial = findViewById(R.id.recyclerSocial)
         etSearchSocial = findViewById(R.id.etSearchSocial)
+        tvSocialRequests = findViewById(R.id.tvSocialRequests)
         filteredSocialUserList.addAll(allSocialUserList)
+
+        tvSocialRequests.setOnClickListener {
+            val dialog = FriendRequestDialog()
+            dialog.show(supportFragmentManager, "FriendRequestDialog")
+        }
 
         socialAdapter = SocialAdapter(
             filteredSocialUserList,
