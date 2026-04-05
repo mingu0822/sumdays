@@ -25,13 +25,11 @@
     <color name="gray_dark">#424242</color>
     <color name="white">#FFFFFF</color>
 
-    <color name="dark_background">#282d35</color>
-    <color name="dark_item_background">#21262e</color>
     <color name="dark_item_card_background">#333740</color>
     <color name="overlay_background">#80000000</color>
     <color name="dark_item_photo_background">#555555</color>
 
-    <color name="btn_violet">#d03b2f</color> //바이올렛이 아니긴 한데 여튼..
+    <color name="foxrange">#d03b2f</color>
     <color name="dark_foxrange">#7c0200</color>
 
     <color name="icon_color">#777777</color>
@@ -40,22 +38,29 @@
     <color name="text_color_hint">#888888</color>
     <color name="text_highlight_red">#CC0000</color>
 
+    <!--네비 바 색상, 이후 테마별로 활용하게 되면 분화 -->
+    <color name="nav_bg_color">#DBC4B4</color>
+
     <!-- res/values/colors.xml (라이트용) -->
     <color name="background">#FFFFFF</color>
     <color name="textColor">#000000</color>
 
 
-    <color name="background_dark">#282d35</color>
-    <color name="textColor_dark">#FFFFFF</color>
+    <!-- default 테마 주요 색 -->
+    <color name="theme_default">#FFFFFF</color> //안쓰이는중. 참고
+    <color name="theme_default_primary">#d03b2f</color>
+    <color name="theme_default_background">#F7F4F1</color>
+    <color name="theme_default_block">#ffffff</color>
+    <color name="theme_default_textcolor_basic">#000000</color>
+    <color name="theme_default_textcolor_special">#7c0200</color>
 
     <!-- forest 테마 주요 색 -->
     <color name="theme_forest_green">#2E7D32</color>
     <color name="theme_forest_bg">#F1F8F4</color>
     <color name="theme_forest_block">#C8E6C9</color>
+    <color name="theme_forest_textcolor_basic">#000000</color>
+    <color name="theme_forest_textcolor_special">#2E7D32</color>
 
-    <color name="theme_default">#FFFFFF</color> //안쓰이는중. 참고
-    <color name="theme_default_primary">#d03b2f</color>
-    <color name="theme_default_background">#F7F4F1</color>
-    <color name="theme_default_block">#ffffff</color>
+
 
 </resources>

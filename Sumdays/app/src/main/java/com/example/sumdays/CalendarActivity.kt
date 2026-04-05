@@ -52,6 +52,8 @@ class CalendarActivity : AppCompatActivity() {
     private lateinit var navBarController: NavBarController
     private lateinit var rootLayout: ConstraintLayout
 
+    private lateinit var btnStatistics: ImageButton
+
     private val viewModel: CalendarViewModel by viewModels()
 
     var currentStatusMap: Map<String, Pair<Boolean, String?>> = emptyMap()
@@ -75,6 +77,7 @@ class CalendarActivity : AppCompatActivity() {
         btnNextMonth = findViewById(R.id.btn_next_month)
         btnSetting = findViewById(R.id.setting_menu)
         btnSearch = findViewById(R.id.search_btn)
+        btnStatistics = findViewById(R.id.CalenderView_Statistics)
         rootLayout = findViewById(R.id.root_layout)
 
         navBarController = NavBarController(this)
@@ -96,6 +99,12 @@ class CalendarActivity : AppCompatActivity() {
 
         btnSearch.setOnClickListener {
             val intent = Intent(this@CalendarActivity, SearchActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+        }
+
+        btnStatistics.setOnClickListener {
+            val intent = Intent(this@CalendarActivity, StatisticsActivity::class.java)
             startActivity(intent)
             overridePendingTransition(0, 0)
         }
@@ -164,8 +173,8 @@ class CalendarActivity : AppCompatActivity() {
             calendarViewPager.getChildAt(0) as? androidx.recyclerview.widget.RecyclerView
         recyclerView?.itemAnimator = null
 
-        val headerLayout = findViewById<LinearLayout>(R.id.day_of_week_header)
-        headerLayout.removeAllViews()
+//        val headerLayout = findViewById<LinearLayout>(R.id.day_of_week_header)
+//        headerLayout.removeAllViews()
 
         val dayNamesKOR = listOf("일", "월", "화", "수", "목", "금", "토")
         val dayNamesENG = listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
@@ -196,7 +205,7 @@ class CalendarActivity : AppCompatActivity() {
                             android.R.color.holo_blue_dark
                         )
 
-                        else -> currentTheme?.primaryColor
+                        else -> currentTheme?.themeTextColor_special
                             ?: ContextCompat.getColor(
                                 this@CalendarActivity,
                                 android.R.color.black
@@ -205,7 +214,7 @@ class CalendarActivity : AppCompatActivity() {
                 )
             }
 
-            headerLayout.addView(tv)
+            //headerLayout.addView(tv)
         }
 
         calendarViewPager.setCurrentItem(CENTER_POSITION, false)

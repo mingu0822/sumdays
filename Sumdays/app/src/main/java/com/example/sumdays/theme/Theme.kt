@@ -9,6 +9,10 @@ data class Theme(
 
     val price: Int,
 
+    // 테마 글씨색
+    val themeTextColor_basic: Int,
+    val themeTextColor_special: Int,
+
     // 테마 미리보기 이미지
     val themePreviewImage: Int,
 
@@ -21,8 +25,11 @@ data class Theme(
     // 배경 색상 (배경 이미지가 존재하지 않을 때)
     val backgroundColor: Int,
 
-    // 블럭 색상
+    // 블럭 색상 (블럭스타일 미사용 시 사용되는)
     val blockColor: Int,
+
+    // 블럭 모양
+    val blockStyle: Int,
 
     // 캘린더 배경 이미지
     val calendarBackgroundImage: Int,

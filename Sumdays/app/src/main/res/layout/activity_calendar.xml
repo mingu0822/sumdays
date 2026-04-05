@@ -6,7 +6,6 @@
         android:id="@+id/root_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/background"
         tools:context=".CalendarActivity">
 
         <LinearLayout
@@ -16,8 +15,9 @@
             android:orientation="horizontal"
             android:gravity="end|center_vertical"
             android:layout_marginTop="8dp"
-            android:paddingEnd="16dp"
+            android:paddingEnd="24dp"
             android:paddingStart="16dp"
+            android:paddingBottom="30dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -36,6 +36,23 @@
                 android:src="@drawable/ic_setting_menu_black"
                 android:background="@android:color/transparent" />
         </LinearLayout>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/calendarViewPager"
+        android:layout_width="match_parent"
+        android:layout_height="326dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="-50dp"
+        app:layout_constraintBottom_toTopOf="@id/navigation_bar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/month_header"
+        app:layout_constraintVertical_bias="0.122"
+        android:background="@drawable/theme_default_block"
+        android:outlineProvider="background"
+        android:clipToOutline="true"
+        />
+
 
         <LinearLayout
 
@@ -65,7 +82,7 @@
                     android:layout_width="180dp"
                     android:layout_height="40dp"
                     android:src="@drawable/bg_image_drawer_rounded_light"
-                    app:tint="#aaaaaa" />
+                    app:tint="@color/dark_foxrange" />
                 <TextView
                     android:id="@+id/tv_month_year"
                     android:layout_width="wrap_content"
@@ -89,28 +106,38 @@
         </LinearLayout>
 
 
-        <LinearLayout
-            android:id="@+id/day_of_week_header"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            app:layout_constraintTop_toBottomOf="@+id/month_header"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            />
+<!--        <LinearLayout-->
+<!--            android:id="@+id/day_of_week_header"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="horizontal"-->
+<!--            android:paddingTop="8dp"-->
+<!--            android:paddingBottom="8dp"-->
+<!--            app:layout_constraintTop_toBottomOf="@+id/month_header"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            />-->
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/calendarViewPager"
+
+    <LinearLayout
+        android:id="@+id/stats_container"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_marginHorizontal="20dp"
-        app:layout_constraintBottom_toTopOf="@id/navigation_bar"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/calendarViewPager"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/month_header"
-        app:layout_constraintVertical_bias="0.122" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/navigation_bar"
+        app:layout_constraintVertical_bias="0.0">
+        <ImageButton
+        android:id="@+id/CalenderView_Statistics"
+        android:layout_width="match_parent"
+        android:layout_height="92dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="20dp"
+        android:src="@drawable/ic_arrow_back_white"
+        android:background="@drawable/theme_default_block" />
+    </LinearLayout>
 
     <include
             android:id="@+id/navigation_bar"

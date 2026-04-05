@@ -219,7 +219,7 @@ class ShopActivity : AppCompatActivity() {
         val selectedTextColor = getColor(android.R.color.white)
         val normalTextColor = getColor(android.R.color.black)
 
-        val selectedBg = getColor(R.color.btn_violet)
+        val selectedBg = getColor(R.color.foxrange)
         val normalBg = getColor(android.R.color.transparent)
 
         listOf(chipAll, chipTheme, chipFox, chipSticker).forEach {
