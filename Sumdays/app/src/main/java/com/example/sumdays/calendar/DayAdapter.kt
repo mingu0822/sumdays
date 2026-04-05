@@ -91,7 +91,7 @@ class DayAdapter(
                 hasDiary -> {
                     tvCircle.background = ContextCompat.getDrawable(
                         itemView.context,
-                        R.drawable.calendar_shape_fox_date_gray_completed
+                        R.drawable.calendar_shape_fox_completed
                     )
                     tvDayNumber.setTypeface(null, Typeface.NORMAL)
                 }
@@ -99,7 +99,7 @@ class DayAdapter(
                 else -> {
                     tvCircle.background = ContextCompat.getDrawable(
                         itemView.context,
-                        R.drawable.calendar_shape_fox_date_gray
+                        R.drawable.calendar_shape_fox
                     )
                     tvDayNumber.setTypeface(null, Typeface.NORMAL)
                 }

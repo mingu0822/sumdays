@@ -31,7 +31,8 @@
     <color name="overlay_background">#80000000</color>
     <color name="dark_item_photo_background">#555555</color>
 
-    <color name="btn_violet">#8B008B</color>
+    <color name="btn_violet">#d03b2f</color> //바이올렛이 아니긴 한데 여튼..
+    <color name="dark_foxrange">#7c0200</color>
 
     <color name="icon_color">#777777</color>
     <color name="dark_divider">#E0E0E0</color>
@@ -52,9 +53,9 @@
     <color name="theme_forest_bg">#F1F8F4</color>
     <color name="theme_forest_block">#C8E6C9</color>
 
-    <color name="theme_default">#FFFFFF</color>
-    <color name="theme_default_primary">#000000</color>
-    <color name="theme_default_background">#282d35</color>
-    <color name="theme_default_block">#777777</color>
+    <color name="theme_default">#FFFFFF</color> //안쓰이는중. 참고
+    <color name="theme_default_primary">#d03b2f</color>
+    <color name="theme_default_background">#F7F4F1</color>
+    <color name="theme_default_block">#ffffff</color>
 
 </resources>
