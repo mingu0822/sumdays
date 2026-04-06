@@ -9,15 +9,21 @@ const dailyRoutes = require('./db/daily');
 const memosRoutes = require('./db/memos');
 const photosRoutes = require('./db/photos');
 const syncRoutes = require('./db/sync');
+const friendRoutes = require('./friend');
 
 
 router.use('/auth', authRoutes);   // /api/auth/...
 router.use('/ai', aiRoutes);       // /api/ai/...
+
 
 router.use('/db', verifyToken);
 router.use('/db/sync', syncRoutes); 
 router.use('/db/daily', dailyRoutes);        
 router.use('/db/daily/memos', memosRoutes);       
 router.use('/db/daily/photos', photosRoutes);  
+
+router.use('/friends', verifyToken);
+router.use('/friends', friendRoutes);
+
 
 module.exports = router;

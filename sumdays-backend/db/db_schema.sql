@@ -15,6 +15,26 @@ CREATE TABLE users (
   nickname VARCHAR(50) UNIQUE NOT NULL
 );
 
+CREATE TABLE friendship (
+  friendship_id INT AUTO_INCREMENT PRIMARY KEY,
+  requester_id INT NOT NULL,
+  receiver_id INT NOT NULL,
+  status ENUM('PENDING', 'ACCEPTED', 'BLOCKED') DEFAULT 'PENDING',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  
+  -- 중복 관계 방지 (A가 B에게 두 번 신청 불가)
+  UNIQUE KEY unique_relationship (requester_id, receiver_id),
+  
+  -- 외래키 설정
+  FOREIGN KEY (requester_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
+  
+  -- [최적화] 나에게 온 요청 조회를 위한 역방향 인덱스 (왼쪽 일치 원칙 대응)
+  INDEX idx_receiver_lookup (receiver_id, requester_id)
+);
+
+
 -- 📔 daily_entry 테이블
 CREATE TABLE daily_entry (
   id INT AUTO_INCREMENT PRIMARY KEY,
