@@ -1,5 +1,6 @@
 package com.example.sumdays
 
+import StreakPrefs
 import android.app.Dialog
 import android.content.Intent
 import android.os.Build

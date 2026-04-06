@@ -1,5 +1,6 @@
 package com.example.sumdays
 
+import StreakPrefs
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -11,20 +12,20 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.example.sumdays.data.viewModel.DailyEntryViewModel
+import com.example.sumdays.data.viewModel.WeekSummaryViewModel
+import com.example.sumdays.data.viewModel.WeekSummaryViewModelFactory
 import com.example.sumdays.statistics.WeekStatsDetailActivity
 import com.example.sumdays.statistics.WeekSummary
 import com.example.sumdays.ui.TreeTiledDrawable
 import com.example.sumdays.utils.setupEdgeToEdge
-import androidx.lifecycle.ViewModelProvider
-import com.example.sumdays.data.viewModel.DailyEntryViewModel
-import androidx.activity.viewModels
-import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
-import com.example.sumdays.data.viewModel.WeekSummaryViewModel
-import com.example.sumdays.data.viewModel.WeekSummaryViewModelFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

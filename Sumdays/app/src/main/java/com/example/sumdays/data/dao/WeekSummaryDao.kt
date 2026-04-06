@@ -1,8 +1,10 @@
 package com.example.sumdays.data.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import com.example.sumdays.data.WeekSummaryEntity
-import com.example.sumdays.data.style.UserStyle
 import com.example.sumdays.statistics.WeekSummary
 
 @Dao

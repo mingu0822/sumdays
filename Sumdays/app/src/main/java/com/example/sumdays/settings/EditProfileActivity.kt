@@ -4,16 +4,15 @@ import android.graphics.Color
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.sumdays.R
 import com.example.sumdays.databinding.ActivityProfileEditBinding
+import com.example.sumdays.settings.prefs.ProfileImagePrefs
 import com.example.sumdays.settings.profileimage.CategoryAdapter
 import com.example.sumdays.settings.profileimage.ProfileImageCategory
 import com.example.sumdays.settings.profileimage.ProfileImageItem
 import com.example.sumdays.settings.profileimage.ProfileImageItemType
-import androidx.core.graphics.toColorInt
-import com.example.sumdays.R
-import androidx.core.content.edit
-import com.example.sumdays.settings.prefs.ProfileImagePrefs
 
 class EditProfileActivity : AppCompatActivity() {
 

@@ -8,7 +8,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import android.view.Window // Window 클래스를 명시적으로 import 해주는 것이 좋습니다.
 
 
 fun Activity.setupEdgeToEdge(rootView: View) {

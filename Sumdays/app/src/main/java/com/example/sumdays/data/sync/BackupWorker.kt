@@ -1,33 +1,15 @@
 package com.example.sumdays.data.sync
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.sumdays.data.AppDatabase
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import android.util.Log
-import com.example.sumdays.data.DailyEntry
-import com.example.sumdays.data.style.StylePrompt
-import com.example.sumdays.data.style.UserStyle
-import com.example.sumdays.statistics.WeekSummary
-import com.google.gson.Gson
-import kotlinx.coroutines.launch
-import org.json.JSONObject
-import org.json.JSONArray
-import kotlinx.coroutines.launch
-import androidx.lifecycle.lifecycleScope
-import com.example.sumdays.network.ApiClient
-import com.google.gson.GsonBuilder
-import retrofit2.Response
 import androidx.work.workDataOf
 import com.example.sumdays.auth.SessionManager
-import com.example.sumdays.data.dao.MemoDao
-import com.example.sumdays.daily.memo.Memo
+import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.network.ApiClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.time.LocalDate
-import java.time.temporal.WeekFields
-import kotlin.random.Random
 
 class BackupWorker(
     context: Context,

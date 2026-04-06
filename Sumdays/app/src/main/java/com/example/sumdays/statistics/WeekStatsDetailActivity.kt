@@ -12,8 +12,8 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.R
+import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.databinding.ActivityWeekStatsDetailBinding
 import com.example.sumdays.utils.setupEdgeToEdge
 import kotlinx.coroutines.Dispatchers

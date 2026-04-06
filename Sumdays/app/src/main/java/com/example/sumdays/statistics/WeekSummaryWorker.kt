@@ -5,13 +5,12 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.sumdays.MyApplication
-import org.threeten.bp.LocalDate
-import com.example.sumdays.daily.diary.AnalysisRepository
 import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.DiaryItem
 import com.example.sumdays.network.WeekAnalysisRequest
 import org.threeten.bp.DayOfWeek
+import org.threeten.bp.LocalDate
 import org.threeten.bp.temporal.TemporalAdjusters
 
 class WeekSummaryWorker(

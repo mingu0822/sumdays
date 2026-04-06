@@ -5,37 +5,22 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.graphics.toColorInt
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.databinding.ActivityProfileMainBinding
 import com.example.sumdays.settings.AccountSettingsActivity
 import com.example.sumdays.settings.DiaryStyleSettingsActivity
-import com.example.sumdays.settings.NotificationSettingsActivity
-import com.example.sumdays.settings.prefs.UserStatsPrefs
-import androidx.lifecycle.ViewModelProvider
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.workDataOf
-import com.example.sumdays.data.viewModel.DailyEntryViewModel
-import com.example.sumdays.auth.SessionManager
-import com.example.sumdays.data.sync.BackupScheduler
-import com.example.sumdays.data.sync.InitialSyncWorker
-import com.example.sumdays.settings.LabsSettingsActivity
-import com.example.sumdays.statistics.WeekSummaryWorker
-import com.example.sumdays.utils.setupEdgeToEdge
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.settings.EditProfileActivity
+import com.example.sumdays.settings.LabsSettingsActivity
 import com.example.sumdays.settings.ThemeSettingsActivity
 import com.example.sumdays.settings.prefs.ProfileImagePrefs
-import com.example.sumdays.settings.profileimage.ProfileImageCategory
+import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.settings.profileimage.ProfileImageItem
 import com.example.sumdays.settings.profileimage.ProfileImageItemType
 import com.example.sumdays.theme.FoxRepository
@@ -43,6 +28,9 @@ import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
+import com.example.sumdays.utils.setupEdgeToEdge
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class ProfileActivity : AppCompatActivity() {
 

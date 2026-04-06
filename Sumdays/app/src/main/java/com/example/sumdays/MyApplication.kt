@@ -4,9 +4,9 @@ import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
 import com.example.sumdays.daily.memo.MemoRepository
 import com.example.sumdays.data.AppDatabase
-import com.example.sumdays.data.sync.BackupScheduler
-import com.example.sumdays.data.repository.WeekSummaryRepository
 import com.example.sumdays.data.repository.DailyEntryRepository
+import com.example.sumdays.data.repository.WeekSummaryRepository
+import com.example.sumdays.data.sync.BackupScheduler
 import com.example.sumdays.statistics.WeekSummaryScheduler
 import com.jakewharton.threetenabp.AndroidThreeTen
 
