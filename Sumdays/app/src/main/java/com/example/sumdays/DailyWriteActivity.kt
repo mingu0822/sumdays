@@ -10,6 +10,8 @@ import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.text.Editable
+import android.transition.TransitionManager
 import android.util.Base64
 import android.util.Log
 import android.view.View
@@ -60,6 +62,7 @@ import com.example.sumdays.utils.setupEdgeToEdge
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import android.text.TextWatcher
 
 class DailyWriteActivity : AppCompatActivity() {
 
@@ -126,6 +129,7 @@ class DailyWriteActivity : AppCompatActivity() {
         audioRecorderHelper = createAudioRecorderHelper()
         handleIntent(intent)
         setupClickListeners()
+        setupTextChangedListener() // instagram style active text box
 
         updateOwned()
         navBarController = NavBarController(this)
@@ -249,7 +253,8 @@ class DailyWriteActivity : AppCompatActivity() {
                     isRecording = true
                     micIcon.visibility = View.GONE
                     stopIcon.visibility = View.VISIBLE
-                    sendIcon.visibility = View.GONE
+                    imageIcon.visibility = View.GONE
+
                     audioWaveView.visibility = View.VISIBLE
                     memoInputEditText.visibility = View.INVISIBLE
                     startWaveAnimation()
@@ -265,7 +270,7 @@ class DailyWriteActivity : AppCompatActivity() {
                     micIcon.isEnabled = false
                     micIcon.alpha = 0.5f
                     stopIcon.visibility = View.GONE
-                    sendIcon.visibility = View.VISIBLE
+                    imageIcon.visibility = View.VISIBLE
 
                     audioWaveView.visibility = View.GONE
                     memoInputEditText.visibility = View.VISIBLE
@@ -555,6 +560,28 @@ class DailyWriteActivity : AppCompatActivity() {
                 drawerLayout.openDrawer(GravityCompat.END)
             }
         }
+    }
+
+    // instagram style active text box
+    private fun setupTextChangedListener() {
+        memoInputEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                TransitionManager.beginDelayedTransition(findViewById(R.id.input_area))
+
+                if (s.isNullOrBlank()) {
+                    sendIcon.visibility = View.GONE
+                    micIcon.visibility = View.VISIBLE
+                    imageIcon.visibility = View.VISIBLE
+                } else {
+                    sendIcon.visibility = View.VISIBLE
+                    micIcon.visibility = View.GONE
+                    imageIcon.visibility = View.GONE
+                }
+            }
+        })
     }
 
     override fun onDestroy() {
