@@ -16,7 +16,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE friendship (
-  friendship_id INT AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   requester_id INT NOT NULL,
   receiver_id INT NOT NULL,
   status ENUM('PENDING', 'ACCEPTED', 'BLOCKED') DEFAULT 'PENDING',

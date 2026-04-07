@@ -22,24 +22,60 @@ const friendController = {
     const { receiverId } = req.body;
 
     if (requesterId === parseInt(receiverId)) {
-      return res.status(400).json({ message: "자기 자신에게는 베팅(요청)할 수 없습니다." });
+      return res.status(400).json({ message: "자기 자신에게는 요청할 수 없습니다." });
     }
 
     try {
-      // 헬퍼 함수로 기존 관계 체크
       const existing = await getFriendship(requesterId, receiverId);
+
+      // ---------------------------------------------------------
+      // 2. 관계 데이터가 존재하는 경우 (Case별 분기 처리)
+      // ---------------------------------------------------------
       if (existing) {
-        const msg = existing.status === 'PENDING' ? "이미 대기 중인 요청이 있습니다." : "이미 친구 상태입니다.";
-        return res.status(409).json({ message: msg });
+        const { status, requester_id } = existing;
+
+        // [Case 1] 이미 친구인 경우
+        if (status === 'ACCEPTED') {
+          return res.status(409).json({ message: "이미 친구 상태입니다." });
+        }
+
+        // [Case 2] 요청이 대기 중(PENDING)인 경우
+        if (status === 'PENDING') {
+          // (A) 내가 이전에 보냈고, 상대가 아직 수락 안 함 (보낸 상태)
+          if (requester_id === requesterId) {
+            return res.status(409).json({ message: "상대방의 수락을 기다리는 중입니다." });
+          }
+          
+          // (B) 상대가 나에게 이미 보냈는데, 내가 또 보냄 (온 상태)
+          // -> 이 경우 에러 대신 "즉시 수락"으로 처리하여 UX 개선!
+          else {
+            await db.query(
+              'UPDATE friendship SET status = "ACCEPTED" WHERE id = ?',
+              [existing.id]
+            );
+            return res.status(200).json({ message: "상대방의 요청이 있어 즉시 친구가 되었습니다!" });
+          }
+        }
+        
+        // [Case 3] 상대가 이미 거절했거나 차단한 상태라면?
+        // (현재 스키마에서 거절 시 삭제한다면 이 블록은 타지 않겠지만, 
+        // 만약 REJECTED 상태를 남긴다면 여기서 '재신청' 로직을 처리합니다.)
+        if (status === 'REJECTED') {
+           return res.status(409).json({ message: "이미  상태입니다." });
+        }
       }
 
+      // ---------------------------------------------------------
+      // 3. 관계 데이터가 전혀 없는 경우 (최초 신청)
+      // ---------------------------------------------------------
       await db.query(
         'INSERT INTO friendship (requester_id, receiver_id, status) VALUES (?, ?, "PENDING")',
         [requesterId, receiverId]
       );
       res.status(201).json({ message: "친구 요청 완료" });
+
     } catch (error) {
-      res.status(500).json({ error: 'Database insert failed' });
+      res.status(500).json({ error: 'Database process failed' });
     }
   },
 
