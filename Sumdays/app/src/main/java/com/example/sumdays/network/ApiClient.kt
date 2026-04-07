@@ -6,6 +6,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+import com.example.sumdays.network.apiService.SocialApiService
 
 object ApiClient {
     const val BASE_URL = "http://192.168.0.78:3000/"
@@ -37,5 +38,9 @@ object ApiClient {
     // API 인터페이스 구현체
     val api: ApiService by lazy {
         retrofit.create(ApiService::class.java)
+    }
+
+    val socialApi: SocialApiService by lazy {
+        retrofit.create(SocialApiService::class.java)
     }
 }

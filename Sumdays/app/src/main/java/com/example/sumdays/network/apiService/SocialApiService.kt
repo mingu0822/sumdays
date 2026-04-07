@@ -46,13 +46,12 @@ data class BaseResponse(val message: String?)
 
 // 친구 요청 응답 DTO
 data class FriendRequestResponse(
-    val requestId: Int,
-    val userId: Int,
+    val id: Int,
     val nickname: String
 )
 
 // 친구 목록 응답 DTO
 data class FriendResponse(
-    val id: Int,d
+    val id: Int,
     val nickname: String
 )
