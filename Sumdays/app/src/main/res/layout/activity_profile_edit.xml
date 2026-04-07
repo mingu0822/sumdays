@@ -27,15 +27,61 @@
         android:layout_marginBottom="12dp"
         android:background="#F5F5F5">
 
+        <!-- 아바타 레이어 -->
         <ImageView android:id="@+id/previewBase" android:layout_width="match_parent" android:layout_height="match_parent" />
         <ImageView android:id="@+id/previewMouth" android:layout_width="match_parent" android:layout_height="match_parent" />
         <ImageView android:id="@+id/previewEyes" android:layout_width="match_parent" android:layout_height="match_parent" />
         <ImageView android:id="@+id/previewAccessory" android:layout_width="match_parent" android:layout_height="match_parent" />
+
+        <!-- 사진 레이어 (모드에 따라 VISIBLE/GONE) -->
+        <ImageView
+            android:id="@+id/previewPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
     </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/tabBar"
+        app:layout_constraintTop_toBottomOf="@id/previewContainer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginHorizontal="20dp"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_tab_bar"
+        android:padding="4dp">
+
+        <TextView
+            android:id="@+id/tabPhoto"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="사진"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_tab_selected" />
+
+        <TextView
+            android:id="@+id/tabAvatar"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="아바타"
+            android:textSize="14sp"
+            android:background="@android:color/transparent" />
+
+    </LinearLayout>
 
     <View
         android:id="@+id/divider"
-        app:layout_constraintTop_toBottomOf="@id/previewContainer"
+        app:layout_constraintTop_toBottomOf="@id/tabBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
 
@@ -46,6 +92,31 @@
         android:layout_marginHorizontal="20dp"
         android:background="@color/dark_divider" />
 
+    <!-- 사진 -->
+    <LinearLayout
+        android:id="@+id/photoModeContainer"
+        app:layout_constraintTop_toBottomOf="@id/divider"
+        app:layout_constraintBottom_toTopOf="@id/btnSaveProfileImage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/btnSelectPhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="갤러리에서 선택"
+            android:textSize="15sp"
+            app:cornerRadius="12dp" />
+
+    </LinearLayout>
+
+    <!-- 아바타 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvParts"
         app:layout_constraintTop_toBottomOf="@id/divider"

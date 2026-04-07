@@ -53,6 +53,14 @@
                         android:foreground="?attr/selectableItemBackground"
                         android:background="@color/background">
 
+                        <!-- 사진 모드-->
+                        <ImageView
+                            android:id="@+id/imgPhoto"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone" />
+                        <!-- 아바타 모드 -->
                         <ImageView
                             android:id="@+id/imgBase"
                             android:layout_width="match_parent"
