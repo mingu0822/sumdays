@@ -22,8 +22,8 @@ router.use('/db/daily', dailyRoutes);
 router.use('/db/daily/memos', memosRoutes);       
 router.use('/db/daily/photos', photosRoutes);  
 
-router.use('/friends', verifyToken);
-router.use('/friends', friendRoutes);
+router.use('/friend', verifyToken);
+router.use('/friend', friendRoutes);
 
 
 module.exports = router;

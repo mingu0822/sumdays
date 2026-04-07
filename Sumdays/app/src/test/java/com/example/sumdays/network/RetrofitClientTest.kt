@@ -1,9 +1,9 @@
 package com.example.sumdays.network
 
+import com.example.sumdays.network.apiService.ApiService
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import retrofit2.Retrofit
 
 class RetrofitClientTest {
 

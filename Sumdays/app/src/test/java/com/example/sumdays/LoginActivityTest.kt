@@ -10,7 +10,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.network.ApiService
+import com.example.sumdays.network.apiService.ApiService
 import com.example.sumdays.network.LoginResponse
 import com.example.sumdays.settings.prefs.UserStatsPrefs
 import io.mockk.*

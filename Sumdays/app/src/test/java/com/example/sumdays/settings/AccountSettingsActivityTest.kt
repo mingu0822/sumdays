@@ -11,6 +11,7 @@ import com.example.sumdays.TestApplication
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.network.*
 import com.example.sumdays.network.ApiClient
+import com.example.sumdays.network.apiService.ApiService
 import com.example.sumdays.settings.prefs.UserStatsPrefs
 import io.mockk.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -23,7 +24,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
-import org.robolectric.Shadows
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowToast

@@ -1,5 +1,6 @@
 package com.example.sumdays.network
 
+import com.example.sumdays.network.apiService.ApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
