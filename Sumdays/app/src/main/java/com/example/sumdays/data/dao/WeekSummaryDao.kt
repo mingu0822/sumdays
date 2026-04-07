@@ -1,8 +1,11 @@
 package com.example.sumdays.data.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.data.WeekSummaryEntity
-import com.example.sumdays.data.style.UserStyle
 import com.example.sumdays.statistics.WeekSummary
 
 @Dao
@@ -57,4 +60,8 @@ interface WeekSummaryDao {
 
     @Query("UPDATE weekly_summary SET isEdited = 0, isDeleted = 0 WHERE startDate IN (:dates)")
     suspend fun resetEditedFlags(dates: List<String>)
+
+    // WeekSummaryWorker.kt에서 주간 통계 생성시 사용함
+    @Query("SELECT * FROM daily_entry WHERE date >= :start AND date <= :end ORDER BY date ASC")
+    suspend fun getEntriesBetween(start: String, end: String): List<DailyEntry>
 }

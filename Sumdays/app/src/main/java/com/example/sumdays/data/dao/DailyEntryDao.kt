@@ -1,12 +1,14 @@
 package com.example.sumdays.data.dao
 
 import androidx.lifecycle.LiveData
-import androidx.room.*
-import com.example.sumdays.daily.memo.Memo
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
 import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.data.EmojiData
 import kotlinx.coroutines.flow.Flow
-import com.example.sumdays.data.AppDatabase
 
 @Dao
 interface DailyEntryDao {

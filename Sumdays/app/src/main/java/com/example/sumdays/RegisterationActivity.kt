@@ -6,12 +6,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.sumdays.databinding.ActivityLoginBinding
 import com.example.sumdays.databinding.ActivityRegisterationBinding
-import com.example.sumdays.network.SignupResponse
-import com.example.sumdays.network.SignupRequest
-
 import com.example.sumdays.network.ApiClient
+import com.example.sumdays.network.SignupRequest
+import com.example.sumdays.network.SignupResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response

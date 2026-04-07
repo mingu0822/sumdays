@@ -142,6 +142,8 @@ dependencies {
     testImplementation("com.google.truth:truth:1.1.5")
     // assertThat 사용을 위해 필요
     testImplementation("androidx.work:work-testing:2.9.0")
+    // ucrop
+    implementation("com.github.yalantis:ucrop:2.2.11")
 }
 
 configurations.all {

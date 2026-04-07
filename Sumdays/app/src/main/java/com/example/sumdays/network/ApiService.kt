@@ -2,20 +2,20 @@ package com.example.sumdays.network
 
 import com.example.sumdays.daily.diary.AnalysisRequest
 import com.example.sumdays.daily.memo.MergeRequest
+import com.example.sumdays.data.sync.SyncFetchResponse
 import com.example.sumdays.data.sync.SyncRequest
 import com.example.sumdays.data.sync.SyncResponse
-import com.example.sumdays.data.sync.SyncFetchResponse
 import okhttp3.MultipartBody
-import retrofit2.Call
-import retrofit2.http.Body
-import retrofit2.http.POST
-import retrofit2.http.GET
-import retrofit2.http.Multipart
-import retrofit2.http.Part
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Multipart
+import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Streaming
 
 interface ApiService {

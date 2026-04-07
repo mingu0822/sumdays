@@ -1,7 +1,7 @@
-import androidx.lifecycle.switchMap
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.LiveData
+import androidx.lifecycle.switchMap
 import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.data.repository.DailyEntryRepository
 

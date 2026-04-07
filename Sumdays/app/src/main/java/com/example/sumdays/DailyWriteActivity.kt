@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
+import android.text.TextWatcher
 import android.transition.TransitionManager
 import android.util.Base64
 import android.util.Log
@@ -62,7 +63,6 @@ import com.example.sumdays.utils.setupEdgeToEdge
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import android.text.TextWatcher
 
 class DailyWriteActivity : AppCompatActivity() {
 

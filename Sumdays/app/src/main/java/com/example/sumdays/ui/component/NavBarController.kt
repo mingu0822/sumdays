@@ -12,9 +12,9 @@ import androidx.annotation.RequiresApi
 import com.example.sumdays.CalendarActivity
 import com.example.sumdays.DailyWriteActivity
 import com.example.sumdays.ProfileActivity
-import com.example.sumdays.StatisticsActivity
 import com.example.sumdays.R
 import com.example.sumdays.ShopActivity
+import com.example.sumdays.StatisticsActivity
 import org.threeten.bp.LocalDate
 
 enum class NavSource {

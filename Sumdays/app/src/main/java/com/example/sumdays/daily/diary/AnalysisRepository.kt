@@ -2,13 +2,12 @@ package com.example.sumdays.daily.diary
 
 import android.content.Context
 import android.util.Log
+import com.example.sumdays.data.viewModel.DailyEntryViewModel
+import com.example.sumdays.network.ApiClient
+import com.example.sumdays.utils.PersonaManager
+import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.example.sumdays.network.ApiClient
-import com.google.gson.JsonObject
-import com.example.sumdays.data.viewModel.DailyEntryViewModel
-import com.example.sumdays.utils.PersonaManager
-import com.google.gson.annotations.SerializedName
 
 object AnalysisRepository {
     

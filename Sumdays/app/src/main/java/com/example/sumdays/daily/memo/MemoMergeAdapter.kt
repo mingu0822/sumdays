@@ -1,10 +1,5 @@
 package com.example.sumdays.daily.memo
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-
 import android.content.ClipData
 import android.content.Context
 import android.os.Build
@@ -24,6 +19,10 @@ import com.example.sumdays.data.dao.UserStyleDao
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.settings.prefs.LabsPrefs
 import com.example.sumdays.settings.prefs.UserStatsPrefs
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.InputStreamReader
 
 class MemoMergeAdapter(
