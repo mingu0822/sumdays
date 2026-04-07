@@ -25,6 +25,8 @@ open class MyApplication : Application() {
         super.onCreate()
         AndroidThreeTen.init(this)
         BackupScheduler.scheduleAutoBackup(this)
+//        // 테스트용
+//        WeekSummaryScheduler.triggerTestRun(this)
         WeekSummaryScheduler.scheduleWeeklyTask(this)
 
 
