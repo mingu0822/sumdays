@@ -41,7 +41,7 @@
                 android:id="@+id/read_diary_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="@color/btn_violet"
+                android:backgroundTint="@color/foxrange"
                 android:text="일기 보기"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -206,7 +206,7 @@
             android:layout_marginTop="24dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="24dp"
-            android:background="@drawable/bg_image_drawer_rounded"
+            android:background="@drawable/theme_default_block"
             android:elevation="8dp"
             android:orientation="vertical"
             android:padding="16dp">

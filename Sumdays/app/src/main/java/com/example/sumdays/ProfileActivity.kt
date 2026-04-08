@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.toColorInt
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -18,6 +19,16 @@ import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.databinding.ActivityProfileMainBinding
 import com.example.sumdays.settings.AccountSettingsActivity
 import com.example.sumdays.settings.DiaryStyleSettingsActivity
+import com.example.sumdays.settings.prefs.UserStatsPrefs
+import androidx.lifecycle.ViewModelProvider
+import com.example.sumdays.data.viewModel.DailyEntryViewModel
+import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.settings.LabsSettingsActivity
+import com.example.sumdays.utils.setupEdgeToEdge
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.settings.EditProfileActivity
 import com.example.sumdays.settings.LabsSettingsActivity
 import com.example.sumdays.settings.ThemeSettingsActivity
@@ -111,29 +122,36 @@ class ProfileActivity : AppCompatActivity() {
             binding.loginButton.text = "로그인 / 회원가입"
         }
     }
-
     private fun applyThemeModeSettings(){
         val themeKey = ThemePrefs.getTheme(this)
         val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
         val backgroundColor = currentTheme.backgroundColor
-        val blockColor = currentTheme.blockColor
-        val primaryColor = currentTheme.textPrimaryColor
+        val blockShape = currentTheme.blockStyle
+        val textPrimaryColor = currentTheme.textPrimaryColor
+        val basicColor = currentTheme.themeTextColor_basic
 
-        binding.root.setBackgroundResource(backgroundColor)
 
-        binding.diaryStyleBlock.setBackgroundResource(blockColor)
-        binding.labsBlock.setBackgroundResource(blockColor)
-        binding.accountBlock.setBackgroundResource(blockColor)
-        binding.themeBlock.setBackgroundResource(blockColor)
 
-        binding.userBlock.setBackgroundResource(blockColor)
 
-        binding.nickname.setTextColor(getColor(primaryColor))
-        binding.diaryStyleBlockText.setTextColor(getColor(primaryColor))
-        binding.labsBlockText.setTextColor(getColor(primaryColor))
-        binding.accountBlockText.setTextColor(getColor(primaryColor))
-        binding.themeBlockText.setTextColor(getColor(primaryColor))
+        binding.root.setBackgroundColor(getColor(backgroundColor))
+
+        binding.diaryStyleBlock.setBackgroundResource(blockShape)
+        binding.labsBlock.setBackgroundResource(blockShape)
+        binding.accountBlock.setBackgroundResource(blockShape)
+        binding.themeBlock.setBackgroundResource(blockShape)
+        binding.userBlock.setBackgroundResource(blockShape)
+
+        binding.loginButton.setBackgroundColor(getColor(textPrimaryColor))
+
+
+
+
+        binding.nickname.setTextColor(getColor(basicColor))
+        binding.diaryStyleBlockText.setTextColor(getColor(basicColor))
+        binding.labsBlockText.setTextColor(getColor(basicColor))
+        binding.accountBlockText.setTextColor(getColor(basicColor))
+        binding.themeBlockText.setTextColor(getColor(basicColor))
     }
 
 

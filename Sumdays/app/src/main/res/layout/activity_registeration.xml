@@ -92,7 +92,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_marginTop="24dp"
-                app:backgroundTint="@color/btn_violet"
+                app:backgroundTint="@color/foxrange"
                 android:text="계정 생성하기" />
 
         </LinearLayout>

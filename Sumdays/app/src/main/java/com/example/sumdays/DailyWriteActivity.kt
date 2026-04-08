@@ -461,7 +461,7 @@ class DailyWriteActivity : AppCompatActivity() {
                 readDiaryButton.isEnabled = true
                 readDiaryButton.backgroundTintList =
                     ColorStateList.valueOf(
-                        ContextCompat.getColor(this, R.color.btn_violet)
+                        ContextCompat.getColor(this, R.color.foxrange)
                     )
             } else {
                 readDiaryButton.isEnabled = false

@@ -59,7 +59,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="저장"
-            app:backgroundTint="@color/btn_violet"
+            app:backgroundTint="@color/foxrange"
             android:layout_marginEnd="20dp"
             android:layout_marginBottom="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
