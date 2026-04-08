@@ -117,6 +117,7 @@ class ProfileActivity : AppCompatActivity() {
         val backgroundColor = currentTheme.backgroundColor
         val blockShape = currentTheme.blockStyle
         val primaryColor = currentTheme.primaryColor
+        val basicColor = currentTheme.themeTextColor_basic
 
 
 
@@ -134,11 +135,11 @@ class ProfileActivity : AppCompatActivity() {
 
 
 
-        binding.nickname.setTextColor(getColor(primaryColor))
-        binding.diaryStyleBlockText.setTextColor(getColor(primaryColor))
-        binding.labsBlockText.setTextColor(getColor(primaryColor))
-        binding.accountBlockText.setTextColor(getColor(primaryColor))
-        binding.themeBlockText.setTextColor(getColor(primaryColor))
+        binding.nickname.setTextColor(getColor(basicColor))
+        binding.diaryStyleBlockText.setTextColor(getColor(basicColor))
+        binding.labsBlockText.setTextColor(getColor(basicColor))
+        binding.accountBlockText.setTextColor(getColor(basicColor))
+        binding.themeBlockText.setTextColor(getColor(basicColor))
     }
 
 

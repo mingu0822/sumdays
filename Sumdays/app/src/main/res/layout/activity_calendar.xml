@@ -13,14 +13,25 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="end|center_vertical"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="12dp"
             android:paddingEnd="24dp"
-            android:paddingStart="16dp"
-            android:paddingBottom="30dp"
+            android:paddingStart="24dp"
+            android:paddingBottom="12dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
+
+            <ImageButton
+                android:id="@+id/setting_menu"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_setting_menu_black"
+                android:background="@android:color/transparent" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
 
             <ImageButton
                 android:id="@+id/search_btn"
@@ -30,7 +41,7 @@
                 android:background="@android:color/transparent" />
 
             <ImageButton
-                android:id="@+id/setting_menu"
+                android:id="@+id/tutorial_btn"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:src="@drawable/ic_setting_menu_black"
@@ -40,9 +51,9 @@
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/calendarViewPager"
         android:layout_width="match_parent"
-        android:layout_height="326dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="-50dp"
+        android:layout_height="400dp"
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginTop="-35dp"
         app:layout_constraintBottom_toTopOf="@id/navigation_bar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -132,9 +143,9 @@
         <ImageButton
         android:id="@+id/CalenderView_Statistics"
         android:layout_width="match_parent"
-        android:layout_height="92dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginHorizontal="20dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginHorizontal="10dp"
         android:src="@drawable/ic_arrow_back_white"
         android:background="@drawable/theme_default_block" />
     </LinearLayout>

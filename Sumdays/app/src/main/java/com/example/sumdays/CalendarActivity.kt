@@ -47,6 +47,7 @@ class CalendarActivity : AppCompatActivity() {
     private lateinit var btnPrevMonth: ImageButton
     private lateinit var btnNextMonth: ImageButton
     private lateinit var btnSetting: ImageButton
+    private lateinit var btnTutorial: ImageButton
 
     private lateinit var btnSearch: ImageButton
     private lateinit var navBarController: NavBarController
@@ -77,6 +78,7 @@ class CalendarActivity : AppCompatActivity() {
         btnNextMonth = findViewById(R.id.btn_next_month)
         btnSetting = findViewById(R.id.setting_menu)
         btnSearch = findViewById(R.id.search_btn)
+        btnTutorial = findViewById(R.id.tutorial_btn)
         btnStatistics = findViewById(R.id.CalenderView_Statistics)
         rootLayout = findViewById(R.id.root_layout)
 
@@ -103,11 +105,18 @@ class CalendarActivity : AppCompatActivity() {
             overridePendingTransition(0, 0)
         }
 
+        btnTutorial.setOnClickListener {
+            val intent = Intent(this@CalendarActivity, TutorialActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+        }
+
         btnStatistics.setOnClickListener {
             val intent = Intent(this@CalendarActivity, StatisticsActivity::class.java)
             startActivity(intent)
             overridePendingTransition(0, 0)
         }
+
 
         val pref: SharedPreferences = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE)
         val checkFirst = pref.getBoolean("checkFirst", false)
@@ -153,6 +162,7 @@ class CalendarActivity : AppCompatActivity() {
         btnPrevMonth.setImageResource(R.drawable.ic_arrow_back_white)
         btnNextMonth.setImageResource(R.drawable.ic_arrow_forward_white)
         btnSetting.setImageResource(R.drawable.ic_setting_menu_gray)
+        btnTutorial.setImageResource(R.drawable.calendar_shape_fox_completed)
     }
 
     /**
