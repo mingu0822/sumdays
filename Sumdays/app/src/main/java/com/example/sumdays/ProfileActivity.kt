@@ -1,41 +1,28 @@
 package com.example.sumdays
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.graphics.toColorInt
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.databinding.ActivityProfileMainBinding
 import com.example.sumdays.settings.AccountSettingsActivity
 import com.example.sumdays.settings.DiaryStyleSettingsActivity
-import com.example.sumdays.settings.NotificationSettingsActivity
-import com.example.sumdays.settings.prefs.UserStatsPrefs
-import androidx.lifecycle.ViewModelProvider
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.workDataOf
-import com.example.sumdays.data.viewModel.DailyEntryViewModel
-import com.example.sumdays.auth.SessionManager
-import com.example.sumdays.data.sync.BackupScheduler
-import com.example.sumdays.data.sync.InitialSyncWorker
-import com.example.sumdays.settings.LabsSettingsActivity
-import com.example.sumdays.statistics.WeekSummaryWorker
-import com.example.sumdays.utils.setupEdgeToEdge
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.settings.EditProfileActivity
+import com.example.sumdays.settings.LabsSettingsActivity
 import com.example.sumdays.settings.ThemeSettingsActivity
 import com.example.sumdays.settings.prefs.ProfileImagePrefs
-import com.example.sumdays.settings.profileimage.ProfileImageCategory
+import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.settings.profileimage.ProfileImageItem
 import com.example.sumdays.settings.profileimage.ProfileImageItemType
 import com.example.sumdays.theme.FoxRepository
@@ -43,6 +30,9 @@ import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
+import com.example.sumdays.utils.setupEdgeToEdge
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class ProfileActivity : AppCompatActivity() {
 
@@ -170,6 +160,39 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun updateProfileImagePreview() {
+        val mode = ProfileImagePrefs.getMode(this)
+
+        if (mode == "PHOTO") {
+            showPhotoMode()
+        } else {
+            showAvatarMode()
+        }
+    }
+    private fun showPhotoMode() {
+        // 사진 레이어 표시
+        binding.imgPhoto.visibility = View.VISIBLE
+        // 아바타 레이어 숨김
+        binding.imgBase.visibility = View.GONE
+        binding.imgMouth.visibility = View.GONE
+        binding.imgEyes.visibility = View.GONE
+        binding.imgAccessory.visibility = View.GONE
+
+        val path = ProfileImagePrefs.getPhotoUri(this)
+        if (path != null) {
+            val bitmap: Bitmap? = BitmapFactory.decodeFile(path)
+            binding.imgPhoto.setImageBitmap(bitmap)
+        }
+    }
+
+    private fun showAvatarMode() {
+        // 사진 레이어 숨김
+        binding.imgPhoto.visibility = View.GONE
+        // 아바타 레이어 표시
+        binding.imgBase.visibility = View.VISIBLE
+        binding.imgMouth.visibility = View.VISIBLE
+        binding.imgEyes.visibility = View.VISIBLE
+        binding.imgAccessory.visibility = View.VISIBLE
+
         val faceId = ProfileImagePrefs.getFaceId(this)
         val eyesId = ProfileImagePrefs.getEyesId(this)
         val mouthId = ProfileImagePrefs.getMouthId(this)
@@ -193,5 +216,4 @@ class ProfileActivity : AppCompatActivity() {
         binding.imgAccessory.setImageResource(items.find { it.id == accId }?.resId ?: 0)
         binding.imgAccessory.setColorFilter(Color.YELLOW)
     }
-
 }

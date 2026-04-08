@@ -1,7 +1,6 @@
 package com.example.sumdays.shop
 
 import com.example.sumdays.R
-import com.example.sumdays.theme.FoxChar
 import com.example.sumdays.theme.Theme
 
 // Theme과 테마 이름을 연결짓는 오브젝트

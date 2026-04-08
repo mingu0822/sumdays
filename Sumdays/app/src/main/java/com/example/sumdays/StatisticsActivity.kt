@@ -1,7 +1,9 @@
 package com.example.sumdays
 
+import com.example.sumdays.statistics.StreakPrefs
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -11,20 +13,21 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.example.sumdays.data.viewModel.DailyEntryViewModel
+import com.example.sumdays.data.viewModel.WeekSummaryViewModel
+import com.example.sumdays.data.viewModel.WeekSummaryViewModelFactory
 import com.example.sumdays.statistics.WeekStatsDetailActivity
 import com.example.sumdays.statistics.WeekSummary
 import com.example.sumdays.ui.TreeTiledDrawable
 import com.example.sumdays.utils.setupEdgeToEdge
-import androidx.lifecycle.ViewModelProvider
-import com.example.sumdays.data.viewModel.DailyEntryViewModel
-import androidx.activity.viewModels
-import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
-import com.example.sumdays.data.viewModel.WeekSummaryViewModel
-import com.example.sumdays.data.viewModel.WeekSummaryViewModelFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,8 +44,6 @@ class StatisticsActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var lm: LinearLayoutManager
     private lateinit var treeDrawable: TreeTiledDrawable
-//    private lateinit var btnMoveToLatestLeaf: ImageButton
-//    private lateinit var btnMoveToBottom: ImageButton
     private lateinit var tvStrikeCount: TextView
     private lateinit var tvLeafCount: TextView
     private lateinit var tvGrapeCount: TextView
@@ -94,10 +95,7 @@ class StatisticsActivity : AppCompatActivity() {
             currentSegmentIndex = 0
         }
 
-
         recyclerView = findViewById(R.id.recyclerView)
-//        btnMoveToLatestLeaf = findViewById(R.id.btn_move_to_latest_leaf)
-//        btnMoveToBottom = findViewById(R.id.btn_move_to_bottom_leaf)
 
         // 1) 레이아웃 매니저: 바닥에서 시작
         lm = LinearLayoutManager(this, RecyclerView.VERTICAL, false).apply {
@@ -156,32 +154,17 @@ class StatisticsActivity : AppCompatActivity() {
                     recyclerView.scrollBy(0, -scrollDistanceY)
                 }
             }
-
-//            // 버튼 클릭 리스너: 스크롤 상하 이동
-//            btnMoveToLatestLeaf.setOnClickListener {
-//                recyclerView.post {
-//                    recyclerView.scrollBy(0, -itemHeightPx * (currentDataCount + 10))
-//                    recyclerView.scrollBy(0, itemHeightPx * 7)
-//                }
-//            }
-//
-//            btnMoveToBottom.setOnClickListener {
-//                recyclerView.post {
-//                    recyclerView.scrollBy(0, itemHeightPx * (currentDataCount + 10))
-//                }
-//            }
         }
         loadingOverlay.post {
             showLoading(false)
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onResume() {
         super.onResume()
 
-        StreakPrefs.refreshOnOpen(this)              // 만료 체크
-        val streak = StreakPrefs.getStreak(this)     // 최신 streak 읽기
-        tvStrikeCount.text = "🔥: ${streak}"
+        StreakPrefs.refreshOnOpen(this)
     }
 
     private fun showLoading(isLoading: Boolean) {
@@ -226,36 +209,14 @@ class StatisticsActivity : AppCompatActivity() {
     }
 
     private fun updateStatisticsHeader() {
-
-        // 1. 연속 일기 작성 횟수 (스트라이크)
-        calculateAndDisplayStreak()
-
-        // 2. 나뭇잎(주간 요약) 개수
+        val streak = StreakPrefs.getStreak(this@StatisticsActivity)
         val leafCount = weekSummaries.size
-
-        // 3. 포도 개수
-        val grapeCount = leafCount/5
+        val grapeCount = leafCount / 5
 
         // UI 업데이트
+        tvStrikeCount.text = "🔥: ${streak}"
         tvLeafCount.text = "🍃: ${leafCount}"
         tvGrapeCount.text = "🍇: ${grapeCount}"
-    }
-
-    private fun calculateAndDisplayStreak() {
-        // CoroutineScope를 사용하여 백그라운드 (IO 스레드)에서 DB 접근 및 계산 수행
-        CoroutineScope(Dispatchers.IO).launch {
-
-            // 1. Room에서 모든 작성 날짜(String)를 가져옵니다.
-            val allDates = viewModel.getAllWrittenDates()
-
-            // 2. Strike 횟수를 가져옵니다.
-            val streak = StreakPrefs.getStreak(this@StatisticsActivity)
-
-            // 3. Main 스레드에서 UI 업데이트
-            withContext(Dispatchers.Main) {
-                tvStrikeCount.text = "🔥: ${streak}"
-            }
-        }
     }
 
 

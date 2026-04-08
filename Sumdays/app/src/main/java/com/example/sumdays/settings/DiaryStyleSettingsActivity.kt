@@ -2,20 +2,16 @@ package com.example.sumdays.settings
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.R
-import com.example.sumdays.databinding.ActivityProfileDiaryStyleBinding
 import com.example.sumdays.data.style.UserStyle
 import com.example.sumdays.data.style.UserStyleViewModel
+import com.example.sumdays.databinding.ActivityProfileDiaryStyleBinding
 import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.settings.ui.CenterScaleOnScrollListener
 import com.example.sumdays.settings.ui.HorizontalMarginItemDecoration
@@ -23,7 +19,12 @@ import com.example.sumdays.settings.ui.StyleCardAdapter
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 open class DiaryStyleSettingsActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 

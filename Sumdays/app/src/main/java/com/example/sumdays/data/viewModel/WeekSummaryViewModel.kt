@@ -4,14 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.sumdays.data.repository.WeekSummaryRepository
-import com.example.sumdays.statistics.EmotionAnalysis
-import com.example.sumdays.statistics.Highlight
-import com.example.sumdays.statistics.Insights
-import com.example.sumdays.statistics.SummaryDetails
 import com.example.sumdays.statistics.WeekSummary
 import kotlinx.coroutines.launch
-import org.threeten.bp.LocalDate
-import kotlin.random.Random
 
 class WeekSummaryViewModel (
     private val repository: WeekSummaryRepository

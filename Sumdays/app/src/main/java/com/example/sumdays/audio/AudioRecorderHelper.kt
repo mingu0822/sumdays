@@ -1,7 +1,6 @@
 package com.example.sumdays.audio
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
@@ -11,8 +10,8 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.example.sumdays.network.ApiService // ★★★ ApiService import 추가 ★★★
-import com.example.sumdays.network.STTResponse // ★★★ STTResponse import 추가 ★★★
+import com.example.sumdays.network.ApiClient
+import com.example.sumdays.network.STTResponse
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -23,7 +22,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import com.example.sumdays.network.ApiClient
 
 class AudioRecorderHelper(
     private val activity: AppCompatActivity,

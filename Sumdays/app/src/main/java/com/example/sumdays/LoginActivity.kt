@@ -1,27 +1,25 @@
 package com.example.sumdays
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import android.content.Intent
-import android.util.Log
-import android.view.View
-import android.widget.Toast
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.sync.InitialSyncWorker
 import com.example.sumdays.databinding.ActivityLoginBinding
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.LoginRequest
 import com.example.sumdays.network.LoginResponse
-import com.example.sumdays.utils.setupEdgeToEdge
+import com.example.sumdays.settings.prefs.UserStatsPrefs
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding

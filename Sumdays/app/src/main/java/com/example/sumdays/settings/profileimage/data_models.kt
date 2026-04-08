@@ -1,6 +1,7 @@
 package com.example.sumdays.settings.profileimage
 
 enum class ProfileImageItemType { FACE, EYES, MOUTH, ACC }
+enum class ProfileMode { PHOTO, AVATAR }
 
 data class ProfileImageItem(
     val id: Int,

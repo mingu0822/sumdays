@@ -70,16 +70,38 @@
             android:layout_marginTop="16dp"
             android:layout_marginEnd="32dp"
             android:layout_marginBottom="16dp"
+            android:background="@drawable/dailywrite_rounded_edittext_background"
+
             app:layout_constraintBottom_toTopOf="@id/bottom_buttons_layout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/memo_list_view">
+
+            <EditText
+                android:id="@+id/memo_input_edittext"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:hint="하루를 기록해보세요"
+                android:inputType="textMultiLine"
+                android:maxLines="3"
+                android:minHeight="48dp"
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="16dp"
+                android:scrollbars="none"
+
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/input_actions"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <LinearLayout
                 android:id="@+id/input_actions"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:layout_marginEnd="16dp"
+
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
@@ -88,14 +110,13 @@
                     android:id="@+id/send_icon"
                     android:layout_width="28dp"
                     android:layout_height="28dp"
-                    android:layout_marginStart="8dp"
                     android:contentDescription="메모 전송"
-                    android:src="@drawable/ic_send_white" />
+                    android:src="@drawable/ic_send_white"
+                    android:visibility="gone" />
 
                 <FrameLayout
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_marginStart="8dp">
+                    android:layout_width="wrap_content"
+                    android:layout_height="28dp">
 
                     <ImageView
                         android:id="@+id/mic_icon"
@@ -121,31 +142,14 @@
                     android:layout_height="28dp"
                     android:layout_marginStart="8dp"
                     android:contentDescription="이미지 추가"
-                    android:src="@drawable/ic_image_black" />
+                    android:src="@drawable/ic_image_black"
+                    android:visibility="visible" />
             </LinearLayout>
-
-            <EditText
-                android:id="@+id/memo_input_edittext"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="12dp"
-                android:background="@drawable/dailywrite_rounded_edittext_background"
-                android:hint="하루를 기록해보세요"
-                android:inputType="textMultiLine"
-                android:maxLines="3"
-                android:minHeight="48dp"
-                android:padding="12dp"
-                android:scrollbars="none"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/input_actions"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
 
             <LinearLayout
                 android:id="@+id/audio_wave_view"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:background="@drawable/dailywrite_rounded_edittext_background"
                 android:gravity="center"
                 android:orientation="horizontal"
                 android:visibility="gone"

@@ -1,6 +1,5 @@
 package com.example.sumdays.reminder
 
-import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
