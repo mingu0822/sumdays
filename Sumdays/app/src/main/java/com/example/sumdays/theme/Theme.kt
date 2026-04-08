@@ -13,7 +13,7 @@ data class Theme(
     val themePreviewImage: Int,
 
     // 주요 멘트 색상
-    val primaryColor: Int,
+    val textPrimaryColor: Int,
 
     // 버튼 색상
     val buttonColor: Int,
@@ -31,4 +31,17 @@ data class Theme(
     val memoImage: Int,
 
     var isOwned: Boolean,
+
+    // 뒤로가기 버튼
+    val backIcon: Int,
+    // 앞으로 가기 버튼
+    val forwardIcon: Int,
+    // 검색 버튼
+    val searchIcon: Int,
+    // 전송 버튼
+    val sendIcon: Int,
+    // 녹음 버튼
+    val recordIcon: Int,
+    // 사진 추가 버튼
+    val addImageIcon: Int
 )

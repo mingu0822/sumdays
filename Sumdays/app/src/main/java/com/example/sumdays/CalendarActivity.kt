@@ -141,9 +141,9 @@ class CalendarActivity : AppCompatActivity() {
 
         rootLayout.setBackgroundResource(currentTheme.backgroundColor)
 
-        btnPrevMonth.setImageResource(R.drawable.ic_arrow_back_white)
-        btnNextMonth.setImageResource(R.drawable.ic_arrow_forward_white)
-        btnSetting.setImageResource(R.drawable.ic_setting_menu_gray)
+        btnPrevMonth.setImageResource(currentTheme.backIcon)
+        btnNextMonth.setImageResource(currentTheme.forwardIcon)
+        btnSearch.setImageResource(currentTheme.searchIcon)
     }
 
     /**
@@ -196,7 +196,7 @@ class CalendarActivity : AppCompatActivity() {
                             android.R.color.holo_blue_dark
                         )
 
-                        else -> currentTheme?.primaryColor
+                        else -> currentTheme?.textPrimaryColor
                             ?: ContextCompat.getColor(
                                 this@CalendarActivity,
                                 android.R.color.black

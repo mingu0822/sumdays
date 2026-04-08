@@ -233,9 +233,9 @@ class DailyWriteActivity : AppCompatActivity() {
             getColor(android.R.color.black)
         )
 
-        sendIcon.setImageResource(R.drawable.ic_send_black)
-        micIcon.setImageResource(R.drawable.ic_mic_black)
-        imageIcon.setImageResource(R.drawable.ic_image_black)
+        sendIcon.setImageResource(currentTheme.sendIcon)
+        micIcon.setImageResource(currentTheme.recordIcon)
+        imageIcon.setImageResource(currentTheme.addImageIcon)
 
         navBarController.setCenterSumIcon(foxFaceImage)
     }

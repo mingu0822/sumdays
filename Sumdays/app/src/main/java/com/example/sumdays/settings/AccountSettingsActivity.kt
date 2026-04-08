@@ -52,7 +52,7 @@ class AccountSettingsActivity : AppCompatActivity() {
         val themeKey = ThemePrefs.getTheme(this)
         val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-        val primaryColor = currentTheme.primaryColor
+        val primaryColor = currentTheme.textPrimaryColor
         val buttonColor = currentTheme.buttonColor
         val backgroundColor = currentTheme.backgroundColor
         val blockColor = currentTheme.blockColor

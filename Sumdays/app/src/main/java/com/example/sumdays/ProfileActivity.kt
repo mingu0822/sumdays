@@ -128,7 +128,7 @@ class ProfileActivity : AppCompatActivity() {
 
         val backgroundColor = currentTheme.backgroundColor
         val blockColor = currentTheme.blockColor
-        val primaryColor = currentTheme.primaryColor
+        val primaryColor = currentTheme.textPrimaryColor
 
         binding.root.setBackgroundResource(backgroundColor)
 

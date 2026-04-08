@@ -71,7 +71,7 @@ class SettingActivity : AppCompatActivity() {
         val currentTheme = themeRepo.ownedThemes.get(themeKey)
 
         val themePreviewImage = currentTheme!!.themePreviewImage
-        val primaryColor = currentTheme!!.primaryColor
+        val primaryColor = currentTheme!!.textPrimaryColor
         val buttonColor = currentTheme!!.buttonColor
         val backgroundColor = currentTheme!!.backgroundColor
         val blockColor = currentTheme!!.blockColor
@@ -82,6 +82,6 @@ class SettingActivity : AppCompatActivity() {
         binding.notificationBlockText.setTextColor(getColor(R.color.white))
         binding.tutorialBlockText.setTextColor(getColor(R.color.white))
         binding.summaryBlockText.setTextColor(getColor(R.color.white))
-        binding.btnBack.setImageResource(R.drawable.ic_arrow_back_black)
+        binding.btnBack.setImageResource(currentTheme.backIcon)
     }
 }

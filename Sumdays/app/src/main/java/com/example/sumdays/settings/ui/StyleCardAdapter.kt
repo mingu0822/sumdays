@@ -70,7 +70,7 @@ class StyleCardAdapter(
             val themeKey = ThemePrefs.getTheme(context)
             val theme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-            val primaryColor = ContextCompat.getColor(context, theme.primaryColor)
+            val primaryColor = ContextCompat.getColor(context, theme.textPrimaryColor)
             val blockColor = ContextCompat.getColor(context, theme.blockColor)
             val buttonColor = ContextCompat.getColor(context, theme.buttonColor)
 
@@ -168,7 +168,7 @@ class StyleCardAdapter(
             val themeKey = ThemePrefs.getTheme(context)
             val theme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-            val primaryColor = ContextCompat.getColor(context, theme.primaryColor)
+            val primaryColor = ContextCompat.getColor(context, theme.textPrimaryColor)
             val blockColor = ContextCompat.getColor(context, theme.blockColor)
 
             b.addRoot.setCardBackgroundColor(blockColor)

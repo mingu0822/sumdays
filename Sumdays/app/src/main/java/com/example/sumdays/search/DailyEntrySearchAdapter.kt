@@ -89,7 +89,7 @@ class DailyEntrySearchAdapter(
             val currentTheme = themeRepo.ownedThemes.get(themeKey)
 
             val themePreviewImage = currentTheme!!.themePreviewImage
-            val primaryColor = currentTheme!!.primaryColor
+            val primaryColor = currentTheme!!.textPrimaryColor
             val buttonColor = currentTheme!!.buttonColor
             val backgroundColor = currentTheme!!.backgroundColor
             val blockColor = currentTheme!!.blockColor

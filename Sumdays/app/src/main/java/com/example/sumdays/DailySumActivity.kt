@@ -152,10 +152,10 @@ class DailySumActivity : AppCompatActivity() {
         memoListView.setBackgroundResource(currentTheme.blockColor)
 
         dateTextView.setTextColor(
-            ContextCompat.getColor(this, currentTheme.primaryColor)
+            ContextCompat.getColor(this, currentTheme.textPrimaryColor)
         )
 
-        backIcon.setImageResource(R.drawable.ic_arrow_back_black)
+        backIcon.setImageResource(currentTheme.backIcon)
     }
 
     private fun handleBackPress() {
