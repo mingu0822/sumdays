@@ -1,69 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="20dp"
-    android:padding="20dp"
-    android:elevation="8dp"
-    app:cardCornerRadius="16dp">
+    android:background="@android:color/transparent">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <!-- 팝업 배경 이미지 -->
+    <ImageView
+        android:id="@+id/imgPopupBg"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/background">
+        android:adjustViewBounds="true"
+        android:src="@drawable/fox_popup"
+        android:scaleType="fitXY" />
 
-        <!-- 제목 -->
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="합치기 완료"
-            android:textSize="@dimen/text_size_M"
-            android:textStyle="bold"
-            android:padding="10dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+    <!-- 취소 버튼 (왼쪽 아래) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="취소"
 
-        <!-- 메시지: 반드시 버튼 위에 오도록 bottom을 버튼 top에 연결 -->
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="모든 메모가 하나로 합쳐졌어요. 일기로 저장할까요?"
-            android:textSize="@dimen/text_size_XS"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="16dp"
-            android:padding="10dp"
-            app:layout_constraintTop_toBottomOf="@id/title"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/btnCancel"
-            app:layout_constrainedHeight="true" />
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="32dp"
+        android:layout_marginBottom="24dp" />
 
-        <!-- 취소 버튼 (왼쪽 아래) -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCancel"
-            style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="취소"
-            android:layout_marginStart="20dp"
-            android:layout_marginBottom="16dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+    <!-- 저장 버튼 (오른쪽 아래) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="저장"
 
-        <!-- 저장 버튼 (오른쪽 아래) -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSave"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="저장"
-            app:backgroundTint="@color/foxrange"
-            android:layout_marginEnd="20dp"
-            android:layout_marginBottom="16dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="24dp" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</com.google.android.material.card.MaterialCardView>
+</FrameLayout>

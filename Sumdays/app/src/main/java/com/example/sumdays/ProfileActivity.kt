@@ -11,11 +11,8 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.toColorInt
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.AppDatabase
-import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.databinding.ActivityProfileMainBinding
 import com.example.sumdays.settings.AccountSettingsActivity
 import com.example.sumdays.settings.DiaryStyleSettingsActivity
@@ -26,14 +23,10 @@ import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.settings.LabsSettingsActivity
 import com.example.sumdays.utils.setupEdgeToEdge
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.settings.EditProfileActivity
-import com.example.sumdays.settings.LabsSettingsActivity
 import com.example.sumdays.settings.ThemeSettingsActivity
 import com.example.sumdays.settings.prefs.ProfileImagePrefs
-import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.settings.profileimage.ProfileImageItem
 import com.example.sumdays.settings.profileimage.ProfileImageItemType
 import com.example.sumdays.theme.FoxRepository
