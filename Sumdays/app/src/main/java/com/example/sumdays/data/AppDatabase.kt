@@ -4,10 +4,13 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.sumdays.data.dao.*
 import androidx.room.TypeConverters
 import com.example.sumdays.daily.memo.Memo
 import com.example.sumdays.data.converter.WeekSummaryConverter
+import com.example.sumdays.data.dao.DailyEntryDao
+import com.example.sumdays.data.dao.MemoDao
+import com.example.sumdays.data.dao.UserStyleDao
+import com.example.sumdays.data.dao.WeekSummaryDao
 import com.example.sumdays.data.style.StyleConverters
 import com.example.sumdays.data.style.UserStyle
 

@@ -49,7 +49,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.File
 import kotlin.coroutines.CoroutineContext
 
 class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
@@ -100,7 +99,7 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
         val themeKey = ThemePrefs.getTheme(this)
         val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-        val primaryColor = ContextCompat.getColor(this, currentTheme.primaryColor)
+        val primaryColor = ContextCompat.getColor(this, currentTheme.textPrimaryColor)
         val buttonColor = ContextCompat.getColor(this, currentTheme.buttonColor)
         val backgroundColor = currentTheme.backgroundColor
         val blockColor = currentTheme.blockColor

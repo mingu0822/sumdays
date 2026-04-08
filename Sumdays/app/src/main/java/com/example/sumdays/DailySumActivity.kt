@@ -1,5 +1,6 @@
 package com.example.sumdays
 
+import com.example.sumdays.statistics.StreakPrefs
 import android.app.Dialog
 import android.content.Intent
 import android.os.Build
@@ -37,6 +38,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import androidx.core.view.isVisible
 
 class DailySumActivity : AppCompatActivity() {
 
@@ -152,14 +154,14 @@ class DailySumActivity : AppCompatActivity() {
         memoListView.setBackgroundResource(currentTheme.blockColor)
 
         dateTextView.setTextColor(
-            ContextCompat.getColor(this, currentTheme.primaryColor)
+            ContextCompat.getColor(this, currentTheme.textPrimaryColor)
         )
 
-        backIcon.setImageResource(R.drawable.ic_arrow_back_black)
+        backIcon.setImageResource(currentTheme.backIcon)
     }
 
     private fun handleBackPress() {
-        if (loadingOverlay.visibility == View.VISIBLE) {
+        if (loadingOverlay.isVisible) {
             mergeJob?.cancel()
         } else {
             finish()
@@ -189,12 +191,14 @@ class DailySumActivity : AppCompatActivity() {
         finish()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun getTodayDate(): String {
         val today = LocalDate.now()
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         return today.format(formatter)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun saveDiary(mergedResult: String) {
         val todayStr = getTodayDate()
         StreakPrefs.onDiarySaved(this, todayStr)
@@ -211,6 +215,7 @@ class DailySumActivity : AppCompatActivity() {
 
     private var mergeSheetShowing = false
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun showAllMergedSheet() {
         if (mergeSheetShowing) return
         mergeSheetShowing = true

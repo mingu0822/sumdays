@@ -1,15 +1,14 @@
 package com.example.sumdays.data.viewModel
 
-import android.R
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.sumdays.data.AppDatabase
-import kotlinx.coroutines.launch
-import androidx.lifecycle.LiveData
 import com.example.sumdays.data.EmojiData
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 class DailyEntryViewModel(application: Application) : AndroidViewModel(application) {
 

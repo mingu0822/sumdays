@@ -4,7 +4,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -89,7 +88,7 @@ class DailyEntrySearchAdapter(
             val currentTheme = themeRepo.ownedThemes.get(themeKey)
 
             val themePreviewImage = currentTheme!!.themePreviewImage
-            val primaryColor = currentTheme!!.primaryColor
+            val primaryColor = currentTheme!!.textPrimaryColor
             val buttonColor = currentTheme!!.buttonColor
             val backgroundColor = currentTheme!!.backgroundColor
             val blockColor = currentTheme!!.blockColor

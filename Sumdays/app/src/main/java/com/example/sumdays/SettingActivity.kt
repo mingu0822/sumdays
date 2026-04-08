@@ -2,23 +2,14 @@ package com.example.sumdays
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
-import com.example.sumdays.databinding.ActivitySettingMainBinding
-import com.example.sumdays.settings.NotificationSettingsActivity
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.databinding.ActivitySettingMainBinding
+import com.example.sumdays.settings.NotificationSettingsActivity
 import com.example.sumdays.statistics.WeekSummaryWorker
-import com.example.sumdays.utils.setupEdgeToEdge
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 
@@ -71,7 +62,7 @@ class SettingActivity : AppCompatActivity() {
         val currentTheme = themeRepo.ownedThemes.get(themeKey)
 
         val themePreviewImage = currentTheme!!.themePreviewImage
-        val primaryColor = currentTheme!!.primaryColor
+        val primaryColor = currentTheme!!.textPrimaryColor
         val buttonColor = currentTheme!!.buttonColor
         val backgroundColor = currentTheme!!.backgroundColor
         val blockColor = currentTheme!!.blockColor
@@ -82,6 +73,6 @@ class SettingActivity : AppCompatActivity() {
         binding.notificationBlockText.setTextColor(getColor(R.color.white))
         binding.tutorialBlockText.setTextColor(getColor(R.color.white))
         binding.summaryBlockText.setTextColor(getColor(R.color.white))
-        binding.btnBack.setImageResource(R.drawable.ic_arrow_back_black)
+        binding.btnBack.setImageResource(currentTheme.backIcon)
     }
 }

@@ -4,23 +4,21 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import com.example.sumdays.R
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.databinding.ActivityProfileAccountBinding
-import com.example.sumdays.network.*
-import com.example.sumdays.settings.prefs.UserStatsPrefs
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.ChangePasswordRequest
 import com.example.sumdays.network.ChangePasswordResponse
 import com.example.sumdays.network.UpdateNicknameRequest
 import com.example.sumdays.network.UpdateNicknameResponse
+import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class AccountSettingsActivity : AppCompatActivity() {
 
@@ -52,7 +50,7 @@ class AccountSettingsActivity : AppCompatActivity() {
         val themeKey = ThemePrefs.getTheme(this)
         val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-        val primaryColor = currentTheme.primaryColor
+        val primaryColor = currentTheme.textPrimaryColor
         val buttonColor = currentTheme.buttonColor
         val backgroundColor = currentTheme.backgroundColor
         val blockColor = currentTheme.blockColor

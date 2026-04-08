@@ -1,9 +1,9 @@
 package com.example.sumdays.daily.memo
 
+import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 // Room 데이터베이스 테이블을 정의하는 Entity 클래스
