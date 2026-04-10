@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const friendController = require('../../controllers/friendController');
+const friendController = require('../controllers/friendController');
 
 
 // 1. 친구 요청 및 취소
@@ -13,7 +13,7 @@ router.delete('/request/cancel', friendController.cancelRequest);
 
 // 2. 받은 요청 처리 (수락/거절)
 // PATCH /api/friend/request/:id (Body: { action: 'ACCEPT' | 'REJECT' })
-router.patch('/request/:id', friendontroller.handleRequest);
+router.patch('/request/:id', friendController.handleRequest);
 
 
 // 3. 목록 조회
@@ -27,6 +27,6 @@ router.get('/friends', friendController.getMyFriends);
 
 // 4. 친구 삭제
 // DELETE /api/friend/friends/:friendId
-router.delete('/friends/:friendId', socialController.deleteFriend);
+router.delete('/friends/:friendId', friendController.deleteFriend);
 
 module.exports = router;

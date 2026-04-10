@@ -1,54 +1,64 @@
 const db = require('../db/db');
 
-// Helper Functions 1 : 두 유저 사이의 관계를 찾아주는 헬퍼 함수
 async function getFriendship(u1, u2) {
+  console.log(`[getFriendship] u1=${u1}, u2=${u2}`);
+
   const [rows] = await db.query(
     'SELECT * FROM friendship WHERE (requester_id = ? AND receiver_id = ?) OR (requester_id = ? AND receiver_id = ?)',
     [u1, u2, u2, u1]
   );
+
+  console.log(`[getFriendship] result:`, rows);
+
   return rows.length > 0 ? rows[0] : null;
 }
 
-
-/* -------------------------------------------------------------------------- */
-/* 1️⃣ FriendController Object: 도메인 중심 설계                            */
-/* -------------------------------------------------------------------------- */
-
 const friendController = {
 
-  // 🤝 친구 요청하기 (POST /request)
   requestFriend: async (req, res) => {
     const requesterId = req.user.userId;
-    const { receiverId } = req.body;
+    const { receiverEmail } = req.body;
 
-    if (requesterId === parseInt(receiverId)) {
-      return res.status(400).json({ message: "자기 자신에게는 요청할 수 없습니다." });
-    }
+    console.log(`[requestFriend] requester=${requesterId}, email=${receiverEmail}`);
 
     try {
+      const [users] = await db.query(
+        'SELECT id FROM users WHERE email = ?', 
+        [receiverEmail]
+      );
+
+      console.log(`[requestFriend] user lookup result:`, users);
+
+      if (users.length === 0) {
+        console.log(`[requestFriend] user not found`);
+        return res.status(404).json({ message: "존재하지 않는 사용자입니다." });
+      }
+
+      const receiverId = users[0].id;
+
+      if (requesterId === receiverId) {
+        console.log(`[requestFriend] self request blocked`);
+        return res.status(400).json({ message: "자기 자신에게는 요청할 수 없습니다." });
+      }
+
       const existing = await getFriendship(requesterId, receiverId);
 
-      // ---------------------------------------------------------
-      // 2. 관계 데이터가 존재하는 경우 (Case별 분기 처리)
-      // ---------------------------------------------------------
       if (existing) {
+        console.log(`[requestFriend] existing relationship:`, existing);
+
         const { status, requester_id } = existing;
 
-        // [Case 1] 이미 친구인 경우
         if (status === 'ACCEPTED') {
+          console.log(`[requestFriend] already friends`);
           return res.status(409).json({ message: "이미 친구 상태입니다." });
         }
 
-        // [Case 2] 요청이 대기 중(PENDING)인 경우
         if (status === 'PENDING') {
-          // (A) 내가 이전에 보냈고, 상대가 아직 수락 안 함 (보낸 상태)
           if (requester_id === requesterId) {
+            console.log(`[requestFriend] waiting for acceptance`);
             return res.status(409).json({ message: "상대방의 수락을 기다리는 중입니다." });
-          }
-          
-          // (B) 상대가 나에게 이미 보냈는데, 내가 또 보냄 (온 상태)
-          // -> 이 경우 에러 대신 "즉시 수락"으로 처리하여 UX 개선!
-          else {
+          } else {
+            console.log(`[requestFriend] auto accept triggered`);
             await db.query(
               'UPDATE friendship SET status = "ACCEPTED" WHERE id = ?',
               [existing.id]
@@ -56,92 +66,115 @@ const friendController = {
             return res.status(200).json({ message: "상대방의 요청이 있어 즉시 친구가 되었습니다!" });
           }
         }
-        
-        // [Case 3] 상대가 이미 거절했거나 차단한 상태라면?
-        // (현재 스키마에서 거절 시 삭제한다면 이 블록은 타지 않겠지만, 
-        // 만약 REJECTED 상태를 남긴다면 여기서 '재신청' 로직을 처리합니다.)
+
         if (status === 'REJECTED') {
-           return res.status(409).json({ message: "이미  상태입니다." });
+          console.log(`[requestFriend] rejected state`);
+          return res.status(409).json({ message: "이미  상태입니다." });
         }
       }
 
-      // ---------------------------------------------------------
-      // 3. 관계 데이터가 전혀 없는 경우 (최초 신청)
-      // ---------------------------------------------------------
+      console.log(`[requestFriend] inserting new request`);
       await db.query(
         'INSERT INTO friendship (requester_id, receiver_id, status) VALUES (?, ?, "PENDING")',
         [requesterId, receiverId]
       );
+
       res.status(201).json({ message: "친구 요청 완료" });
 
     } catch (error) {
+      console.error(`[requestFriend ERROR]`, error);
       res.status(500).json({ error: 'Database process failed' });
     }
   },
 
-  // 🚫 친구 요청 취소 (DELETE /request/cancel)
   cancelRequest: async (req, res) => {
     const requesterId = req.user.userId;
     const { receiverId } = req.body;
+
+    console.log(`[cancelRequest] requester=${requesterId}, receiver=${receiverId}`);
 
     try {
       const result = await db.query(
         'DELETE FROM friendship WHERE requester_id = ? AND receiver_id = ? AND status = "PENDING"',
         [requesterId, receiverId]
       );
-      if (result[0].affectedRows === 0) return res.status(404).json({ message: "취소할 요청이 없습니다." });
+
+      console.log(`[cancelRequest] affectedRows=${result[0].affectedRows}`);
+
+      if (result[0].affectedRows === 0) {
+        return res.status(404).json({ message: "취소할 요청이 없습니다." });
+      }
+
       res.status(200).json({ message: "요청 취소 완료" });
+
     } catch (error) {
+      console.error(`[cancelRequest ERROR]`, error);
       res.status(500).json({ error: 'Database delete failed' });
     }
   },
 
-  // ✅ 요청 수락/거절 (PATCH /request/:id)
   handleRequest: async (req, res) => {
     const myId = req.user.userId;
     const requestId = req.params.id;
-    const { action } = req.body; // 'ACCEPT' or 'REJECT'
+    const { action } = req.body;
+
+    console.log(`[handleRequest] myId=${myId}, requestId=${requestId}, action=${action}`);
 
     try {
-      // 1. 요청 존재 및 수신자 본인 확인
       const [rows] = await db.query('SELECT * FROM friendship WHERE id = ?', [requestId]);
+
+      console.log(`[handleRequest] request data:`, rows);
+
       if (rows.length === 0 || rows[0].receiver_id !== myId) {
+        console.log(`[handleRequest] invalid request`);
         return res.status(403).json({ message: "유효하지 않은 요청입니다." });
       }
 
       if (action === 'ACCEPT') {
+        console.log(`[handleRequest] accepting request`);
         await db.query('UPDATE friendship SET status = "ACCEPTED" WHERE id = ?', [requestId]);
         res.status(200).json({ message: "친구 수락 완료" });
       } else {
+        console.log(`[handleRequest] rejecting request`);
         await db.query('DELETE FROM friendship WHERE id = ?', [requestId]);
         res.status(200).json({ message: "친구 요청 거절 완료" });
       }
+
     } catch (error) {
+      console.error(`[handleRequest ERROR]`, error);
       res.status(500).json({ error: 'Database update failed' });
     }
   },
 
-  // 🔍 요청 목록 조회 (GET /requests)
   getPendingRequests: async (req, res) => {
     const myId = req.user.userId;
-    const { type } = req.query; // 'received' or 'sent'
+    const { type } = req.query;
+
+    console.log(`[getPendingRequests] myId=${myId}, type=${type}`);
 
     try {
       const isReceived = type === 'received';
+
       const sql = isReceived 
         ? 'SELECT f.id, u.nickname FROM friendship f JOIN users u ON f.requester_id = u.id WHERE f.receiver_id = ? AND f.status = "PENDING"'
         : 'SELECT f.id, u.nickname FROM friendship f JOIN users u ON f.receiver_id = u.id WHERE f.requester_id = ? AND f.status = "PENDING"';
-      
+
       const [requests] = await db.query(sql, [myId]);
+
+      console.log(`[getPendingRequests] result:`, requests);
+
       res.status(200).json(requests);
+
     } catch (error) {
+      console.error(`[getPendingRequests ERROR]`, error);
       res.status(500).json({ error: 'Database select failed' });
     }
   },
 
-  // 👥 내 친구 목록 조회 (GET /friends)
   getMyFriends: async (req, res) => {
     const myId = req.user.userId;
+
+    console.log(`[getMyFriends] myId=${myId}`);
 
     try {
       const [friends] = await db.query(`
@@ -152,24 +185,35 @@ const friendController = {
           AND f.status = "ACCEPTED" AND u.id != ?`, 
         [myId, myId, myId]
       );
+
+      console.log(`[getMyFriends] result:`, friends);
+
       res.status(200).json(friends);
+
     } catch (error) {
+      console.error(`[getMyFriends ERROR]`, error);
       res.status(500).json({ error: 'Database select failed' });
     }
   },
 
-  // 🗑️ 친구 삭제 (DELETE /friends/:friendId)
   deleteFriend: async (req, res) => {
     const myId = req.user.userId;
     const { friendId } = req.params;
+
+    console.log(`[deleteFriend] myId=${myId}, friendId=${friendId}`);
 
     try {
       await db.query(
         'DELETE FROM friendship WHERE ((requester_id = ? AND receiver_id = ?) OR (requester_id = ? AND receiver_id = ?)) AND status = "ACCEPTED"',
         [myId, friendId, friendId, myId]
       );
+
+      console.log(`[deleteFriend] delete success`);
+
       res.status(200).json({ message: "친구 삭제 완료" });
+
     } catch (error) {
+      console.error(`[deleteFriend ERROR]`, error);
       res.status(500).json({ error: 'Database delete failed' });
     }
   }
