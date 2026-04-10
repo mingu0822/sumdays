@@ -4,9 +4,11 @@ package com.example.sumdays.social.reqeust
 import FriendRequest
 import FriendRequestAdapter
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -22,7 +24,7 @@ class FriendRequestDialog : DialogFragment() {
 
     private var _binding: DialogFriendRequestBinding? = null
     private val binding get() = _binding!!
-    private val requestAdapter = FriendRequestAdapter()
+    private lateinit var requestAdapter :FriendRequestAdapter
 
     // 친구 요청 list
     private var receivedRequestList: List<FriendRequest>? = emptyList()
@@ -36,7 +38,7 @@ class FriendRequestDialog : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupRecyclerView()
+        setupAdapter()
         setupTabLayout()
 
         // X 버튼 누르면 닫기
@@ -51,8 +53,61 @@ class FriendRequestDialog : DialogFragment() {
         showList(0)
     }
 
-    private fun setupRecyclerView() {
+    // adapter 초기화 (버튼 action 등)
+    private fun setupAdapter() {
+        // 1. requestAdapter 초기호
+        requestAdapter = FriendRequestAdapter(
+            onAccept = { request -> handleAccept(request) },
+            onReject = { request -> handleReject(request) },
+            onCancel = { request -> handleCancel(request) }
+        )
+
         binding.rvRequests.adapter = requestAdapter
+    }
+    private fun handleAccept(request: FriendRequest) {
+        lifecycleScope.launch {
+            try {
+                // 직접 ApiService 호출
+                val response = ApiClient.socialApi.handleRequest(request.id, mapOf("action" to "ACCEPT"))
+                if (response.isSuccessful) {
+                    receivedRequestList = receivedRequestList?.filter { it.id != request.id }
+                    showList(binding.tabLayout.selectedTabPosition)
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "수락 실패.", Toast.LENGTH_SHORT).show()
+                Log.e("API_ERROR", "수락 실패", e)
+            }
+        }
+    }
+    private fun handleReject(request: FriendRequest) {
+        lifecycleScope.launch {
+            try {
+                // 직접 ApiService 호출
+                val response = ApiClient.socialApi.handleRequest(request.id, mapOf("action" to "REJECT"))
+                if (response.isSuccessful) {
+                    receivedRequestList = receivedRequestList?.filter { it.id != request.id }
+                    showList(binding.tabLayout.selectedTabPosition)
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "거절 실패.", Toast.LENGTH_SHORT).show()
+                Log.e("API_ERROR", "거절 실패", e)
+            }
+        }
+    }
+    private fun handleCancel(request: FriendRequest) {
+        lifecycleScope.launch {
+            try {
+                // 직접 ApiService 호출
+                val response = ApiClient.socialApi.cancelRequest(mapOf("receiverId" to request.id))
+                if (response.isSuccessful) {
+                    sentRequestList = sentRequestList?.filter { it.id != request.id }
+                    showList(binding.tabLayout.selectedTabPosition)
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "취소 실패.", Toast.LENGTH_SHORT).show()
+                Log.e("API_ERROR", "취소 실패", e)
+            }
+        }
     }
 
     private fun setupTabLayout() {
