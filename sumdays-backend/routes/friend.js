@@ -3,6 +3,8 @@ const router = express.Router();
 const friendController = require('../controllers/friendController');
 
 
+
+console.log(">>> friend.js 라우터 파일 로드됨");
 // 1. 친구 요청 및 취소
 // POST /api/friend/request (Body: { receiverId })
 router.post('/request', friendController.requestFriend);

@@ -1,3 +1,5 @@
+console.log("!!! index.js 파일 시작 !!!");
+
 const express = require('express');
 const router = express.Router();
 const verifyToken = require('../middlewares/authMiddleware');
@@ -12,6 +14,7 @@ const syncRoutes = require('./db/sync');
 const friendRoutes = require('./friend');
 
 
+
 router.use('/auth', authRoutes);   // /api/auth/...
 router.use('/ai', aiRoutes);       // /api/ai/...
 
@@ -22,7 +25,9 @@ router.use('/db/daily', dailyRoutes);
 router.use('/db/daily/memos', memosRoutes);       
 router.use('/db/daily/photos', photosRoutes);  
 
+console.log(">>> [Layer 1] routes/index.js 로드됨");
 router.use('/friend', verifyToken);
+console.log(">>> [Layer 1] routes/index.js 로드됨");
 router.use('/friend', friendRoutes);
 
 

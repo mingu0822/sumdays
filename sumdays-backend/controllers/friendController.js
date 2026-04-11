@@ -1,9 +1,9 @@
-const db = require('../db/db');
+const { pool } = require('../db/db');
 
 async function getFriendship(u1, u2) {
   console.log(`[getFriendship] u1=${u1}, u2=${u2}`);
 
-  const [rows] = await db.query(
+  const [rows] = await pool.query(
     'SELECT * FROM friendship WHERE (requester_id = ? AND receiver_id = ?) OR (requester_id = ? AND receiver_id = ?)',
     [u1, u2, u2, u1]
   );
@@ -19,10 +19,11 @@ const friendController = {
     const requesterId = req.user.userId;
     const { receiverEmail } = req.body;
 
+
     console.log(`[requestFriend] requester=${requesterId}, email=${receiverEmail}`);
 
     try {
-      const [users] = await db.query(
+      const [users] = await pool.query(
         'SELECT id FROM users WHERE email = ?', 
         [receiverEmail]
       );
@@ -59,7 +60,7 @@ const friendController = {
             return res.status(409).json({ message: "상대방의 수락을 기다리는 중입니다." });
           } else {
             console.log(`[requestFriend] auto accept triggered`);
-            await db.query(
+            await pool.query(
               'UPDATE friendship SET status = "ACCEPTED" WHERE id = ?',
               [existing.id]
             );
@@ -74,7 +75,7 @@ const friendController = {
       }
 
       console.log(`[requestFriend] inserting new request`);
-      await db.query(
+      await pool.query(
         'INSERT INTO friendship (requester_id, receiver_id, status) VALUES (?, ?, "PENDING")',
         [requesterId, receiverId]
       );
@@ -94,7 +95,7 @@ const friendController = {
     console.log(`[cancelRequest] requester=${requesterId}, receiver=${receiverId}`);
 
     try {
-      const result = await db.query(
+      const result = await pool.query(
         'DELETE FROM friendship WHERE requester_id = ? AND receiver_id = ? AND status = "PENDING"',
         [requesterId, receiverId]
       );
@@ -121,7 +122,7 @@ const friendController = {
     console.log(`[handleRequest] myId=${myId}, requestId=${requestId}, action=${action}`);
 
     try {
-      const [rows] = await db.query('SELECT * FROM friendship WHERE id = ?', [requestId]);
+      const [rows] = await pool.query('SELECT * FROM friendship WHERE id = ?', [requestId]);
 
       console.log(`[handleRequest] request data:`, rows);
 
@@ -132,11 +133,11 @@ const friendController = {
 
       if (action === 'ACCEPT') {
         console.log(`[handleRequest] accepting request`);
-        await db.query('UPDATE friendship SET status = "ACCEPTED" WHERE id = ?', [requestId]);
+        await pool.query('UPDATE friendship SET status = "ACCEPTED" WHERE id = ?', [requestId]);
         res.status(200).json({ message: "친구 수락 완료" });
       } else {
         console.log(`[handleRequest] rejecting request`);
-        await db.query('DELETE FROM friendship WHERE id = ?', [requestId]);
+        await pool.query('DELETE FROM friendship WHERE id = ?', [requestId]);
         res.status(200).json({ message: "친구 요청 거절 완료" });
       }
 
@@ -159,7 +160,7 @@ const friendController = {
         ? 'SELECT f.id, u.nickname FROM friendship f JOIN users u ON f.requester_id = u.id WHERE f.receiver_id = ? AND f.status = "PENDING"'
         : 'SELECT f.id, u.nickname FROM friendship f JOIN users u ON f.receiver_id = u.id WHERE f.requester_id = ? AND f.status = "PENDING"';
 
-      const [requests] = await db.query(sql, [myId]);
+      const [requests] = await pool.query(sql, [myId]);
 
       console.log(`[getPendingRequests] result:`, requests);
 
@@ -177,7 +178,7 @@ const friendController = {
     console.log(`[getMyFriends] myId=${myId}`);
 
     try {
-      const [friends] = await db.query(`
+      const [friends] = await pool.query(`
         SELECT u.id, u.nickname 
         FROM friendship f
         JOIN users u ON (f.requester_id = u.id OR f.receiver_id = u.id)
@@ -203,7 +204,7 @@ const friendController = {
     console.log(`[deleteFriend] myId=${myId}, friendId=${friendId}`);
 
     try {
-      await db.query(
+      await pool.query(
         'DELETE FROM friendship WHERE ((requester_id = ? AND receiver_id = ?) OR (requester_id = ? AND receiver_id = ?)) AND status = "ACCEPTED"',
         [myId, friendId, friendId, myId]
       );
