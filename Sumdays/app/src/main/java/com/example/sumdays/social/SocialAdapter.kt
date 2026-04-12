@@ -21,6 +21,7 @@ class SocialAdapter(
         val btnFriend: ImageButton = itemView.findViewById(R.id.btnFriend)
     }
 
+    // ui 뼈대
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SocialViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_social, parent, false)
@@ -28,11 +29,13 @@ class SocialAdapter(
         return SocialViewHolder(view)
     }
 
+    // ui 알맹이
     override fun onBindViewHolder(holder: SocialViewHolder, position: Int) {
         val socialUser = socialUserList[position]
 
         holder.tvProfile.text = socialUser.profileEmoji
         holder.tvUserName.text = socialUser.name
+        holder.tvUserInfo.text = "🔥 15  🍃 45   🍇 3"
         holder.itemView.setOnClickListener {
             onItemClick(socialUser)
         }

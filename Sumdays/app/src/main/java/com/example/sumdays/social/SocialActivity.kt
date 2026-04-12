@@ -19,9 +19,11 @@ import android.text.TextWatcher
 import android.util.Log
 import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
+import com.example.sumdays.network.ApiClient
 import com.example.sumdays.social.reqeust.AddFriendDialog
 import com.example.sumdays.social.reqeust.FriendRequestDialog
 import kotlinx.coroutines.launch
+import com.example.sumdays.social.toUser
 
 class SocialActivity : AppCompatActivity() {
     private lateinit var navBarController: NavBarController
@@ -32,26 +34,7 @@ class SocialActivity : AppCompatActivity() {
     private lateinit var tvSocialRequests: TextView
     private lateinit var btnAddSocial: ImageButton
 
-    private val allSocialUserList = listOf(
-        SocialUser(
-            profileEmoji = "😊",
-            name = "민수",
-            summary = "오늘은 좀 지쳤지만 그래도 버텼어",
-            emotion = "😌 평온 / 과제 / 회복"
-        ),
-        SocialUser(
-            profileEmoji = "🌿",
-            name = "유진",
-            summary = "오랜만에 산책해서 기분이 좋았어",
-            emotion = "🌱 여유 / 산책 / 안정"
-        ),
-        SocialUser(
-            profileEmoji = "😄",
-            name = "서연",
-            summary = "친구 만나서 웃을 일이 많았어",
-            emotion = "💬 즐거움 / 친구 / 대화"
-        )
-    )
+    private val allSocialUserList = mutableListOf<SocialUser>()
     private val filteredSocialUserList = mutableListOf<SocialUser>()
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -68,7 +51,6 @@ class SocialActivity : AppCompatActivity() {
         etSearchSocial = findViewById(R.id.etSearchSocial)
         tvSocialRequests = findViewById(R.id.tvSocialRequests)
         btnAddSocial = findViewById(R.id.btnAddSocial)
-        filteredSocialUserList.addAll(allSocialUserList)
 
         tvSocialRequests.setOnClickListener {
             val dialog = FriendRequestDialog()
@@ -84,9 +66,7 @@ class SocialActivity : AppCompatActivity() {
             filteredSocialUserList,
             onItemClick = { socialUser ->
                 val intent = Intent(this, SocialDetailActivity::class.java)
-                intent.putExtra("social_name", socialUser.name)
-                intent.putExtra("social_summary", socialUser.summary)
-                intent.putExtra("social_emotion", socialUser.emotion)
+                intent.putExtra("id", socialUser.id)
                 startActivity(intent)
             },
             onButtonClick = { socialUser ->
@@ -106,6 +86,35 @@ class SocialActivity : AppCompatActivity() {
         }
 
         setupSearch()
+    }
+    override fun onResume() {
+        super.onResume()
+        loadFriendsFromServer()
+    }
+    private fun loadFriendsFromServer() {
+        lifecycleScope.launch {
+            try {
+                // [핵심] ApiClient를 통해 서버의 친구 목록 API 호출
+                val response = ApiClient.socialApi.getMyFriends()
+
+                if (response.isSuccessful) {
+                    val friends = response.body()?.map { it.toUser() } ?: emptyList()
+
+                    // 데이터 갱신
+                    allSocialUserList.clear()
+                    allSocialUserList.addAll(friends)
+
+                    // 현재 검색어에 맞춰 필터링 및 UI 갱신
+                    filterSocialList(etSearchSocial.text.toString())
+
+                    Log.d("SOCIAL_DEBUG", "친구 로드 성공: ${friends.size}명")
+                } else {
+                    Log.e("SOCIAL_DEBUG", "로드 실패: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.e("SOCIAL_DEBUG", "네트워크 에러", e)
+            }
+        }
     }
     private fun setupSearch() {
         etSearchSocial.addTextChangedListener(object : TextWatcher {

@@ -1,8 +1,9 @@
 package com.example.sumdays.social
 
 data class SocialUser(
-    val profileEmoji: String,
     val name: String,
+    val id: Int,
+    val profileEmoji: String,
     val summary: String,
-    val emotion: String
+    val isFavorite: Boolean
 )

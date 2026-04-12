@@ -19,6 +19,7 @@ import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.FriendRequestResponse
 import kotlinx.coroutines.async
 import kotlin.collections.emptyList
+import com.example.sumdays.social.toDomain
 
 class FriendRequestDialog : DialogFragment() {
 
@@ -184,10 +185,4 @@ class FriendRequestDialog : DialogFragment() {
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
     }
-}
-fun FriendRequestResponse.toDomain(): FriendRequest {
-    return FriendRequest(
-        id = this.id,
-        nickname = this.nickname ?: "이름 없음", // Null 방어 로직
-    )
 }

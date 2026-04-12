@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 import com.example.sumdays.network.apiService.SocialApiService
 
 object ApiClient {
-    const val BASE_URL = "http://172.16.100.206:3000/"
+    const val BASE_URL = "http://172.30.1.85:3000/"
     //폰에서 실행하려면 서버를 돌리는 컴퓨터의 IP를 여기 적어야 함
 
     // OkHttp 로깅 + 타임아웃 설정

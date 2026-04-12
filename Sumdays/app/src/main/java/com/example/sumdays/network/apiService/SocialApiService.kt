@@ -8,7 +8,7 @@ interface SocialApiService {
     // 1. 친구 요청하기
     @POST("/api/friend/request")
     suspend fun requestFriend(
-        @Body body: Map<String, String> // { "receiverEmail": "mingu822" }
+        @Body body: Map<String, String> // { "receiverEmail": "akd122" }
     ): Response<BaseResponse>
 
     // 2. 친구 요청 취소
