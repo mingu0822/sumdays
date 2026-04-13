@@ -14,7 +14,7 @@ async function getFriendship(u1, u2) {
 }
 
 const friendController = {
-
+  
   requestFriend: async (req, res) => {
     const requesterId = req.user.userId;
     const { receiverEmail } = req.body;
@@ -179,13 +179,31 @@ const friendController = {
 
     try {
       const [friends] = await pool.query(`
-        SELECT u.id, u.nickname 
+        SELECT u.id, u.nickname, u.profile_image_url, u.created_at,
+        ui.count_diaries, ui.streak, ui.count_weekly_summaries, ui.last_diary_update_date,
         FROM friendship f
         JOIN users u ON (f.requester_id = u.id OR f.receiver_id = u.id)
         WHERE (f.requester_id = ? OR f.receiver_id = ?) 
           AND f.status = "ACCEPTED" AND u.id != ?`, 
         [myId, myId, myId]
       );
+
+      // 오늘 update 안된 친구들 
+      const staleFriendIds = friends
+      .filter((friend) => {
+        if (!friend.user_info_updated_at) return true;
+
+        const updatedAt = new Date(friend.user_info_updated_at);
+        const updatedAtKST = new Date(updatedAt.getTime() + 9 * 60 * 60 * 1000)
+          .toISOString()
+          .slice(0, 10);
+
+        return updatedAtKST !== today;
+      })
+      .map((friend) => friend.id);
+      
+
+      
 
       console.log(`[getMyFriends] result:`, friends);
 

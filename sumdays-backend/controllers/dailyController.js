@@ -113,6 +113,44 @@ exports.createDailyEntry = async (req, res) => {
       'INSERT INTO daily_entries (user_id, entry_date) VALUES (?, ?)',
       [userId, date]
     );
+    
+
+    // 3. user_info (총 일기 수, 최신 일기 날짜 update)
+    const [userInfoRows] = await conn.query(
+      'SELECT count_diaries, last_diary_update_date FROM user_info WHERE user_id = ?',
+      [userId]
+    );
+
+    if (userInfoRows.length === 0) {
+      // user_info가 없으면 새로 생성
+      await conn.query(
+        `INSERT INTO user_info (user_id, count_diaries, streak, count_weekly_summaries, last_diary_update_date)
+         VALUES (?, ?, ?, ?, ?)`,
+        [userId, 1, 0, 0, date]
+      );
+    } else {
+      const userInfo = userInfoRows[0];
+
+      const newCountDiaries = (userInfo.count_diaries || 0) + 1;
+
+      let newLastDiaryUpdateDate = userInfo.last_diary_update_date;
+
+      // 기존 최근 날짜가 없거나, 이번 date가 더 최신이면 갱신
+      if (
+        !newLastDiaryUpdateDate ||
+        date > newLastDiaryUpdateDate
+      ) {
+        newLastDiaryUpdateDate = date;
+      }
+
+      await conn.query(
+        `UPDATE user_info
+         SET count_diaries = ?, last_diary_update_date = ?
+         WHERE user_id = ?`,
+        [newCountDiaries, newLastDiaryUpdateDate, userId]
+      );
+    }
+    await conn.commit();
 
     res.status(201).json({ message: 'Daily entry created successfully' });
   } catch (error) {
@@ -181,7 +219,24 @@ exports.deleteDailyEntry = async (req, res) => {
   const userId = req.user.userId 
   
   try {
-    await db.query('DELETE FROM daily_entries WHERE user_id = ? AND entry_date = ?', [userId,date]);
+    await conn.beginTransaction();
+
+    const [result] = await conn.query(
+      'DELETE FROM daily_entry WHERE user_id = ? AND date = ?',
+      [userId, date]
+    );
+
+    // 실제로 삭제된 경우에만 count_diaries 감소
+    if (result.affectedRows > 0) {
+      await conn.query(
+        `UPDATE user_info
+         SET count_diaries = GREATEST(count_diaries - 1, 0)
+         WHERE user_id = ?`,
+        [userId]
+      );
+    }
+
+    await conn.commit();
 
     res.status(200).json({ message: 'Daily entry deleted successfully' });
   } catch (error) {
