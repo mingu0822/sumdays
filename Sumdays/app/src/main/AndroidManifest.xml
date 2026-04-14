@@ -44,7 +44,7 @@
             android:name=".DailyWriteActivity"
             android:screenOrientation="portrait"
             android:exported="true"
-            android:windowSoftInputMode="adjustPan"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.First" />
         <activity
             android:name=".DailyReadActivity"
