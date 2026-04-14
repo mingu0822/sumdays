@@ -63,7 +63,6 @@ import com.example.sumdays.utils.setupEdgeToEdge
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import androidx.core.view.WindowInsetsAnimationCompat
 
 class DailyWriteActivity : AppCompatActivity() {
 
@@ -119,13 +118,18 @@ class DailyWriteActivity : AppCompatActivity() {
 
         drawerLayout = findViewById(R.id.drawer_layout)
 
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.write)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
         initializeImagePicker()
         initViews()
         audioRecorderHelper = createAudioRecorderHelper()
         handleIntent(intent)
         setupClickListeners()
         setupTextChangedListener() // instagram style active text box
-        handleKeyBoardAnimation() // 즉각적인 키보드 반응을 위함.
 
         updateOwned()
         navBarController = NavBarController(this)
@@ -154,31 +158,6 @@ class DailyWriteActivity : AppCompatActivity() {
         super.onResume()
         updateOwned()
         applyThemeModeSettings()
-    }
-
-    private fun handleKeyBoardAnimation() {
-        val inputArea = findViewById<View>(R.id.input_area)
-        val customNavBar = findViewById<View>(R.id.bottom_buttons_layout)
-
-        ViewCompat.setWindowInsetsAnimationCallback(
-            inputArea,
-            object : WindowInsetsAnimationCompat.Callback(DISPATCH_MODE_STOP) {
-                // 키보드 애니메이션 프레임마다 호출됨
-                override fun onProgress(
-                    insets: WindowInsetsCompat,
-                    runningAnimations: MutableList<WindowInsetsAnimationCompat>
-                ): WindowInsetsCompat {
-                    val imeHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
-                    val systemNavHeight = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
-                    val customNavHeight = customNavBar.height
-
-                    val diff = (imeHeight - systemNavHeight - customNavHeight).coerceAtLeast(0)
-                    inputArea.translationY = -diff.toFloat()
-
-                    return insets
-                }
-            }
-        )
     }
 
     private fun initializeImagePicker() {
