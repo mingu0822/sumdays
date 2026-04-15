@@ -1,6 +1,5 @@
 package com.example.sumdays
 
-import com.example.sumdays.statistics.StreakPrefs
 import android.app.Dialog
 import android.content.Intent
 import android.os.Build
@@ -19,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -30,6 +30,7 @@ import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.dao.UserStyleDao
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.statistics.StreakPrefs
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
@@ -38,7 +39,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import androidx.core.view.isVisible
 
 class DailySumActivity : AppCompatActivity() {
 
