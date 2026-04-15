@@ -3,10 +3,10 @@ package com.example.sumdays.statistics
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.core.content.edit
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import androidx.core.content.edit
 
 object StreakPrefs {
     private const val PREF = "streak_prefs"

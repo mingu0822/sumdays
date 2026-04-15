@@ -1,6 +1,5 @@
 package com.example.sumdays
 
-import com.example.sumdays.statistics.StreakPrefs
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Build
@@ -24,11 +23,11 @@ import com.bumptech.glide.Glide
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.data.viewModel.WeekSummaryViewModel
 import com.example.sumdays.data.viewModel.WeekSummaryViewModelFactory
+import com.example.sumdays.statistics.StreakPrefs
 import com.example.sumdays.statistics.WeekStatsDetailActivity
 import com.example.sumdays.statistics.WeekSummary
 import com.example.sumdays.ui.TreeTiledDrawable
 import com.example.sumdays.utils.setupEdgeToEdge
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

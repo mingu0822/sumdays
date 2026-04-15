@@ -4,7 +4,6 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.app.Dialog
-import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.Uri
@@ -16,7 +15,6 @@ import android.transition.TransitionManager
 import android.util.Base64
 import android.util.Log
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -33,9 +31,12 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsAnimationCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.GridLayoutManager
@@ -59,7 +60,6 @@ import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
-import com.example.sumdays.utils.setupEdgeToEdge
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -107,6 +107,7 @@ class DailyWriteActivity : AppCompatActivity() {
     private var waveAnimatorSet: AnimatorSet? = null
     private var pendingAudioMemoId: Int? = null
     private var isApiProcessingAudio = false
+    private var shouldScrollToBottom = false
 
     private lateinit var pickImagesLauncher: ActivityResultLauncher<Array<String>>
 
@@ -117,12 +118,6 @@ class DailyWriteActivity : AppCompatActivity() {
         setContentView(R.layout.activity_daily_write)
 
         drawerLayout = findViewById(R.id.drawer_layout)
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.write)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
 
         initializeImagePicker()
         initViews()
@@ -150,8 +145,7 @@ class DailyWriteActivity : AppCompatActivity() {
             }
         }
 
-        val rootView = findViewById<View>(R.id.write)
-        setupEdgeToEdge(rootView)
+        setupKeyboardAnimation() // 키보드와 메모 입력창 위치 동기화
     }
 
     override fun onResume() {
@@ -163,7 +157,7 @@ class DailyWriteActivity : AppCompatActivity() {
     private fun initializeImagePicker() {
         pickImagesLauncher =
             registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-                if (uris.isNullOrEmpty()) return@registerForActivityResult
+                if (uris.isEmpty()) return@registerForActivityResult
 
                 uris.forEach { uri ->
                     try {
@@ -439,11 +433,17 @@ class DailyWriteActivity : AppCompatActivity() {
 
         memoViewModel.getMemosForDate(date).observe(this) { memos ->
             memos?.let {
-                if (pendingAudioMemoId != null && !it.any { memo -> memo.id == pendingAudioMemoId }) {
-                    val currentList = memoAdapter.currentList.toMutableList()
-                    memoAdapter.submitList(currentList)
+                val targetList = if (pendingAudioMemoId != null && !it.any { memo -> memo.id == pendingAudioMemoId }) {
+                    memoAdapter.currentList.toMutableList()
                 } else {
-                    memoAdapter.submitList(it)
+                    it
+                }
+                memoAdapter.submitList(targetList) {
+                    // 리스트가 갱신 직후 새 메모를 추가하면 스크롤을 맨 아래로 이동
+                    if (shouldScrollToBottom && memoAdapter.itemCount > 0) {
+                        shouldScrollToBottom = false
+                        memoListView.scrollToPosition(memoAdapter.itemCount - 1)
+                    }
                 }
             }
         }
@@ -519,9 +519,8 @@ class DailyWriteActivity : AppCompatActivity() {
             if (memoContent.isNotEmpty()) {
                 addTextMemoToList(memoContent, "text")
                 memoInputEditText.text.clear()
-                val imm =
-                    getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
+                ViewCompat.getWindowInsetsController(memoInputEditText)
+                    ?.hide(WindowInsetsCompat.Type.ime())
             } else {
                 Toast.makeText(this, "메모 내용을 입력해 주세요.", Toast.LENGTH_SHORT).show()
             }
@@ -584,6 +583,73 @@ class DailyWriteActivity : AppCompatActivity() {
         })
     }
 
+    private fun setupKeyboardAnimation() {
+        val rootView = findViewById<View>(R.id.write)
+        val contentArea = findViewById<View>(R.id.content_area)
+        val navBarViewHeightPx = (110 * resources.displayMetrics.density).toInt()
+        var navBarHeight = 0
+        var imeAnimationInProgress = false
+        var previousPaddingBottom = navBarViewHeightPx // 메모 위치를 유지하기 위함
+
+        // 초기 상태: 키보드 없음 → nav bar 높이만큼 패딩
+        contentArea.updatePadding(bottom = navBarViewHeightPx)
+
+        // root: status bar top + system nav bar bottom 처리
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
+            val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+            navBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            view.updatePadding(top = statusBarHeight, bottom = navBarHeight)
+
+            if (!imeAnimationInProgress) {
+                val imeHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+                val newPadding = maxOf(navBarViewHeightPx, imeHeight - navBarHeight)
+                contentArea.updatePadding(bottom = newPadding)
+                previousPaddingBottom = newPadding
+            }
+            insets
+        }
+
+        // 키보드 애니메이션 프레임마다 content_area paddingBottom 동기화
+        ViewCompat.setWindowInsetsAnimationCallback(
+            rootView,
+            object : WindowInsetsAnimationCompat.Callback(DISPATCH_MODE_STOP) {
+                override fun onPrepare(animation: WindowInsetsAnimationCompat) {
+                    imeAnimationInProgress = true
+                    // 애니메이션 시작 직전의 실제 padding 값을 기준으로 삼음
+                    previousPaddingBottom = contentArea.paddingBottom
+                }
+
+                override fun onProgress(
+                    insets: WindowInsetsCompat,
+                    runningAnimations: MutableList<WindowInsetsAnimationCompat>
+                ): WindowInsetsCompat {
+                    val imeHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+                    val newPadding = maxOf(navBarViewHeightPx, imeHeight - navBarHeight)
+                    val delta = newPadding - previousPaddingBottom
+
+                    contentArea.updatePadding(bottom = newPadding)
+                    // contentArea가 delta만큼 줄어드는 것을 RecyclerView 스크롤로 보상
+                    // → 보던 메모 위치가 그대로 유지됨
+                    if (delta != 0) memoListView.scrollBy(0, delta)
+
+                    previousPaddingBottom = newPadding
+                    return insets
+                }
+
+                override fun onEnd(animation: WindowInsetsAnimationCompat) {
+                    super.onEnd(animation)
+                    imeAnimationInProgress = false
+                    ViewCompat.getRootWindowInsets(rootView)?.let { finalInsets ->
+                        val imeHeight = finalInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+                        val newPadding = maxOf(navBarViewHeightPx, imeHeight - navBarHeight)
+                        contentArea.updatePadding(bottom = newPadding)
+                        previousPaddingBottom = newPadding
+                    }
+                }
+            }
+        )
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         audioRecorderHelper.release()
@@ -633,13 +699,13 @@ class DailyWriteActivity : AppCompatActivity() {
             content = content,
             timestamp = currentTime,
             date = date,
-            order = memoAdapter.itemCount,
+            order = (memoAdapter.currentList.maxOfOrNull { it.order } ?: -1) + 1, // 새로운 메모는 무조건 맨 뒤에 추가
             type = memoType
         )
 
         Log.d("test", "$content / $currentTime / $date / ${memoAdapter.itemCount} / $memoType")
+        shouldScrollToBottom = true
         memoViewModel.insert(newMemo)
-        memoListView.smoothScrollToPosition(memoAdapter.itemCount)
     }
 
     private fun removeDummyMemoAndAddFinal(newContent: String, memoType: String) {
@@ -729,7 +795,7 @@ class DailyWriteActivity : AppCompatActivity() {
         try {
             if (isUriOrPath) {
                 Glide.with(this)
-                    .load(Uri.parse(photoString))
+                    .load(photoString.toUri())
                     .into(imageView)
             } else {
                 val imageBytes = Base64.decode(photoString, Base64.DEFAULT)
