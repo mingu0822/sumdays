@@ -25,7 +25,7 @@
         android:id="@+id/btnCancel"
         android:layout_width="256px"
         android:layout_height="256px"
-        android:background="@drawable/dialog_fox_yes"
+        android:background="@drawable/dialog_fox_no"
         android:text="취소"
 
         android:layout_gravity="bottom|start"
@@ -37,7 +37,7 @@
         android:id="@+id/btnSave"
         android:layout_width="256px"
         android:layout_height="256px"
-        android:background="@drawable/dialog_fox_no"
+        android:background="@drawable/dialog_fox_yes"
         android:text="저장"
 
         android:layout_gravity="bottom|end"
