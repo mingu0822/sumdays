@@ -699,7 +699,7 @@ class DailyWriteActivity : AppCompatActivity() {
             content = content,
             timestamp = currentTime,
             date = date,
-            order = memoAdapter.itemCount,
+            order = (memoAdapter.currentList.maxOfOrNull { it.order } ?: -1) + 1, // 새로운 메모는 무조건 맨 뒤에 추가
             type = memoType
         )
 
