@@ -225,9 +225,9 @@ class DailySumActivity : AppCompatActivity() {
         sheet.setContentView(view)
 
         val btnCancel =
-            view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
+            view.findViewById<ImageButton>(R.id.btnCancel)
         val btnSave =
-            view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSave)
+            view.findViewById<ImageButton>(R.id.btnSave)
 
         btnCancel.setOnClickListener {
             sheet.dismiss()

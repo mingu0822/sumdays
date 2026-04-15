@@ -13,11 +13,19 @@
         android:src="@drawable/fox_popup"
         android:scaleType="fitXY" />
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textSize="12dp"
+        android:text = "메모가 하나로 합쳐졌어요. 완성된 일기로 저장할까요?"
+        android:textAlignment="center"
+        android:gravity="center"/>
     <!-- 취소 버튼 (왼쪽 아래) -->
-    <com.google.android.material.button.MaterialButton
+    <ImageButton
         android:id="@+id/btnCancel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="256px"
+        android:layout_height="256px"
+        android:background="@drawable/dialog_fox_yes"
         android:text="취소"
 
         android:layout_gravity="bottom|start"
@@ -25,10 +33,11 @@
         android:layout_marginBottom="24dp" />
 
     <!-- 저장 버튼 (오른쪽 아래) -->
-    <com.google.android.material.button.MaterialButton
+    <ImageButton
         android:id="@+id/btnSave"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="256px"
+        android:layout_height="256px"
+        android:background="@drawable/dialog_fox_no"
         android:text="저장"
 
         android:layout_gravity="bottom|end"
