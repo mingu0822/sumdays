@@ -3,9 +3,6 @@ package com.example.sumdays.statistics
 import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.example.sumdays.MyApplication
 import com.example.sumdays.network.ApiClient
