@@ -100,60 +100,71 @@
                 android:scrollbars="none"
 
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/input_actions"
+                app:layout_constraintEnd_toStartOf="@id/icons_barrier"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <LinearLayout
-                android:id="@+id/input_actions"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
+            <!-- send_icon: 항상 오른쪽 끝 고정 -->
+            <ImageView
+                android:id="@+id/send_icon"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:layout_marginEnd="16dp"
-
+                android:contentDescription="메모 전송"
+                android:src="@drawable/ic_send_white"
+                android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- image_icon: send_icon 왼쪽에 고정 -->
+            <ImageView
+                android:id="@+id/image_icon"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="12dp"
+                android:contentDescription="이미지 추가"
+                android:src="@drawable/ic_image_black"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/send_icon"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- mic/stop 컨테이너: image_icon 왼쪽에 고정 -->
+            <FrameLayout
+                android:id="@+id/mic_stop_container"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="12dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/image_icon"
                 app:layout_constraintTop_toTopOf="parent">
 
                 <ImageView
-                    android:id="@+id/send_icon"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:contentDescription="메모 전송"
-                    android:src="@drawable/ic_send_white"
-                    android:visibility="gone" />
-
-                <FrameLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="28dp">
-
-                    <ImageView
-                        android:id="@+id/mic_icon"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:contentDescription="음성 입력"
-                        android:src="@drawable/ic_mic_white"
-                        android:visibility="visible" />
-
-                    <ImageView
-                        android:id="@+id/stop_icon"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:contentDescription="녹음 중지"
-                        android:src="@drawable/ic_stop_recording"
-                        android:visibility="gone"
-                        tools:visibility="visible" />
-                </FrameLayout>
+                    android:id="@+id/mic_icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="음성 입력"
+                    android:src="@drawable/ic_mic_white"
+                    android:visibility="visible" />
 
                 <ImageView
-                    android:id="@+id/image_icon"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_marginStart="8dp"
-                    android:contentDescription="이미지 추가"
-                    android:src="@drawable/ic_image_black"
-                    android:visibility="visible" />
-            </LinearLayout>
+                    android:id="@+id/stop_icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="녹음 중지"
+                    android:src="@drawable/ic_stop_recording"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+            </FrameLayout>
+
+            <!-- Barrier: 보이는 아이콘 중 가장 왼쪽 start 기준 → EditText가 여기까지 확장 -->
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/icons_barrier"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:barrierDirection="start"
+                app:constraint_referenced_ids="mic_stop_container,image_icon,send_icon" />
 
             <LinearLayout
                 android:id="@+id/audio_wave_view"
