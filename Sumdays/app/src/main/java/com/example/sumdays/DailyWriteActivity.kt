@@ -81,6 +81,7 @@ class DailyWriteActivity : AppCompatActivity() {
     private lateinit var waveBar1: View
     private lateinit var waveBar2: View
     private lateinit var waveBar3: View
+    private lateinit var micStopContainer: View
     private lateinit var readDiaryButton: Button
     private lateinit var navBarController: NavBarController
     private lateinit var audioRecorderHelper: AudioRecorderHelper
@@ -358,6 +359,8 @@ class DailyWriteActivity : AppCompatActivity() {
         waveBar2 = findViewById(R.id.wave_bar_2)
         waveBar3 = findViewById(R.id.wave_bar_3)
 
+        micStopContainer = findViewById(R.id.mic_stop_container)
+
         imageDrawerContainer = findViewById(R.id.image_drawer_container)
         imagePanelTitle = findViewById(R.id.image_panel_title)
         imageRecyclerView = findViewById(R.id.image_recycler_view)
@@ -572,11 +575,11 @@ class DailyWriteActivity : AppCompatActivity() {
 
                 if (s.isNullOrBlank()) {
                     sendIcon.visibility = View.GONE
-                    micIcon.visibility = View.VISIBLE
+                    micStopContainer.visibility = View.VISIBLE
                     imageIcon.visibility = View.VISIBLE
                 } else {
                     sendIcon.visibility = View.VISIBLE
-                    micIcon.visibility = View.GONE
+                    micStopContainer.visibility = View.GONE
                     imageIcon.visibility = View.GONE
                 }
             }
