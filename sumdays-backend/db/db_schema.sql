@@ -5,6 +5,8 @@ DROP TABLE IF EXISTS week_summary;
 DROP TABLE IF EXISTS memo;
 DROP TABLE IF EXISTS daily_entry;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS friendship;
+DROP TABLE IF EXISTS user_info;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- 👤 users 테이블
@@ -13,9 +15,27 @@ CREATE TABLE users (
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   nickname VARCHAR(50) UNIQUE NOT NULL
+  profile_image_url VARCHAR(500) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- 📔 daily_entry 테이블
+CREATE TABLE user_info (
+  user_id INT PRIMARY KEY,
+  -- 일기 관련 (일기 삭제 or 생성 시 update)
+  count_diaries INT NOT NULL DEFAULT 0, -- 총 일기 수 
+  last_diary_update_date VARCHAR(50) NULL, -- 일기를 마지막으로 쓴
+  -- 주간 통계 관련 (주간 통계 생성 시 update)
+  count_weekly_summaries INT NOT NULL DEFAULT 0, -- 나무, 포도 
+  -- 기타
+  streak INT NOT NULL DEFAULT 0, -- 불
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE TABLE daily_entry (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
@@ -29,6 +49,26 @@ CREATE TABLE daily_entry (
   photoUrls Text,
   UNIQUE KEY unique_user_date (user_id, date),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE friendship (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  requester_id INT NOT NULL,
+  receiver_id INT NOT NULL,
+  status ENUM('PENDING', 'ACCEPTED', 'BLOCKED') DEFAULT 'PENDING',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  -- 중복 관계 방지 (A가 B에게 두 번 신청 불가)
+  UNIQUE KEY unique_relationship (requester_id, receiver_id),
+
+  -- 외래키 설정
+  FOREIGN KEY (requester_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
+
+  -- [최적화] 나에게 온 요청 조회를 위한 역방향 인덱스 (왼쪽 일치 원칙 대응)
+  INDEX idx_receiver_lookup (receiver_id, requester_id)
 );
 
 -- 🗒 memo 테이블
