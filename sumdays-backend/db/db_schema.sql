@@ -20,7 +20,7 @@ CREATE TABLE users (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- 📔 daily_entry 테이블
+-- 👤 users_info 테이블 (활동 관련)
 CREATE TABLE user_info (
   user_id INT PRIMARY KEY,
   -- 일기 관련 (일기 삭제 or 생성 시 update)
@@ -36,6 +36,7 @@ CREATE TABLE user_info (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- 📔 daily_entry 테이블
 CREATE TABLE daily_entry (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
