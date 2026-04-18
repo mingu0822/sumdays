@@ -269,7 +269,6 @@ exports.updateProfileImage = async (req, res) => {
     }
 };
 
-
 exports.getMe = async (req, res) => {
     const userId = req.user.userId; // authMiddleware에서 검증된 ID
     const includePhoto = req.query.includeProfileImage === 'true';
