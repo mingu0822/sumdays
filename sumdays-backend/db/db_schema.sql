@@ -3,7 +3,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS user_style;
 DROP TABLE IF EXISTS week_summary;
 DROP TABLE IF EXISTS memo;
-DROP TABLE IF EXISTS daily_entry;
+DROP TABLE IF EXISTS daily_entries;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS friendship;
 DROP TABLE IF EXISTS user_info;
@@ -37,7 +37,7 @@ CREATE TABLE user_info (
 );
 
 -- 📔 daily_entry 테이블
-CREATE TABLE daily_entry (
+CREATE TABLE daily_entries (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   date VARCHAR(50) NOT NULL,
