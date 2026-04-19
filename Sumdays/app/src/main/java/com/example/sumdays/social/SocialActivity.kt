@@ -20,10 +20,10 @@ import android.util.Log
 import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
 import com.example.sumdays.network.ApiClient
+import com.example.sumdays.network.apiService.FriendInfo
 import com.example.sumdays.social.reqeust.AddFriendDialog
 import com.example.sumdays.social.reqeust.FriendRequestDialog
 import kotlinx.coroutines.launch
-import com.example.sumdays.social.toUser
 
 class SocialActivity : AppCompatActivity() {
     private lateinit var navBarController: NavBarController
@@ -34,8 +34,8 @@ class SocialActivity : AppCompatActivity() {
     private lateinit var tvSocialRequests: TextView
     private lateinit var btnAddSocial: ImageButton
 
-    private val allSocialUserList = mutableListOf<SocialUser>()
-    private val filteredSocialUserList = mutableListOf<SocialUser>()
+    private val allFriendList = mutableListOf<FriendInfo>()
+    private val filteredFriendList = mutableListOf<FriendInfo>()
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,16 +63,16 @@ class SocialActivity : AppCompatActivity() {
 
 
         socialAdapter = SocialAdapter(
-            filteredSocialUserList,
-            onItemClick = { socialUser ->
+            filteredFriendList,
+            onItemClick = { friendInfo ->
                 val intent = Intent(this, SocialDetailActivity::class.java)
-                intent.putExtra("id", socialUser.id)
+                intent.putExtra("friendInfo", friendInfo)
                 startActivity(intent)
             },
-            onButtonClick = { socialUser ->
+            onButtonClick = { friendInfo ->
                 android.widget.Toast.makeText(
                     this,
-                    "${socialUser.name} 버튼 클릭",
+                    "${friendInfo.nickname} 버튼 클릭",
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
             }
@@ -97,19 +97,15 @@ class SocialActivity : AppCompatActivity() {
                 // [핵심] ApiClient를 통해 서버의 친구 목록 API 호출
                 val response = ApiClient.socialApi.getMyFriends()
 
-                if (response.isSuccessful) {
-                    val friends = response.body()?.map { it.toUser() } ?: emptyList()
-
-                    // 데이터 갱신
-                    allSocialUserList.clear()
-                    allSocialUserList.addAll(friends)
+                if (response.success) {
+                    val friends = response.friends
+                    allFriendList.clear()
+                    allFriendList.addAll(friends)
 
                     // 현재 검색어에 맞춰 필터링 및 UI 갱신
                     filterSocialList(etSearchSocial.text.toString())
 
                     Log.d("SOCIAL_DEBUG", "친구 로드 성공: ${friends.size}명")
-                } else {
-                    Log.e("SOCIAL_DEBUG", "로드 실패: ${response.code()}")
                 }
             } catch (e: Exception) {
                 Log.e("SOCIAL_DEBUG", "네트워크 에러", e)
@@ -133,18 +129,17 @@ class SocialActivity : AppCompatActivity() {
     private fun filterSocialList(query: String) {
         val keyword = query.trim()
 
-        filteredSocialUserList.clear()
+        filteredFriendList.clear()
 
         if (keyword.isEmpty()) {
-            filteredSocialUserList.addAll(allSocialUserList)
+            filteredFriendList.addAll(allFriendList)
         } else {
-            for (socialUser in allSocialUserList) {
-                if (socialUser.name.contains(keyword, ignoreCase = true)) {
-                    filteredSocialUserList.add(socialUser)
+            for (friend in allFriendList) {
+                if (friend.nickname.contains(keyword, ignoreCase = true)) {
+                    filteredFriendList.add(friend)
                 }
             }
         }
-
         socialAdapter.notifyDataSetChanged()
     }
 }

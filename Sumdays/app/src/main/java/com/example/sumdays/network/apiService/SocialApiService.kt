@@ -1,5 +1,7 @@
 package com.example.sumdays.network.apiService
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -32,7 +34,7 @@ interface SocialApiService {
 
     // 5. 내 전체 친구 목록 조회
     @GET("/api/friend/friends")
-    suspend fun getMyFriends(): Response<List<FriendResponse>>
+    suspend fun getMyFriends(): FriendInfoListResponse
 
     // 6. 친구 삭제
     @DELETE("/api/friend/friends/{friendId}")
@@ -51,7 +53,19 @@ data class FriendRequestResponse(
 )
 
 // 친구 목록 응답 DTO
-data class FriendResponse(
-    val id: Int,
-    val nickname: String
+
+data class FriendInfoListResponse(
+    val success: Boolean,
+    val friends: List<FriendInfo> // 실제 리스트는 여기 들어있음
 )
+@Parcelize
+data class FriendInfo(
+    val id: Int,
+    val nickname: String,
+    val profileImageUrl: String?, // 사진이 없을 수도 있으니까 Nullable(?) 처리
+    val createdAt: String,       // "2026-04-20" 형식
+    val countDiaries: Int,
+    val streak: Int,
+    val countWeeklySummaries: Int,
+    val lastDiaryUpdateDate: String? // 일기를 한 번도 안 썼을 수 있으니 Nullable
+) : Parcelable

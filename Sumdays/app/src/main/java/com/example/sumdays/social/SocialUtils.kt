@@ -2,7 +2,6 @@ package com.example.sumdays.social
 
 import FriendRequest
 import com.example.sumdays.network.apiService.FriendRequestResponse
-import com.example.sumdays.network.apiService.FriendResponse
 
 fun FriendRequestResponse.toDomain(): FriendRequest {
     return FriendRequest(
@@ -11,12 +10,3 @@ fun FriendRequestResponse.toDomain(): FriendRequest {
     )
 }
 
-fun FriendResponse.toUser(): SocialUser {
-    return SocialUser(
-        id = this.id,
-        name = this.nickname ?: "이름 없음",
-        profileEmoji = "😊",
-        summary = "",
-        isFavorite  = false
-    )
-}
