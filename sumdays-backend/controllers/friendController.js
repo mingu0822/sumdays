@@ -174,44 +174,53 @@ const friendController = {
 
   getMyFriends: async (req, res) => {
     const myId = req.user.userId;
-
     console.log(`[getMyFriends] myId=${myId}`);
 
-    try {
+   try {
       const [friends] = await pool.query(`
         SELECT u.id, u.nickname, u.profile_image_url, u.created_at,
-        ui.count_diaries, ui.streak, ui.count_weekly_summaries, ui.last_diary_update_date,
+        ui.count_diaries, ui.streak, ui.count_weekly_summaries, ui.last_diary_update_date
         FROM friendship f
         JOIN users u ON (f.requester_id = u.id OR f.receiver_id = u.id)
+        JOIN user_info ui ON u.id = ui.user_id
         WHERE (f.requester_id = ? OR f.receiver_id = ?) 
           AND f.status = "ACCEPTED" AND u.id != ?`, 
         [myId, myId, myId]
       );
+      
+      const today = moment().tz('Asia/Seoul').format('YYYY-MM-DD');
+      const yesterday = moment().tz('Asia/Seoul').subtract(1, 'days').format('YYYY-MM-DD');
+      const formattedFriends = friends.map(friend => {
+          // 스트라이크 판정: 마지막 업데이트가 오늘/어제가 아니면 0
+          const lastUpdate = friend.last_diary_update_date 
+              ? moment(friend.last_diary_update_date).format('YYYY-MM-DD') 
+              : null;
+          const isStreakValid = (lastUpdate === today || lastUpdate === yesterday);
+          const finalStreak = isStreakValid ? friend.streak : 0;
 
-      // 오늘 update 안된 친구들 
-      const staleFriendIds = friends
-      .filter((friend) => {
-        if (!friend.user_info_updated_at) return true;
+          return {
+              // 네이밍 컨벤션: Kotlin 스타일(CamelCase)로 변경
+              id: friend.id,
+              nickname: friend.nickname,
+              profileImageUrl: friend.profile_image_url,
+              // created_at -> yyyy-mm-dd 형식
+              createdAt: moment(friend.created_at).format('YYYY-MM-DD'),
+              countDiaries: friend.count_diaries,
+              // 실시간 계산된 스트라이크
+              streak: finalStreak,
+              countWeeklySummaries: friend.count_weekly_summaries,
+              lastDiaryUpdateDate: friend.last_diary_update_date
+          };
+        });
 
-        const updatedAt = new Date(friend.user_info_updated_at);
-        const updatedAtKST = new Date(updatedAt.getTime() + 9 * 60 * 60 * 1000)
-          .toISOString()
-          .slice(0, 10);
-
-        return updatedAtKST !== today;
-      })
-      .map((friend) => friend.id);
-
-
-
-
-      console.log(`[getMyFriends] result:`, friends);
-
-      res.status(200).json(friends);
+        res.status(200).json({
+            success: true,
+            friends: formattedFriends
+        });
 
     } catch (error) {
-      console.error(`[getMyFriends ERROR]`, error);
-      res.status(500).json({ error: 'Database select failed' });
+        console.error('❌ [getMyFriends] Error:', error);
+        res.status(500).json({ success: false, message: '친구 목록 조회 실패' });
     }
   },
 
