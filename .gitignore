@@ -16,3 +16,6 @@
 **/.coverage
 **/coverage
 **/tmp/
+
+# server storage
+/sumdays-backend/storage
