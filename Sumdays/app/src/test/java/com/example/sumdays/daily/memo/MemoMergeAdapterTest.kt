@@ -9,7 +9,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.sumdays.R
 import com.example.sumdays.data.dao.UserStyleDao
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.network.ApiService
+import com.example.sumdays.network.apiService.ApiService
 import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.google.gson.JsonObject
 import io.mockk.every

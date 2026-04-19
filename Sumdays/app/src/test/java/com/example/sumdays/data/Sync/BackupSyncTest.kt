@@ -10,6 +10,7 @@ import retrofit2.Response
 import com.example.sumdays.data.*
 import com.example.sumdays.network.*
 import com.example.sumdays.auth.*
+import com.example.sumdays.network.apiService.ApiService
 
 class BackupSyncTest {
 
@@ -104,7 +105,7 @@ class BackupSyncTest {
 
         // --- API mock ---
         mockkObject(ApiClient)
-        val apiMock = mockk<com.example.sumdays.network.ApiService>(relaxed = true)
+        val apiMock = mockk<ApiService>(relaxed = true)
         every { ApiClient.api } returns apiMock
 
         coEvery {
@@ -145,7 +146,7 @@ class BackupSyncTest {
 
         // API mock – error 반환
         mockkObject(ApiClient)
-        val apiMock = mockk<com.example.sumdays.network.ApiService>(relaxed = true)
+        val apiMock = mockk<ApiService>(relaxed = true)
         every { ApiClient.api } returns apiMock
 
         coEvery {

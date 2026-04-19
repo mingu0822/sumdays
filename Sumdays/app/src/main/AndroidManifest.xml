@@ -106,6 +106,8 @@
             android:name=".settings.EditProfileActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
+        <activity android:name=".social.SocialActivity"
+            android:exported="false" />
 
         <activity
             android:name=".settings.StyleExtractionActivity"
@@ -116,7 +118,7 @@
 
         <!-- -->
 
-
+        <activity android:name=".social.SocialDetailActivity" />
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait"

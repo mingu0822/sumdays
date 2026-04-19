@@ -20,6 +20,12 @@ import com.example.sumdays.settings.AccountSettingsActivity
 import com.example.sumdays.settings.DiaryStyleSettingsActivity
 import com.example.sumdays.settings.EditProfileActivity
 import com.example.sumdays.settings.LabsSettingsActivity
+import com.example.sumdays.social.SocialActivity
+import com.example.sumdays.statistics.WeekSummaryWorker
+import com.example.sumdays.utils.setupEdgeToEdge
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import com.example.sumdays.settings.ThemeSettingsActivity
 import com.example.sumdays.settings.prefs.ProfileImagePrefs
 import com.example.sumdays.settings.prefs.UserStatsPrefs
@@ -31,7 +37,6 @@ import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class ProfileActivity : AppCompatActivity() {
@@ -48,6 +53,7 @@ class ProfileActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // 인스턴스 초기화
+        SessionManager.init(applicationContext)
         userStatsPrefs = UserStatsPrefs(this)
         viewModel = ViewModelProvider(this)[DailyEntryViewModel::class.java]
 
@@ -115,6 +121,7 @@ class ProfileActivity : AppCompatActivity() {
         val themeKey = ThemePrefs.getTheme(this)
         val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
+
         val backgroundColor = currentTheme.backgroundColor
         val blockShape = currentTheme.blockStyle
         val textPrimaryColor = currentTheme.textPrimaryColor
@@ -133,14 +140,12 @@ class ProfileActivity : AppCompatActivity() {
 
         binding.loginButton.setBackgroundColor(getColor(textPrimaryColor))
 
-
-
-
         binding.nickname.setTextColor(getColor(basicColor))
         binding.diaryStyleBlockText.setTextColor(getColor(basicColor))
         binding.labsBlockText.setTextColor(getColor(basicColor))
         binding.accountBlockText.setTextColor(getColor(basicColor))
         binding.themeBlockText.setTextColor(getColor(basicColor))
+        binding.socialBlockText.setTextColor(getColor(basicColor))
     }
 
 
@@ -164,7 +169,14 @@ class ProfileActivity : AppCompatActivity() {
         themeBlock.setOnClickListener {
             startActivity(Intent(this@ProfileActivity, ThemeSettingsActivity::class.java))
         }
+        socialBlock.setOnClickListener {
+            startActivity(Intent(this@ProfileActivity, SocialActivity::class.java))
+        }
     }
+
+
+
+
 
     private fun updateProfileImagePreview() {
         val mode = ProfileImagePrefs.getMode(this)
