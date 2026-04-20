@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -20,7 +21,7 @@ class SocialAdapter(
 ) : RecyclerView.Adapter<SocialAdapter.SocialViewHolder>() {
 
     class SocialViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val tvProfile: TextView = itemView.findViewById(R.id.tvProfile)
+        val ivProfile: ImageView = itemView.findViewById(R.id.ivProfile)
         val tvUserName: TextView = itemView.findViewById(R.id.tvUserName)
         val tvUserInfo: TextView = itemView.findViewById(R.id.tvUserInfo)
         val btnFriend: ImageButton = itemView.findViewById(R.id.btnFriend)
@@ -42,10 +43,10 @@ class SocialAdapter(
         Glide.with(holder.itemView.context)
             .load(fullUrl)
             .placeholder(R.drawable.loading_animation) // 로딩 중에 보여줄 이미지
-            .error(R.drawable.ic_profile_error)             // 로드 실패 시 보여줄 이미지
+            .error(R.drawable.ic_account_circle)             // 로드 실패 시 보여줄 이미지
             .circleCrop()                                   // 사진을 동그랗게 깎아줌! (꿀팁)
             .transition(DrawableTransitionOptions.withCrossFade()) // 부드럽게 나타나게
-            .into(holder.tvProfile) // ImageView에 꽂아넣기
+            .into(holder.ivProfile) // ImageView에 꽂아넣기
 
         holder.tvUserName.text = friendInfo.nickname
         holder.tvUserInfo.text = "🔥 ${friendInfo.streak}  🍃 ${

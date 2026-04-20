@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
-import android.view.View
 import android.widget.ImageButton
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -13,7 +12,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.R
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
-import com.example.sumdays.utils.setupEdgeToEdge
 import android.widget.EditText
 import android.text.TextWatcher
 import android.util.Log

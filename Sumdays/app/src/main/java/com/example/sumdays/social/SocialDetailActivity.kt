@@ -4,11 +4,16 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.sumdays.R
+import com.example.sumdays.network.ApiClient
+import com.example.sumdays.network.apiService.FriendInfo
 
 class SocialDetailActivity : AppCompatActivity() {
 
@@ -17,7 +22,7 @@ class SocialDetailActivity : AppCompatActivity() {
     private lateinit var btnOpenDiary: Button
 
     private lateinit var tvDetailTitle: TextView
-    private lateinit var tvProfileEmoji: TextView
+    private lateinit var ivProfile: ImageView
     private lateinit var tvTotalDiaryCount: TextView
     private lateinit var tvJoinDate: TextView
     private lateinit var tvPublicDiaryCount: TextView
@@ -38,7 +43,7 @@ class SocialDetailActivity : AppCompatActivity() {
         btnOpenDiary = findViewById(R.id.btnOpenDiary)
 
         tvDetailTitle = findViewById(R.id.tvDetailTitle)
-        tvProfileEmoji = findViewById(R.id.tvProfileEmoji)
+        ivProfile = findViewById(R.id.ivProfile)
         tvTotalDiaryCount = findViewById(R.id.tvTotalDiaryCount)
         tvJoinDate = findViewById(R.id.tvJoinDate)
         tvPublicDiaryCount = findViewById(R.id.tvPublicDiaryCount)
@@ -46,19 +51,23 @@ class SocialDetailActivity : AppCompatActivity() {
     }
 
     private fun bindData() {
-        val socialName = intent.getStringExtra("social_name") ?: "이름 없음"
-        val socialProfileEmoji = intent.getStringExtra("social_profile_emoji") ?: "😊"
-        val totalDiaryCount = intent.getIntExtra("total_diary_count", 128)
-        val publicDiaryCount = intent.getIntExtra("public_diary_count", 16)
-        val joinDate = intent.getStringExtra("join_date") ?: "2025.03.14"
-        val recentWriteDate = intent.getStringExtra("recent_write_date") ?: "오늘"
+        val friendInfo = intent.getParcelableExtra<FriendInfo>("friendInfo")
 
-        tvDetailTitle.text = socialName
-        tvProfileEmoji.text = socialProfileEmoji
-        tvTotalDiaryCount.text = totalDiaryCount.toString()
-        tvPublicDiaryCount.text = publicDiaryCount.toString()
-        tvJoinDate.text = joinDate
-        tvRecentWriteDate.text = recentWriteDate
+        tvDetailTitle.text = friendInfo?.nickname
+        tvTotalDiaryCount.text = friendInfo?.countDiaries.toString()
+        tvJoinDate.text = friendInfo?.createdAt
+        tvPublicDiaryCount.text = friendInfo?.countDiaries.toString()
+        tvRecentWriteDate.text = friendInfo?.lastDiaryUpdateDate
+
+        val fullUrl = "${ApiClient.BASE_URL.removeSuffix("/")}${friendInfo?.profileImageUrl}"
+        Glide.with(this)
+            .load(fullUrl)
+            .placeholder(R.drawable.loading_animation) // 로딩 중에 보여줄 이미지
+            .error(R.drawable.ic_account_circle)             // 로드 실패 시 보여줄 이미지
+            .circleCrop()                                   // 사진을 동그랗게 깎아줌! (꿀팁)
+            .transition(DrawableTransitionOptions.withCrossFade()) // 부드럽게 나타나게
+            .into(ivProfile) // ImageView에 꽂아넣기
+
     }
 
     private fun setupListeners() {
