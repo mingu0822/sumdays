@@ -13,7 +13,7 @@
         android:layout_gravity="center"
         android:src="@drawable/ic_edit_white"
         android:translationY="-18dp"
-        app:backgroundTint="@color/dark_foxrange"
+        app:backgroundTint="@color/black"
         app:fabCustomSize="62dp"
         app:maxImageSize="45dp"
         app:tint="@android:color/white" />

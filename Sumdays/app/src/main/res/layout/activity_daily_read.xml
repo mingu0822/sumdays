@@ -7,17 +7,52 @@
     android:layout_height="match_parent"
     android:background="@color/background"
     tools:context=".DailyReadActivity">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/header_layout"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/read_back_button"
+            android:src="@drawable/ic_arrow_back_grey"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            />
+
+        <Button
+            android:id="@+id/edit_memos_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/foxrange"
+            android:minHeight="0dp"
+            android:paddingVertical="8dp"
+            android:text="메모 보기"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- 상단 날짜 / 이전·다음 / 메모 보기 버튼 영역 -->
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/header_layout"
+        android:id="@+id/date_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header_layout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -54,51 +89,10 @@
             app:layout_constraintStart_toEndOf="@+id/date_text"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
-            android:id="@+id/edit_memos_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/foxrange"
-            android:minHeight="0dp"
-            android:paddingVertical="8dp"
-            android:text="메모 보기"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- 분석 아이콘 + 키워드 영역 -->
-    <LinearLayout
-        android:id="@+id/analysis_header_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="64dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="64dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/header_layout">
 
-        <TextView
-            android:id="@+id/comment_icon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:gravity="center"
-            android:textSize="@dimen/text_size_XXL"
-            tools:text="🤔" />
-
-        <TextView
-            android:id="@+id/keywords_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:textSize="@dimen/text_size_L"
-            android:textStyle="bold"
-            tools:text="산책, 생각, 사유, 자아성찰" />
-    </LinearLayout>
 
     <!-- 하단 네비게이션 바 -->
     <include
@@ -178,7 +172,7 @@
         app:layout_constraintBottom_toTopOf="@+id/comment_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/analysis_header_layout">
+        app:layout_constraintTop_toBottomOf="@+id/date_layout">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -206,6 +200,38 @@
                 tools:text="수정 모드..." />
         </FrameLayout>
     </ScrollView>
+
+    <!-- 분석 아이콘 + 키워드 영역 -->
+    <LinearLayout
+        android:id="@+id/analysis_header_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="64dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="64dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/diary_scroll_view">
+
+        <TextView
+            android:id="@+id/comment_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:textSize="@dimen/text_size_XXL"
+            tools:text="🤔" />
+
+        <TextView
+            android:id="@+id/keywords_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textSize="@dimen/text_size_L"
+            android:textStyle="bold"
+            tools:text="산책, 생각, 사유, 자아성찰" />
+    </LinearLayout>
 
     <!-- 일기 수정 / 저장 버튼 -->
     <ImageView
