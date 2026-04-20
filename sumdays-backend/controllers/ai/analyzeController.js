@@ -138,14 +138,14 @@ const analyzeController = {
                 })
             }
 
-            if (!persona) {
-                return res.status(400).json({
-                    success: false,
-                    message: "No Persona input."
-                });
-            }
+            // if (!persona) {
+            //     return res.status(400).json({
+            //         success: false,
+            //         message: "No Persona input."
+            //     });
+            // }
 
-            const response = await axios.post(`${PYTHON_SERVER_URL}/analysis/diary`, { diary, persona });
+            const response = await axios.post(`${PYTHON_SERVER_URL}/analysis/diary`, { diary });
             
             if (!response.data) {
                 return res.status(500).json({

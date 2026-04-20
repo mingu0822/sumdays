@@ -21,19 +21,20 @@ def analyze_diary():
     try:
         data = request.get_json()
         diary = data.get("diary", "")
-        persona = data.get("persona")
-        if not persona:
-            return jsonify({"error": "Persona information is required for feedback."}), 400
+        # persona = data.get("persona")
+        # if not persona:
+        #     return jsonify({"error": "Persona information is required for feedback."}), 400
 
         result = analyzer.analyze(diary)
-        feedback = analyzer.generate_feedback(diary, result, persona)
+        # feedback = analyzer.generate_feedback(diary, result, persona)
 
         response = {
             "entry_date": data.get("entry_date"),
             "user_id": data.get("user_id"),
             "diary": diary,
             "icon": result["emoji"],
-            "ai_comment": feedback,
+            # "ai_comment": feedback,
+            "ai_comment": None,
             "analysis": {
                 "keywords": result["keywords"],
                 "emotion_score": result["emotion_score"]

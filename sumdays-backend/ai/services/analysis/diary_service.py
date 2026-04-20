@@ -10,8 +10,8 @@ class DiaryAnalysisResult(BaseModel):
     emoji         : str         = Field(description="an emoji representing the diary")
     emotion_score : float       = Field(description="emotional score, criteria: Happiness (-1.0 ~ 1.0)")
 
-class FeedbackResult(BaseModel):
-    feedback      : str         = Field(description="one-line feedback(Maximum 100 characters)")
+# class FeedbackResult(BaseModel):
+#     feedback      : str         = Field(description="one-line feedback(Maximum 100 characters)")
 
 
 class DiaryAnalyzer:
@@ -51,31 +51,31 @@ class DiaryAnalyzer:
                 "emotion_score": result.emotion_score
             }
 
-    def generate_feedback(self, diary: str, analysis_results: Dict[str, Any], persona: Dict[str, Any]) -> str:
-        prompt_text = """
-        {system_prompt}
+    # def generate_feedback(self, diary: str, analysis_results: Dict[str, Any], persona: Dict[str, Any]) -> str:
+    #     prompt_text = """
+    #     {system_prompt}
 
-        ### Context
-        - User's Diary: {diary}
-        - Emotion Score: {emotion_score}
-        - Main Keywords: {keywords}
+    #     ### Context
+    #     - User's Diary: {diary}
+    #     - Emotion Score: {emotion_score}
+    #     - Main Keywords: {keywords}
 
-        ### Instructions
-        1. 위 제공된 Context(일기 내용, 감정 점수, 키워드)를 충분히 반영하여 답변하세요.
-        2. 당신의 페르소나 지침({system_prompt})을 엄격히 준수하세요.
-        3. 단순한 위로보다는 일기 내용의 구체적인 부분을 언급하며 대화하듯 작성하세요.
-        4. 응답은 반드시 사용자의 언어로 작성하세요.
-        """
+    #     ### Instructions
+    #     1. 위 제공된 Context(일기 내용, 감정 점수, 키워드)를 충분히 반영하여 답변하세요.
+    #     2. 당신의 페르소나 지침({system_prompt})을 엄격히 준수하세요.
+    #     3. 단순한 위로보다는 일기 내용의 구체적인 부분을 언급하며 대화하듯 작성하세요.
+    #     4. 응답은 반드시 사용자의 언어로 작성하세요.
+    #     """
 
-        prompt = PromptTemplate.from_template(prompt_text)
-        llm = self.model.with_structured_output(FeedbackResult)
+    #     prompt = PromptTemplate.from_template(prompt_text)
+    #     llm = self.model.with_structured_output(FeedbackResult)
 
-        chain = prompt | llm
-        result = chain.invoke({
-            "system_prompt": persona["system_prompt"],
-            "diary": diary,
-            "emotion_score": analysis_results["emotion_score"],
-            "keywords": ", ".join(analysis_results["keywords"])
-        })
+    #     chain = prompt | llm
+    #     result = chain.invoke({
+    #         "system_prompt": persona["system_prompt"],
+    #         "diary": diary,
+    #         "emotion_score": analysis_results["emotion_score"],
+    #         "keywords": ", ".join(analysis_results["keywords"])
+    #     })
 
-        return result.feedback
+    #     return result.feedback

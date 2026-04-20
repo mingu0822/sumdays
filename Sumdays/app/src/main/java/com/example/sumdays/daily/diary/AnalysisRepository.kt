@@ -1,22 +1,21 @@
 package com.example.sumdays.daily.diary
 
-import android.content.Context
 import android.util.Log
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.utils.PersonaManager
+// import com.example.sumdays.utils.PersonaManager
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object AnalysisRepository {
-    
+
     // 요청 후 DB에 저장
     suspend fun requestAnalysis(
         date: String,
         diary : String?,
-        personaId: Int,
-        context: Context,
+        // personaId: Int,
+        // context: Context,
         viewModel: DailyEntryViewModel
     ): AnalysisResponse? {
         return withContext(Dispatchers.IO) {
@@ -28,12 +27,12 @@ object AnalysisRepository {
                     return@withContext null // Null이면 더 진행하지 않음
                 }
 
-                // personaId를 통해 피드백 페르소나 불러오기
-                val persona = PersonaManager(context).getPersonaById(personaId)
-                    ?: throw IllegalArgumentException("Invalid Persona ID: $personaId")
+                // // personaId를 통해 피드백 페르소나 불러오기
+                // val persona = PersonaManager(context).getPersonaById(personaId)
+                //     ?: throw IllegalArgumentException("Invalid Persona ID: $personaId")
 
                 // 요청 객체 생성
-                val request = AnalysisRequest(diary = diary, persona = persona)
+                val request = AnalysisRequest(diary = diary)
 
                 // API 호출
                 val response = ApiClient.api.diaryAnalyze(request)
@@ -46,7 +45,7 @@ object AnalysisRepository {
                     date = date,
                     diary = analysis.diary, // ?
                     keywords = analysis.analysis?.keywords?.joinToString(";"),
-                    aiComment = analysis.aiComment,
+                    aiComment = null,
                     emotionScore = analysis.analysis?.emotionScore,
                     emotionIcon = null,
                     themeIcon = analysis.icon
@@ -74,7 +73,7 @@ object AnalysisRepository {
             val resultObj = json.getAsJsonObject("result")
 
             // 각 필드를 안전하게 추출 (getAsString 등은 null일 경우 예외 발생 가능하므로 get() 사용 후 타입 확인)
-            aiComment = resultObj.get("ai_comment")?.takeIf { !it.isJsonNull }?.asString
+            // aiComment = resultObj.get("ai_comment")?.takeIf { !it.isJsonNull }?.asString
             diary = resultObj.get("diary")?.takeIf { !it.isJsonNull }?.asString
             entryDate = resultObj.get("entry_date")?.takeIf { !it.isJsonNull }?.asString
             icon = resultObj.get("icon")?.takeIf { !it.isJsonNull }?.asString
