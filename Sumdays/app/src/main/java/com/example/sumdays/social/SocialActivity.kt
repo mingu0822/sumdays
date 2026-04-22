@@ -49,10 +49,21 @@ class SocialActivity : AppCompatActivity() {
         navBarController = NavBarController(this)
         navBarController.setNavigationBar(NavSource.PROFILE)
 
+
+        initViewModel()
+        initView()
+        setupClickListeners()
+        setupRecyclerView()
+        setupSearch()
+        observeViewModel()
+        viewModel.loadFriends()
+    }
+    private fun initViewModel() {
         val repository = SocialRepository()
         val factory = SocialViewModelFactory(repository)
         viewModel = ViewModelProvider(this, factory)[SocialViewModel::class.java]
-
+    }
+    private fun initView() {
         btnBack = findViewById(R.id.btnBack)
         recyclerSocial = findViewById(R.id.recyclerSocial)
         etSearchSocial = findViewById(R.id.etSearchSocial)
@@ -62,12 +73,6 @@ class SocialActivity : AppCompatActivity() {
         tvEmpty = findViewById(R.id.tvEmpty)
         tvError = findViewById(R.id.tvError)
 
-
-        setupClickListeners()
-        setupRecyclerView()
-        setupSearch()
-        observeViewModel()
-        viewModel.loadFriends()
     }
 
     private fun setupClickListeners() {
