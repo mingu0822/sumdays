@@ -39,7 +39,8 @@ def merge_memo():
             "user_id": data.get("user_id"),
             "diary": diary,
             "icon": result["emoji"],
-            "ai_comment": result["feedback"],
+            # "ai_comment": result["feedback"],
+            "ai_comment": None,
             "analysis": {
                 "keywords": result["keywords"],
                 "emotion_score": result["emotion_score"]

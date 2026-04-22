@@ -205,8 +205,6 @@ class DailySumActivity : AppCompatActivity() {
         AnalysisRepository.requestAnalysis(
             date = date,
             diary = mergedResult,
-            personaId = 1, // 임시 하드코딩
-            context = this@DailySumActivity,
             viewModel = viewModel
         )
     }

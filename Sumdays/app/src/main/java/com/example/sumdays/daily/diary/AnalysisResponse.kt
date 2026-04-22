@@ -4,7 +4,8 @@ import com.google.gson.annotations.SerializedName
 
 // Api 응답
 data class AnalysisResponse(
-    @SerializedName("ai_comment") val aiComment: String?,
+    // @SerializedName("ai_comment") val aiComment: String?,
+    val aiComment: String? = null,
     @SerializedName("analysis")   val analysis: AnalysisBlock?,
     @SerializedName("diary")      val diary: String?,        // 병합된 텍스트 여기
     @SerializedName("entry_date") val entryDate: String?,
