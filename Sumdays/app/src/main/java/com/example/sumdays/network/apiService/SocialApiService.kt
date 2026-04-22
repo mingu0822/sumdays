@@ -26,11 +26,9 @@ interface SocialApiService {
         @Body body: Map<String, String> // { "action": "ACCEPT" }
     ): Response<BaseResponse>
 
-    // 4. 목록 조회 (type: received / sent)
+    // 4. 친구 요청 조회
     @GET("/api/friend/requests")
-    suspend fun getPendingRequests(
-        @Query("type") type: String
-    ): Response<List<FriendRequestResponse>>
+    suspend fun getFriendRequests(): Response<FriendRequestListResponse>
 
     // 5. 내 전체 친구 목록 조회
     @GET("/api/friend/friends")
@@ -47,11 +45,15 @@ interface SocialApiService {
 data class BaseResponse(val message: String?)
 
 // 친구 요청 응답 DTO
-data class FriendRequestResponse(
+data class FriendRequest(
     val id: Int,
     val nickname: String
 )
-
+data class FriendRequestListResponse(
+    val success: Boolean,
+    val received: List<FriendRequest>,
+    val sent: List<FriendRequest>
+)
 // 친구 목록 응답 DTO
 
 data class FriendInfoListResponse(

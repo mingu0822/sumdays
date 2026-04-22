@@ -4,11 +4,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.databinding.ItemFriendRequestBinding // 패키지명 확인 필요
-
-data class FriendRequest(
-    val id: Int,
-    val nickname: String
-)
+import com.example.sumdays.network.apiService.FriendRequest
 class FriendRequestAdapter(
     private val onAccept: (FriendRequest) -> Unit, // 수락 클릭 시 실행할 코드
     private val onReject: (FriendRequest) -> Unit, // 거절 클릭 시 실행할 코드
@@ -20,7 +16,9 @@ class FriendRequestAdapter(
 
     // 탭이 바뀔 때 외부에서 호출해줄 함수
     fun updateType(type: String) {
-        this.currentType = type
+        if (currentType == type) return
+        currentType = type
+        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

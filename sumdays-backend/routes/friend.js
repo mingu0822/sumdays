@@ -17,8 +17,7 @@ router.patch('/request/:id', friendController.handleRequest);
 
 
 // 3. 목록 조회
-// GET /api/friend/requests?type=received (나에게 온 요청)
-// GET /api/friend/requests?type=sent (내가 보낸 요청)
+// GET /api/friend/requests
 router.get('/requests', friendController.getPendingRequests);
 
 // GET /api/friend/friends (내 전체 친구 목록 조회)

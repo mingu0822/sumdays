@@ -1,7 +1,5 @@
 package com.example.sumdays.social.reqeust
 
-
-import FriendRequest
 import FriendRequestAdapter
 import android.os.Bundle
 import android.util.Log
@@ -16,10 +14,8 @@ import com.example.sumdays.databinding.DialogFriendRequestBinding
 import com.example.sumdays.network.apiService.SocialApiService
 import com.google.android.material.tabs.TabLayout
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.network.apiService.FriendRequestResponse
-import kotlinx.coroutines.async
 import kotlin.collections.emptyList
-import com.example.sumdays.social.toDomain
+import com.example.sumdays.network.apiService.FriendRequest
 
 class FriendRequestDialog : DialogFragment() {
 
@@ -28,8 +24,10 @@ class FriendRequestDialog : DialogFragment() {
     private lateinit var requestAdapter :FriendRequestAdapter
 
     // 친구 요청 list
-    private var receivedRequestList: List<FriendRequest>? = emptyList()
-    private var sentRequestList: List<FriendRequest>? = emptyList()
+    private var receivedRequestList: List<FriendRequest> = emptyList()
+    private var sentRequestList: List<FriendRequest> = emptyList()
+    private var ReequestsLoadFailed = false
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = DialogFriendRequestBinding.inflate(inflater, container, false)
@@ -71,7 +69,7 @@ class FriendRequestDialog : DialogFragment() {
                 // 직접 ApiService 호출
                 val response = ApiClient.socialApi.handleRequest(request.id, mapOf("action" to "ACCEPT"))
                 if (response.isSuccessful) {
-                    receivedRequestList = receivedRequestList?.filter { it.id != request.id }
+                    receivedRequestList = receivedRequestList.filter { it.id != request.id }
                     showList(binding.tabLayout.selectedTabPosition)
                 }
             } catch (e: Exception) {
@@ -86,7 +84,7 @@ class FriendRequestDialog : DialogFragment() {
                 // 직접 ApiService 호출
                 val response = ApiClient.socialApi.handleRequest(request.id, mapOf("action" to "REJECT"))
                 if (response.isSuccessful) {
-                    receivedRequestList = receivedRequestList?.filter { it.id != request.id }
+                    receivedRequestList = receivedRequestList.filter { it.id != request.id }
                     showList(binding.tabLayout.selectedTabPosition)
                 }
             } catch (e: Exception) {
@@ -101,7 +99,7 @@ class FriendRequestDialog : DialogFragment() {
                 // 직접 ApiService 호출
                 val response = ApiClient.socialApi.cancelRequest(mapOf("receiverId" to request.id))
                 if (response.isSuccessful) {
-                    sentRequestList = sentRequestList?.filter { it.id != request.id }
+                    sentRequestList = sentRequestList.filter { it.id != request.id }
                     showList(binding.tabLayout.selectedTabPosition)
                 }
             } catch (e: Exception) {
@@ -121,57 +119,64 @@ class FriendRequestDialog : DialogFragment() {
         })
     }
 
-
     private fun fetchRequestsFromServer() {
         lifecycleScope.launch {
             try {
-                // 1. 두 요청을 동시에 던집니다 (Parallel Start)
-                val receivedDeferred = async { ApiClient.socialApi.getPendingRequests("received") }
-                val sentDeferred = async { ApiClient.socialApi.getPendingRequests("sent") }
+                val response = ApiClient.socialApi.getFriendRequests()
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    receivedRequestList = body?.received ?: emptyList()
+                    sentRequestList = body?.sent ?: emptyList()
+                    ReequestsLoadFailed = false
+                } else {
+                    receivedRequestList = emptyList()
+                    sentRequestList = emptyList()
+                    ReequestsLoadFailed = true
+                }
 
-                // 2. 두 결과가 모두 올 때까지 기다립니다 (Wait for both)
-                val receivedRes = receivedDeferred.await()
-                val sentRes = sentDeferred.await()
+                // ✅ fetch 끝난 뒤 현재 탭 다시 렌더링
+                showList(binding.tabLayout.selectedTabPosition)
 
-                // 3. 각각 결과 처리
-                receivedRequestList = if (receivedRes.isSuccessful) receivedRes.body()?.map { it.toDomain() } else null
-                sentRequestList = if (sentRes.isSuccessful) sentRes.body()?.map { it.toDomain() } else null
             } catch (e: Exception) {
+                receivedRequestList = emptyList()
+                sentRequestList = emptyList()
+                ReequestsLoadFailed = true
                 e.printStackTrace()
-                receivedRequestList = null
-                sentRequestList = null
+
+                // ✅ 실패해도 현재 탭 다시 렌더링
+                showList(binding.tabLayout.selectedTabPosition)
             }
         }
     }
     private fun showList(position: Int) {
-        // 1. 현재 보여줄 리스트와 에러 메시지 설정
+
+        // ✅ 1. 무조건 먼저 타입 동기화
+        requestAdapter.updateType(if (position == 0) "received" else "sent")
+
+        // 2. 현재 보여줄 리스트
         val currentList = if (position == 0) receivedRequestList else sentRequestList
         val emptyText = if (position == 0) "받은 친구 요청이 없습니다." else "보낸 친구 요청이 없습니다."
 
-        // 2. 상태에 따른 분기 처리
+        // 3. 상태 처리
         when {
-            // (A) 데이터를 불러오는 데 실패한 경우 (null)
-            currentList == null -> {
+            ReequestsLoadFailed -> {
                 binding.tvEmptyMessage.text = "데이터를 불러오지 못했습니다."
                 binding.tvEmptyMessage.visibility = View.VISIBLE
-                requestAdapter.submitList(emptyList<FriendRequest>()) // 리스트는 비워줌
+                requestAdapter.submitList(emptyList())
             }
 
-            // (B) 리스트가 비어있는 경우
             currentList.isEmpty() -> {
                 binding.tvEmptyMessage.text = emptyText
                 binding.tvEmptyMessage.visibility = View.VISIBLE
-                requestAdapter.submitList(emptyList<FriendRequest>())
+                requestAdapter.submitList(emptyList())
             }
 
-            // (C) 데이터가 정상적으로 있는 경우
             else -> {
-                binding.tvEmptyMessage.visibility = View.GONE // 오타 수정!
+                binding.tvEmptyMessage.visibility = View.GONE
                 requestAdapter.submitList(currentList)
             }
         }
     }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
