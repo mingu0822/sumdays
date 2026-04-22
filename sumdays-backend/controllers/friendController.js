@@ -149,26 +149,42 @@ const friendController = {
 
   getPendingRequests: async (req, res) => {
     const myId = req.user.userId;
-    const { type } = req.query;
 
-    console.log(`[getPendingRequests] myId=${myId}, type=${type}`);
+    console.log(`[getPendingRequests] Fetching all pending for myId=${myId}`);
 
     try {
-      const isReceived = type === 'received';
+        // 받은 요청과 보낸 요청을 동시에 조회 (성능 최적화)
+        const [receivedRows, sentRows] = await Promise.all([
+            pool.query(
+                `SELECT f.id as requestId, u.nickname, u.profile_image_url 
+                 FROM friendship f 
+                 JOIN users u ON f.requester_id = u.id 
+                 WHERE f.receiver_id = ? AND f.status = "PENDING"`, 
+                [myId]
+            ),
+            pool.query(
+                `SELECT f.id as requestId, u.nickname, u.profile_image_url 
+                 FROM friendship f 
+                 JOIN users u ON f.receiver_id = u.id 
+                 WHERE f.requester_id = ? AND f.status = "PENDING"`, 
+                [myId]
+            )
+        ]);
 
-      const sql = isReceived 
-        ? 'SELECT f.id, u.nickname FROM friendship f JOIN users u ON f.requester_id = u.id WHERE f.receiver_id = ? AND f.status = "PENDING"'
-        : 'SELECT f.id, u.nickname FROM friendship f JOIN users u ON f.receiver_id = u.id WHERE f.requester_id = ? AND f.status = "PENDING"';
+        // 결과 구조화
+        const response = {
+            success: true,
+            received: receivedRows[0], // 나에게 친구 신청한 사람들
+            sent: sentRows[0]          // 내가 신청하고 수락 대기 중인 사람들
+        };
 
-      const [requests] = await pool.query(sql, [myId]);
+        console.log(`[getPendingRequests] Found received: ${response.received.length}, sent: ${response.sent.length}`);
 
-      console.log(`[getPendingRequests] result:`, requests);
-
-      res.status(200).json(requests);
+        res.status(200).json(response);
 
     } catch (error) {
-      console.error(`[getPendingRequests ERROR]`, error);
-      res.status(500).json({ error: 'Database select failed' });
+        console.error(`[getPendingRequests ERROR]`, error);
+        res.status(500).json({ success: false, error: '대기 중인 요청 조회 실패' });
     }
   },
 
