@@ -15,7 +15,10 @@ import com.example.sumdays.ui.component.NavSource
 import android.widget.EditText
 import android.text.TextWatcher
 import android.util.Log
+import android.view.View
 import android.widget.TextView
+import android.widget.Toast
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.FriendInfo
@@ -31,9 +34,12 @@ class SocialActivity : AppCompatActivity() {
 
     private lateinit var tvSocialRequests: TextView
     private lateinit var btnAddSocial: ImageButton
+    private lateinit var btnBack: ImageButton
+    private lateinit var btnUpdate: ImageButton
+    private lateinit var tvEmpty: TextView
+    private lateinit var tvError: TextView
 
-    private val allFriendList = mutableListOf<FriendInfo>()
-    private val filteredFriendList = mutableListOf<FriendInfo>()
+    private lateinit var viewModel: SocialViewModel
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,102 +49,118 @@ class SocialActivity : AppCompatActivity() {
         navBarController = NavBarController(this)
         navBarController.setNavigationBar(NavSource.PROFILE)
 
+        val repository = SocialRepository()
+        val factory = SocialViewModelFactory(repository)
+        viewModel = ViewModelProvider(this, factory)[SocialViewModel::class.java]
 
-        val btnBack = findViewById<ImageButton>(R.id.btnBack)
+        btnBack = findViewById(R.id.btnBack)
         recyclerSocial = findViewById(R.id.recyclerSocial)
         etSearchSocial = findViewById(R.id.etSearchSocial)
         tvSocialRequests = findViewById(R.id.tvSocialRequests)
         btnAddSocial = findViewById(R.id.btnAddSocial)
+        btnUpdate = findViewById(R.id.btnUpdate)
+        tvEmpty = findViewById(R.id.tvEmpty)
+        tvError = findViewById(R.id.tvError)
+
+
+        setupClickListeners()
+        setupRecyclerView()
+        setupSearch()
+        observeViewModel()
+        viewModel.loadFriends()
+    }
+
+    private fun setupClickListeners() {
+        btnBack.setOnClickListener { finish() }
 
         tvSocialRequests.setOnClickListener {
             val dialog = FriendRequestDialog()
             dialog.show(supportFragmentManager, "FriendRequestDialog")
         }
+
         btnAddSocial.setOnClickListener {
             val dialog = AddFriendDialog()
             dialog.show(supportFragmentManager, "AddFriendDialog")
         }
+        btnUpdate.setOnClickListener{
+            viewModel.loadFriends()
+        }
 
-
+    }
+    private fun setupRecyclerView() {
         socialAdapter = SocialAdapter(
-            filteredFriendList,
+            friendList = mutableListOf(),
             onItemClick = { friendInfo ->
                 val intent = Intent(this, SocialDetailActivity::class.java)
                 intent.putExtra("friendInfo", friendInfo)
                 startActivity(intent)
             },
             onButtonClick = { friendInfo ->
-                android.widget.Toast.makeText(
+                Toast.makeText(
                     this,
                     "${friendInfo.nickname} 버튼 클릭",
-                    android.widget.Toast.LENGTH_SHORT
+                    Toast.LENGTH_SHORT
                 ).show()
             }
         )
 
         recyclerSocial.layoutManager = LinearLayoutManager(this)
         recyclerSocial.adapter = socialAdapter
-
-        btnBack.setOnClickListener {
-            finish()
-        }
-
-        setupSearch()
-    }
-    override fun onResume() {
-        super.onResume()
-        loadFriendsFromServer()
-    }
-    private fun loadFriendsFromServer() {
-        lifecycleScope.launch {
-            try {
-                // [핵심] ApiClient를 통해 서버의 친구 목록 API 호출
-                val response = ApiClient.socialApi.getMyFriends()
-
-                if (response.success) {
-                    val friends = response.friends
-                    allFriendList.clear()
-                    allFriendList.addAll(friends)
-
-                    // 현재 검색어에 맞춰 필터링 및 UI 갱신
-                    filterSocialList(etSearchSocial.text.toString())
-
-                    Log.d("SOCIAL_DEBUG", "친구 로드 성공: ${friends.size}명")
-                }
-            } catch (e: Exception) {
-                Log.e("SOCIAL_DEBUG", "네트워크 에러", e)
-            }
-        }
     }
     private fun setupSearch() {
         etSearchSocial.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                filterSocialList(s.toString())
+                viewModel.updateSearchQuery(s.toString())
             }
 
-            override fun afterTextChanged(s: Editable?) {
-            }
+            override fun afterTextChanged(s: Editable?) {}
         })
     }
 
-    private fun filterSocialList(query: String) {
-        val keyword = query.trim()
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            viewModel.uiState.collect { state ->
+                when (state) {
+                    is SocialUiState.Idle -> {
+                        recyclerSocial.visibility = View.GONE
+                        tvEmpty.visibility = View.GONE
+                        tvError.visibility = View.GONE
+                    }
 
-        filteredFriendList.clear()
+                    is SocialUiState.Loading -> {
+                        recyclerSocial.visibility = View.GONE
+                        tvEmpty.visibility = View.GONE
+                        tvError.visibility = View.GONE
+                    }
 
-        if (keyword.isEmpty()) {
-            filteredFriendList.addAll(allFriendList)
-        } else {
-            for (friend in allFriendList) {
-                if (friend.nickname.contains(keyword, ignoreCase = true)) {
-                    filteredFriendList.add(friend)
+                    is SocialUiState.Success -> {
+                        tvError.visibility = View.GONE
+
+                        if (state.friends.isEmpty()) {
+                            recyclerSocial.visibility = View.GONE
+                            tvEmpty.visibility = View.VISIBLE
+                        } else {
+                            recyclerSocial.visibility = View.VISIBLE
+                            tvEmpty.visibility = View.GONE
+                        }
+                    }
+
+                    is SocialUiState.Error -> {
+                        recyclerSocial.visibility = View.GONE
+                        tvEmpty.visibility = View.GONE
+                        tvError.visibility = View.VISIBLE
+                    }
                 }
             }
         }
-        socialAdapter.notifyDataSetChanged()
+
+        lifecycleScope.launch {
+            viewModel.filteredFriends.collect { friends ->
+                socialAdapter.updateList(friends)
+            }
+        }
     }
 }
 

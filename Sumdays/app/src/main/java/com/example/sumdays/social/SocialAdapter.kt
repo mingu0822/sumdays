@@ -15,11 +15,12 @@ import com.example.sumdays.network.apiService.FriendRequestResponse
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
 class SocialAdapter(
-    private val friendList: List<FriendInfo>,
+    private val friendList: MutableList<FriendInfo>,
     private val onItemClick : (FriendInfo) -> Unit,
     private val onButtonClick : (FriendInfo) -> Unit
 ) : RecyclerView.Adapter<SocialAdapter.SocialViewHolder>() {
 
+    // 원소 1개
     class SocialViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val ivProfile: ImageView = itemView.findViewById(R.id.ivProfile)
         val tvUserName: TextView = itemView.findViewById(R.id.tvUserName)
@@ -61,5 +62,11 @@ class SocialAdapter(
 
     override fun getItemCount(): Int {
         return friendList.size
+    }
+
+    fun updateList(newList: List<FriendInfo>) {
+        friendList.clear()
+        friendList.addAll(newList)
+        notifyDataSetChanged()
     }
 }
