@@ -185,7 +185,7 @@
         android:id="@+id/navigation_bar"
         layout="@layout/include_navigation_bar"
         android:layout_width="0dp"
-        android:layout_height="110dp"
+        android:layout_height="80dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

@@ -3,8 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/navigation_bar"
     android:layout_width="match_parent"
-    android:layout_height="120dp"
-    android:background="@drawable/nav_bar_default_proto">
+    android:layout_height="80dp"
+    android:background="@drawable/nav_bar_default"
+    android:clipChildren="false">
 
     <!-- ✅ 위쪽 선 -->
 <!--    <View-->
@@ -24,7 +25,7 @@
 <!--        android:background="@color/dark_divider"/>-->
 
 
-    <!-- ✅ 버튼 3등분 영역 -->
+    <!-- ✅ 버튼 5등분 영역 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -72,6 +73,7 @@
 
         <!-- 가운데 버튼  -->
         <LinearLayout
+            android:clipChildren="false"
             android:id="@+id/nav_center_container"
             android:layout_width="0dp"
             android:layout_height="match_parent"

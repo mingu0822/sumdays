@@ -3,6 +3,7 @@ package com.example.sumdays
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -15,12 +16,13 @@ import android.transition.TransitionManager
 import android.util.Base64
 import android.util.Log
 import android.view.View
-import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
@@ -70,6 +72,7 @@ class DailyWriteActivity : AppCompatActivity() {
     private lateinit var memoAdapter: MemoAdapter
 
     // UI 뷰들
+    private lateinit var dateTextBox : ImageView
     private lateinit var dateTextView: TextView
     private lateinit var memoListView: RecyclerView
     private lateinit var memoInputEditText: EditText
@@ -82,9 +85,12 @@ class DailyWriteActivity : AppCompatActivity() {
     private lateinit var waveBar2: View
     private lateinit var waveBar3: View
     private lateinit var micStopContainer: View
-    private lateinit var readDiaryButton: Button
+    private lateinit var readBackButton: ImageButton
+    private lateinit var readCalendarButton : ImageButton
+    private lateinit var readDiaryButton: ImageButton
     private lateinit var navBarController: NavBarController
     private lateinit var audioRecorderHelper: AudioRecorderHelper
+    private lateinit var sumBtn: ImageButton
 
     // 오른쪽 드로어 & 이미지 갤러리
     private lateinit var drawerLayout: DrawerLayout
@@ -220,9 +226,6 @@ class DailyWriteActivity : AppCompatActivity() {
             getColor(android.R.color.black)
         )
 
-        readDiaryButton.setTextColor(
-            getColor(R.color.white)
-        )
 
         memoInputEditText.setTextColor(
             getColor(android.R.color.black)
@@ -237,6 +240,9 @@ class DailyWriteActivity : AppCompatActivity() {
         imageIcon.setImageResource(currentTheme.addImageIcon)
 
         navBarController.setCenterSumIcon(foxFaceImage)
+
+        dateTextBox.setBackgroundResource(currentTheme.blockStyle)
+        memoListView.setBackgroundResource(currentTheme.blockStyle)
     }
 
     private fun createAudioRecorderHelper(): AudioRecorderHelper {
@@ -345,6 +351,7 @@ class DailyWriteActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
+        dateTextBox = findViewById(R.id.date_text_box)
         dateTextView = findViewById(R.id.date_text_view)
         memoListView = findViewById(R.id.memo_list_view)
         memoInputEditText = findViewById(R.id.memo_input_edittext)
@@ -352,7 +359,10 @@ class DailyWriteActivity : AppCompatActivity() {
         micIcon = findViewById(R.id.mic_icon)
         stopIcon = findViewById(R.id.stop_icon)
         imageIcon = findViewById(R.id.image_icon)
+        readBackButton = findViewById(R.id.read_back_button)
+        readCalendarButton = findViewById(R.id.read_calendar_button)
         readDiaryButton = findViewById(R.id.read_diary_button)
+
 
         audioWaveView = findViewById(R.id.audio_wave_view)
         waveBar1 = findViewById(R.id.wave_bar_1)
@@ -509,12 +519,26 @@ class DailyWriteActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun handleBackPress() {
+        finish()
+    }
     private fun setupClickListeners() {
         readDiaryButton.setOnClickListener {
             val intent = Intent(this, DailyReadActivity::class.java)
             intent.putExtra("date", date)
             startActivity(intent)
             overridePendingTransition(0, 0)
+        }
+
+        readBackButton.setOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
+
+        readCalendarButton.setOnClickListener {
+            val intent = Intent(this, CalendarActivity::class.java)
+//            intent.putExtra("date", date)
+            startActivity(intent)
+
         }
 
         sendIcon.setOnClickListener {
@@ -555,13 +579,10 @@ class DailyWriteActivity : AppCompatActivity() {
             }
         }
 
-        imageIcon.setOnClickListener {
-            if (drawerLayout.isDrawerOpen(GravityCompat.END)) {
-                drawerLayout.closeDrawer(GravityCompat.END)
-            } else {
-                drawerLayout.openDrawer(GravityCompat.END)
-            }
-        }
+//        sumBtn.setOnClickListener{
+//
+//        }
+
     }
 
     // instagram style active text box
@@ -593,8 +614,8 @@ class DailyWriteActivity : AppCompatActivity() {
         var navBarHeight = 0
         var imeAnimationInProgress = false
         var previousPaddingBottom = navBarViewHeightPx // 메모 위치를 유지하기 위함
-
-        // 초기 상태: 키보드 없음 → nav bar 높이만큼 패딩
+//
+//        // 초기 상태: 키보드 없음 → nav bar 높이만큼 패딩
         contentArea.updatePadding(bottom = navBarViewHeightPx)
 
         // root: status bar top + system nav bar bottom 처리

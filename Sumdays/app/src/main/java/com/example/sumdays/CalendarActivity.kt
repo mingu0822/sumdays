@@ -1,11 +1,14 @@
 package com.example.sumdays
 
+import android.animation.ObjectAnimator
 import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
+import android.view.GestureDetector
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
@@ -17,6 +20,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.view.GestureDetectorCompat
 import androidx.lifecycle.LiveData
 import androidx.viewpager2.widget.ViewPager2
 import com.example.sumdays.calendar.CalendarLanguage
@@ -38,6 +42,7 @@ import org.threeten.bp.YearMonth
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.temporal.ChronoUnit
 import java.util.Locale
+import kotlin.math.abs
 
 class CalendarActivity : AppCompatActivity() {
 
@@ -53,7 +58,7 @@ class CalendarActivity : AppCompatActivity() {
     private lateinit var navBarController: NavBarController
     private lateinit var rootLayout: ConstraintLayout
 
-    private lateinit var btnStatistics: ImageButton
+    private lateinit var swipeUpAnimator: ObjectAnimator
 
     private val viewModel: CalendarViewModel by viewModels()
 
@@ -79,7 +84,6 @@ class CalendarActivity : AppCompatActivity() {
         btnSetting = findViewById(R.id.setting_menu)
         btnSearch = findViewById(R.id.search_btn)
         btnTutorial = findViewById(R.id.tutorial_btn)
-        btnStatistics = findViewById(R.id.CalenderView_Statistics)
         rootLayout = findViewById(R.id.root_layout)
 
         navBarController = NavBarController(this)
@@ -88,6 +92,8 @@ class CalendarActivity : AppCompatActivity() {
         setCustomCalendar()
         applyThemeModeSettings()
         setupEdgeToEdge(rootLayout)
+        setupSwipeUpGesture()
+        setupSwipeUpHint()
 
         tvMonthYear.setOnClickListener {
             showYearMonthPicker()
@@ -110,13 +116,6 @@ class CalendarActivity : AppCompatActivity() {
             startActivity(intent)
             overridePendingTransition(0, 0)
         }
-
-        btnStatistics.setOnClickListener {
-            val intent = Intent(this@CalendarActivity, StatisticsActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(0, 0)
-        }
-
 
         val pref: SharedPreferences = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE)
         val checkFirst = pref.getBoolean("checkFirst", false)
@@ -328,10 +327,55 @@ class CalendarActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    override fun onPause() {
+        super.onPause()
+        if (::swipeUpAnimator.isInitialized) swipeUpAnimator.cancel()
+    }
+
     override fun onResume() {
         super.onResume()
         updateOwned()
         applyThemeModeSettings()
         monthAdapter.notifyDataSetChanged()
+        if (::swipeUpAnimator.isInitialized) swipeUpAnimator.start()
+    }
+
+    private fun setupSwipeUpGesture() {
+        val detector = GestureDetectorCompat(this,
+            object : GestureDetector.SimpleOnGestureListener() {
+                override fun onFling(
+                    e1: MotionEvent?, e2: MotionEvent,
+                    velocityX: Float, velocityY: Float
+                ): Boolean {
+                    val start = e1 ?: return false
+                    val dy = e2.y - start.y
+                    val dx = e2.x - start.x
+                    if (dy < -100f && abs(dy) > abs(dx) * 1.5f && velocityY < -300f) {
+                        startActivity(Intent(this@CalendarActivity, StatisticsWidgetActivity::class.java))
+                        overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up)
+                        return true
+                    }
+                    return false
+                }
+
+                override fun onDown(e: MotionEvent) = true
+            })
+
+        rootLayout.setOnTouchListener { v, event ->
+            val consumed = detector.onTouchEvent(event)
+            if (!consumed) v.performClick()
+            consumed
+        }
+    }
+
+    private fun setupSwipeUpHint() {
+        val pill = findViewById<View>(R.id.swipe_up_hint_pill)
+        swipeUpAnimator = ObjectAnimator.ofFloat(pill, "translationY", 0f, -24f).apply {
+            duration = 600
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.REVERSE
+            interpolator = android.view.animation.AccelerateDecelerateInterpolator()
+        }
+        pill.postDelayed({ swipeUpAnimator.start() }, 500)
     }
 }
