@@ -25,6 +25,7 @@ import com.example.sumdays.network.apiService.FriendInfo
 import com.example.sumdays.social.reqeust.AddFriendDialog
 import com.example.sumdays.social.reqeust.FriendRequestDialog
 import kotlinx.coroutines.launch
+import androidx.activity.result.contract.ActivityResultContracts
 
 class SocialActivity : AppCompatActivity() {
     private lateinit var navBarController: NavBarController
@@ -40,7 +41,15 @@ class SocialActivity : AppCompatActivity() {
     private lateinit var tvError: TextView
 
     private lateinit var viewModel: SocialViewModel
-
+    private val detailLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val deletedFriendId = result.data?.getIntExtra("deletedFriendId", -1) ?: -1
+                if (deletedFriendId != -1) {
+                    viewModel.removeFriendLocally(deletedFriendId)
+                }
+            }
+        }
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         // 1. 기본 설정
@@ -98,7 +107,7 @@ class SocialActivity : AppCompatActivity() {
             onItemClick = { friendInfo ->
                 val intent = Intent(this, SocialDetailActivity::class.java)
                 intent.putExtra("friendInfo", friendInfo)
-                startActivity(intent)
+                detailLauncher.launch(intent)
             },
             onButtonClick = { friendInfo ->
                 Toast.makeText(

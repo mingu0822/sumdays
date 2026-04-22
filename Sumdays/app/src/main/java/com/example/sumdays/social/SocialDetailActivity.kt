@@ -2,18 +2,22 @@ package com.example.sumdays.social
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.sumdays.R
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.FriendInfo
+import kotlinx.coroutines.launch
 
 class SocialDetailActivity : AppCompatActivity() {
 
@@ -27,11 +31,13 @@ class SocialDetailActivity : AppCompatActivity() {
     private lateinit var tvJoinDate: TextView
     private lateinit var tvPublicDiaryCount: TextView
     private lateinit var tvRecentWriteDate: TextView
+    private var friendInfo: FriendInfo? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_social_detail)
 
+        friendInfo = intent.getParcelableExtra("friendInfo")
         initViews()
         bindData()
         setupListeners()
@@ -51,15 +57,15 @@ class SocialDetailActivity : AppCompatActivity() {
     }
 
     private fun bindData() {
-        val friendInfo = intent.getParcelableExtra<FriendInfo>("friendInfo")
+        val friend = friendInfo ?: return
 
-        tvDetailTitle.text = friendInfo?.nickname
-        tvTotalDiaryCount.text = friendInfo?.countDiaries.toString()
-        tvJoinDate.text = friendInfo?.createdAt
-        tvPublicDiaryCount.text = friendInfo?.countDiaries.toString()
-        tvRecentWriteDate.text = friendInfo?.lastDiaryUpdateDate
+        tvDetailTitle.text = friend.nickname
+        tvTotalDiaryCount.text = friend.countDiaries.toString()
+        tvJoinDate.text = friend.createdAt
+        tvPublicDiaryCount.text = friend.countDiaries.toString()
+        tvRecentWriteDate.text = friend.lastDiaryUpdateDate
 
-        val fullUrl = "${ApiClient.BASE_URL.removeSuffix("/")}${friendInfo?.profileImageUrl}"
+        val fullUrl = "${ApiClient.BASE_URL.removeSuffix("/")}${friend.profileImageUrl}"
         Glide.with(this)
             .load(fullUrl)
             .placeholder(R.drawable.loading_animation) // 로딩 중에 보여줄 이미지
@@ -95,21 +101,15 @@ class SocialDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun showManagePopup(anchorView: android.view.View) {
+    private fun showManagePopup(anchorView: View) {
         val popupMenu = PopupMenu(this, anchorView)
         popupMenu.menuInflater.inflate(R.menu.menu_social_user_manage, popupMenu.menu)
 
         popupMenu.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.menu_delete_friend -> {
-                    val socialName = intent.getStringExtra("social_name") ?: "이 친구"
-
-                    Toast.makeText(
-                        this,
-                        "${socialName} 삭제 클릭",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
+                    val friend = friendInfo ?: return@setOnMenuItemClickListener false
+                    showDeleteConfirmDialog(friend)
                     true
                 }
                 else -> false
@@ -117,5 +117,45 @@ class SocialDetailActivity : AppCompatActivity() {
         }
 
         popupMenu.show()
+    }
+    private fun showDeleteConfirmDialog(friend: FriendInfo) {
+        AlertDialog.Builder(this)
+            .setTitle("친구 삭제")
+            .setMessage("${friend.nickname}을(를) 정말 삭제하시겠습니까?")
+            .setNegativeButton("취소") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setPositiveButton("삭제") { dialog, _ ->
+                deleteFriend(friend.id)
+                dialog.dismiss()
+            }
+            .show()
+    }
+    private fun deleteFriend(friendId: Int) {
+        lifecycleScope.launch {
+            try {
+                val response = ApiClient.socialApi.deleteFriend(friendId)
+
+                if (response.isSuccessful) {
+                    val resultIntent = Intent().apply {
+                        putExtra("deletedFriendId", friendId)
+                    }
+                    setResult(RESULT_OK, resultIntent)
+                    finish()
+                } else {
+                    Toast.makeText(
+                        this@SocialDetailActivity,
+                        "서버 요청에 실패했습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@SocialDetailActivity,
+                    "네트워크 오류가 발생했습니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 }

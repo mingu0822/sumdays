@@ -47,7 +47,12 @@ class SocialViewModel(
         currentQuery = query
         applyFilter(query)
     }
+    fun removeFriendLocally(friendId: Int) {
+        allFriendList.removeAll { it.id == friendId }
+        applyFilter(currentQuery)
 
+        _uiState.value = SocialUiState.Success(allFriendList.toList())
+    }
     private fun applyFilter(query: String) {
         val keyword = query.trim()
 
