@@ -12,8 +12,8 @@ router.delete('/request/cancel', friendController.cancelRequest);
 
 
 // 2. 받은 요청 처리 (수락/거절)
-// PATCH /api/friend/request/:id (Body: { action: 'ACCEPT' | 'REJECT' })
-router.patch('/request/:id', friendController.handleRequest);
+// PATCH /api/friend/request (Body: { requesterId : 3, action: 'ACCEPT' | 'REJECT' })
+router.patch('/request', friendController.handleRequest);
 
 
 // 3. 목록 조회
