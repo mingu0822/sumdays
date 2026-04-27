@@ -53,6 +53,16 @@ class SocialViewModel(
 
         _uiState.value = SocialUiState.Success(allFriendList.toList())
     }
+    fun addFriendLocally(friend: FriendInfo) {
+        // 중복 방지
+        if (allFriendList.any { it.id == friend.id }) return
+
+        allFriendList.add(friend)
+
+        applyFilter(currentQuery)
+
+        _uiState.value = SocialUiState.Success(allFriendList.toList())
+    }
     private fun applyFilter(query: String) {
         val keyword = query.trim()
 

@@ -81,7 +81,38 @@ const friendController = {
               'UPDATE friendship SET status = "ACCEPTED" WHERE id = ?',
               [existing.id]
             );
-            return success(res, "AUTO_ACCEPTED", "상대방의 요청이 있어 즉시 친구가 되었습니다!");
+
+            const [friendRows] = await pool.query(`
+              SELECT u.id, u.nickname, u.profile_image_url, u.created_at,
+                    ui.count_diaries, ui.streak, ui.count_weekly_summaries, ui.last_diary_update_date
+              FROM users u
+              JOIN user_info ui ON u.id = ui.user_id
+              WHERE u.id = ?
+            `, [receiverId]);
+
+            const friend = friendRows[0];
+
+            const today = moment().tz('Asia/Seoul').format('YYYY-MM-DD');
+            const yesterday = moment().tz('Asia/Seoul').subtract(1, 'days').format('YYYY-MM-DD');
+
+            const lastUpdate = friend.last_diary_update_date
+              ? moment(friend.last_diary_update_date).format('YYYY-MM-DD')
+              : null;
+
+            const isStreakValid = lastUpdate === today || lastUpdate === yesterday;
+            const finalStreak = isStreakValid ? friend.streak : 0;
+
+            const friendInfo = {
+              id: friend.id,
+              nickname: friend.nickname,
+              profileImageUrl: friend.profile_image_url,
+              createdAt: moment(friend.created_at).format('YYYY-MM-DD'),
+              countDiaries: friend.count_diaries,
+              streak: finalStreak,
+              countWeeklySummaries: friend.count_weekly_summaries,
+              lastDiaryUpdateDate: friend.last_diary_update_date
+            };
+            return success(res, "AUTO_ACCEPTED", "상대방의 요청이 있어 즉시 친구가 되었습니다!", friendInfo);
           }
         }
 

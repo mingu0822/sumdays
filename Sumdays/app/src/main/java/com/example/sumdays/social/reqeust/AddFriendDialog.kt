@@ -7,15 +7,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.sumdays.databinding.DialogAddFriendBinding
 import com.example.sumdays.network.ApiClient
+import com.example.sumdays.network.apiService.RequestFriendBody
+import com.example.sumdays.social.SocialViewModel
 import kotlinx.coroutines.launch
 
 class AddFriendDialog() : DialogFragment() {
 
     private var _binding: DialogAddFriendBinding? = null
     private val binding get() = _binding!!
+    private lateinit var viewModel: SocialViewModel
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = DialogAddFriendBinding.inflate(inflater, container, false)
@@ -24,6 +28,7 @@ class AddFriendDialog() : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel = ViewModelProvider(requireActivity())[SocialViewModel::class.java]
 
         binding.btnCancel.setOnClickListener { dismiss() }
 
@@ -55,20 +60,27 @@ class AddFriendDialog() : DialogFragment() {
         lifecycleScope.launch {
             try {
                 val response = ApiClient.socialApi.requestFriend(
-                    mapOf("receiverEmail" to email)
+                    RequestFriendBody(receiverEmail = email)
                 )
 
-                if (response.isSuccessful) {
-                    Toast.makeText(requireContext(), "요청 성공", Toast.LENGTH_SHORT).show()
+                val body = response.body()
+
+                if (response.isSuccessful && body?.success == true) {
+                    if (body.code == "AUTO_ACCEPTED" && body.data != null) {
+                        viewModel.addFriendLocally(body.data)
+                    }
+                    Toast.makeText(requireContext(), body.message, Toast.LENGTH_SHORT).show()
                     dismiss()
                 } else {
-                    Toast.makeText(requireContext(), "요청 실패: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    val errorMessage = body?.message ?: "요청 실패"
+                    Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
                 }
+
             } catch (e: kotlinx.coroutines.CancellationException) {
-                // dismiss 등으로 인해 취소된 경우 - 에러로 볼 필요 없음
+                throw e
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "요청 실패", Toast.LENGTH_SHORT).show()
-                Log.e("API_ERROR", "요청 실패", e)
+                Log.e("API_ERROR", "친구 요청 실패", e)
             }
         }
     }

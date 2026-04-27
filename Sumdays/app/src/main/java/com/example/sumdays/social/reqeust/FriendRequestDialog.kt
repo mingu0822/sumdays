@@ -126,6 +126,9 @@ class FriendRequestDialog : DialogFragment() {
                 if (response.isSuccessful) {
                     val body = response.body()
                     receivedRequestList = body?.received ?: emptyList()
+                    receivedRequestList.forEach {
+                        Log.d("FriendRequest", "id: ${it.id}, nickname: ${it.nickname}")
+                    }
                     sentRequestList = body?.sent ?: emptyList()
                     ReequestsLoadFailed = false
                 } else {
