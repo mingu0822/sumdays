@@ -23,7 +23,7 @@ interface SocialApiService {
     @PATCH("/api/friend/request")
     suspend fun handleRequest(
         @Body body: HandleRequestBody
-    ): Response<ApiResponse<Unit?>>
+    ): Response<ApiResponse<FriendInfo?>>
 
     // 4. 친구 요청 조회
     @GET("/api/friend/requests")
@@ -69,7 +69,7 @@ data class FriendRequestData(
 )
 
 data class FriendRequest(
-    val id: Int,
+    val userId: Int,
     val nickname: String,
     val profile_image_url: String?
 )

@@ -8,14 +8,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.example.sumdays.databinding.DialogFriendRequestBinding
 import com.example.sumdays.network.apiService.SocialApiService
 import com.google.android.material.tabs.TabLayout
 import com.example.sumdays.network.ApiClient
+import com.example.sumdays.network.apiService.CancelRequestBody
+import com.example.sumdays.network.apiService.FriendInfo
 import kotlin.collections.emptyList
 import com.example.sumdays.network.apiService.FriendRequest
+import com.example.sumdays.network.apiService.HandleRequestBody
+import com.example.sumdays.social.SocialActivity
+import com.example.sumdays.social.SocialViewModel
+import com.example.sumdays.utils.getErrorMessage
 
 class FriendRequestDialog : DialogFragment() {
 
@@ -27,6 +34,8 @@ class FriendRequestDialog : DialogFragment() {
     private var receivedRequestList: List<FriendRequest> = emptyList()
     private var sentRequestList: List<FriendRequest> = emptyList()
     private var ReequestsLoadFailed = false
+    private lateinit var viewModel: SocialViewModel
+
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -37,6 +46,7 @@ class FriendRequestDialog : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        viewModel = ViewModelProvider(requireActivity())[SocialViewModel::class.java]
         setupAdapter()
         setupTabLayout()
 
@@ -66,12 +76,34 @@ class FriendRequestDialog : DialogFragment() {
     private fun handleAccept(request: FriendRequest) {
         lifecycleScope.launch {
             try {
-                // 직접 ApiService 호출
-                val response = ApiClient.socialApi.handleRequest(request.id, mapOf("action" to "ACCEPT"))
+                val response = ApiClient.socialApi.handleRequest(
+                    HandleRequestBody(
+                        requesterId = request.userId,
+                        action = "ACCEPT"
+                    )
+                )
+
                 if (response.isSuccessful) {
-                    receivedRequestList = receivedRequestList.filter { it.id != request.id }
+                    val body = response.body()
+                    // 🔥 받은 요청 리스트에서 제거
+                    receivedRequestList.filter { it.userId != request.userId }
                     showList(binding.tabLayout.selectedTabPosition)
+
+                    body?.data?.let { friendInfo ->
+                        viewModel.addFriendLocally(friendInfo)
+                    }
+
+                    Toast.makeText(context, body?.message, Toast.LENGTH_SHORT).show()
+
+                } else {
+                    val errorMessage = response.getErrorMessage("수락 실패")
+                    Toast.makeText(
+                        context,
+                        errorMessage,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
+
             } catch (e: Exception) {
                 Toast.makeText(context, "수락 실패.", Toast.LENGTH_SHORT).show()
                 Log.e("API_ERROR", "수락 실패", e)
@@ -81,12 +113,27 @@ class FriendRequestDialog : DialogFragment() {
     private fun handleReject(request: FriendRequest) {
         lifecycleScope.launch {
             try {
-                // 직접 ApiService 호출
-                val response = ApiClient.socialApi.handleRequest(request.id, mapOf("action" to "REJECT"))
+                val response = ApiClient.socialApi.handleRequest(
+                    HandleRequestBody(
+                        requesterId = request.userId,
+                        action = "REJECT"
+                    )
+                )
+
                 if (response.isSuccessful) {
-                    receivedRequestList = receivedRequestList.filter { it.id != request.id }
+                    val body = response.body()
+                    receivedRequestList.filter { it.userId != request.userId }
                     showList(binding.tabLayout.selectedTabPosition)
+                    Toast.makeText(context, body?.message, Toast.LENGTH_SHORT).show()
+                } else {
+                    val errorMessage = response.getErrorMessage("거절 실패")
+                    Toast.makeText(
+                        context,
+                        errorMessage,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
+
             } catch (e: Exception) {
                 Toast.makeText(context, "거절 실패.", Toast.LENGTH_SHORT).show()
                 Log.e("API_ERROR", "거절 실패", e)
@@ -96,12 +143,31 @@ class FriendRequestDialog : DialogFragment() {
     private fun handleCancel(request: FriendRequest) {
         lifecycleScope.launch {
             try {
-                // 직접 ApiService 호출
-                val response = ApiClient.socialApi.cancelRequest(mapOf("receiverId" to request.id))
-                if (response.isSuccessful) {
-                    sentRequestList = sentRequestList.filter { it.id != request.id }
+                Log.d("handleCancel", "userId: ${request.userId}, nickname: ${request.nickname}")
+                val response = ApiClient.socialApi.cancelRequest(
+                    CancelRequestBody(receiverId = request.userId)
+                )
+
+
+                if (response.isSuccessful || response.code() == 404) {
+                    val body = response.body()
+                    sentRequestList = sentRequestList.filter { it.userId != request.userId }
                     showList(binding.tabLayout.selectedTabPosition)
+
+                    val message = body?.message ?: "이미 취소된 요청입니다."
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+
+                } else {
+                    val errorMessage = response.getErrorMessage("취소 실패")
+                    Toast.makeText(
+                        context,
+                        errorMessage,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
+
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Toast.makeText(context, "취소 실패.", Toast.LENGTH_SHORT).show()
                 Log.e("API_ERROR", "취소 실패", e)
@@ -123,30 +189,45 @@ class FriendRequestDialog : DialogFragment() {
         lifecycleScope.launch {
             try {
                 val response = ApiClient.socialApi.getFriendRequests()
+
                 if (response.isSuccessful) {
                     val body = response.body()
-                    receivedRequestList = body?.received ?: emptyList()
+                    receivedRequestList = body?.data?.received ?: emptyList()
+                    sentRequestList = body?.data?.sent ?: emptyList()
+
                     receivedRequestList.forEach {
-                        Log.d("FriendRequest", "id: ${it.id}, nickname: ${it.nickname}")
+                        Log.d("getFriendRequests", "recevied - id: ${it.userId}, nickname: ${it.nickname}")
                     }
-                    sentRequestList = body?.sent ?: emptyList()
+                    sentRequestList.forEach {
+                        Log.d("getFriendRequests", "sent - id: ${it.userId}, nickname: ${it.nickname}")
+                    }
+
+
                     ReequestsLoadFailed = false
                 } else {
                     receivedRequestList = emptyList()
                     sentRequestList = emptyList()
                     ReequestsLoadFailed = true
+
+                    val errorMessage = response.getErrorMessage("조회 실패")
+                    Toast.makeText(
+                        context,
+                        errorMessage,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
 
-                // ✅ fetch 끝난 뒤 현재 탭 다시 렌더링
                 showList(binding.tabLayout.selectedTabPosition)
 
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 receivedRequestList = emptyList()
                 sentRequestList = emptyList()
                 ReequestsLoadFailed = true
-                e.printStackTrace()
 
-                // ✅ 실패해도 현재 탭 다시 렌더링
+                Log.e("API_ERROR", "친구 요청 목록 조회 실패", e)
+
                 showList(binding.tabLayout.selectedTabPosition)
             }
         }

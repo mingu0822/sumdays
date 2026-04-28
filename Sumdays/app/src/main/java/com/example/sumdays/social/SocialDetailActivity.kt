@@ -17,6 +17,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.sumdays.R
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.FriendInfo
+import com.example.sumdays.utils.getErrorMessage
 import kotlinx.coroutines.launch
 
 class SocialDetailActivity : AppCompatActivity() {
@@ -136,19 +137,32 @@ class SocialDetailActivity : AppCompatActivity() {
             try {
                 val response = ApiClient.socialApi.deleteFriend(friendId)
 
+
                 if (response.isSuccessful) {
+                    val body = response.body()
+                    Toast.makeText(
+                        this@SocialDetailActivity,
+                        body?.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+
                     val resultIntent = Intent().apply {
                         putExtra("deletedFriendId", friendId)
                     }
                     setResult(RESULT_OK, resultIntent)
                     finish()
+
                 } else {
+                    val errorMessage = response.getErrorMessage("서버 요청에 실패하였습니다.")
                     Toast.makeText(
                         this@SocialDetailActivity,
-                        "서버 요청에 실패했습니다.",
+                        errorMessage,
                         Toast.LENGTH_SHORT
                     ).show()
                 }
+
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Toast.makeText(
                     this@SocialDetailActivity,

@@ -13,13 +13,16 @@ import com.example.sumdays.databinding.DialogAddFriendBinding
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.RequestFriendBody
 import com.example.sumdays.social.SocialViewModel
+import com.example.sumdays.utils.getErrorMessage
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 class AddFriendDialog() : DialogFragment() {
 
     private var _binding: DialogAddFriendBinding? = null
     private val binding get() = _binding!!
     private lateinit var viewModel: SocialViewModel
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = DialogAddFriendBinding.inflate(inflater, container, false)
@@ -62,20 +65,17 @@ class AddFriendDialog() : DialogFragment() {
                 val response = ApiClient.socialApi.requestFriend(
                     RequestFriendBody(receiverEmail = email)
                 )
-
-                val body = response.body()
-
-                if (response.isSuccessful && body?.success == true) {
-                    if (body.code == "AUTO_ACCEPTED" && body.data != null) {
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    if (body?.code == "AUTO_ACCEPTED" && body.data != null) {
                         viewModel.addFriendLocally(body.data)
                     }
-                    Toast.makeText(requireContext(), body.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), body?.message, Toast.LENGTH_SHORT).show()
                     dismiss()
                 } else {
-                    val errorMessage = body?.message ?: "요청 실패"
+                    val errorMessage = response.getErrorMessage("친구 요청 실패")
                     Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
                 }
-
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {

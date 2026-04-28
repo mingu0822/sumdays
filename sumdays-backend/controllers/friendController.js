@@ -218,14 +218,14 @@ const friendController = {
     try {
       const [receivedRows, sentRows] = await Promise.all([
         pool.query(
-          `SELECT u.id, u.nickname, u.profile_image_url 
+          `SELECT u.id AS userId, u.nickname, u.profile_image_url 
           FROM friendship f 
           JOIN users u ON f.requester_id = u.id 
           WHERE f.receiver_id = ? AND f.status = "PENDING"`,
           [myId]
         ),
         pool.query(
-          `SELECT u.id, u.nickname, u.profile_image_url 
+          `SELECT u.id AS userId, u.nickname, u.profile_image_url 
           FROM friendship f 
           JOIN users u ON f.receiver_id = u.id 
           WHERE f.requester_id = ? AND f.status = "PENDING"`,
@@ -233,12 +233,21 @@ const friendController = {
         )
       ]);
 
-      const data = {
-        received: receivedRows[0],
-        sent: sentRows[0]
-      };
+    const received = receivedRows[0];
+    const sent = sentRows[0];
 
-      console.log(`[getPendingRequests] Found received: ${data.received.length}, sent: ${data.sent.length}`);
+    const data = {
+      received,
+      sent
+    };
+
+    // 👉 여기 변경
+    const receivedIds = received.map(u => u.userId);
+    const sentIds = sent.map(u => u.userId);
+
+    console.log(
+      `[getPendingRequests] receivedIds=${JSON.stringify(receivedIds)}, sentIds=${JSON.stringify(sentIds)}`
+    );
 
       return success(res, "REQUEST_LIST_FETCHED", "요청 목록 조회 성공", data);
 

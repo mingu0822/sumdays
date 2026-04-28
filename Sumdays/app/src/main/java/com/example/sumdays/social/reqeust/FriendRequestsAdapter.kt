@@ -61,7 +61,7 @@ class FriendRequestAdapter(
     }
 
     class DiffCallback : DiffUtil.ItemCallback<FriendRequest>() {
-        override fun areItemsTheSame(oldItem: FriendRequest, newItem: FriendRequest) = oldItem.id == newItem.id
+        override fun areItemsTheSame(oldItem: FriendRequest, newItem: FriendRequest) = oldItem.userId == newItem.userId
         override fun areContentsTheSame(oldItem: FriendRequest, newItem: FriendRequest) = oldItem == newItem
     }
 }
