@@ -110,7 +110,7 @@ class DailySumActivity : AppCompatActivity() {
             mergeJob = lifecycleScope.launch {
                 try {
                     val result = memoMergeAdapter.mergeAllMemo()
-                    saveDiary(result)
+                    saveDiary(result, memoMergeAdapter.lastMood)
                     moveToReadActivity()
                 } catch (e: CancellationException) {
                     showLoading(false)
@@ -197,7 +197,7 @@ class DailySumActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private suspend fun saveDiary(mergedResult: String) {
+    private suspend fun saveDiary(mergedResult: String, precomputedMood: String? = null) {
         val todayStr = getTodayDate()
         StreakPrefs.onDiarySaved(this, todayStr)
 
@@ -205,7 +205,8 @@ class DailySumActivity : AppCompatActivity() {
         AnalysisRepository.requestAnalysis(
             date = date,
             diary = mergedResult,
-            viewModel = viewModel
+            viewModel = viewModel,
+            precomputedMood = precomputedMood
         )
     }
 
@@ -230,10 +231,23 @@ class DailySumActivity : AppCompatActivity() {
         }
 
         btnSave.setOnClickListener {
+            showLoading(true)
             lifecycleScope.launch {
                 try {
-                    saveDiary(memoMergeAdapter.getMemoContent(0))
+                    val text = memoMergeAdapter.getMemoContent(0)
+                    val mood = memoMergeAdapter.generateMood(text)
+                    saveDiary(text, mood)
                     moveToReadActivity()
+                } catch (e: CancellationException) {
+                    showLoading(false)
+                    Toast.makeText(
+                        this@DailySumActivity,
+                        "메모 저장이 중단되었습니다",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } catch (e: Exception) {
+                    showLoading(false)
+                    Toast.makeText(this@DailySumActivity, "오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
                 } finally {
                     sheet.dismiss()
                 }

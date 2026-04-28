@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, Response
-from .merge_service import merge_stream, merge_paragraph_stream
+from .merge_service import merge_stream, merge_paragraph_stream, generate_mood
 from ..analysis.diary_service import DiaryAnalyzer
 
 analysis_service = DiaryAnalyzer()
@@ -33,14 +33,14 @@ def merge_memo():
             diary += content
 
         result = analysis_service.analyze(diary)
+        mood = generate_mood(diary, style_prompt, style_examples)
 
         response = {
             "entry_date": data.get("entry_date"),
             "user_id": data.get("user_id"),
             "diary": diary,
             "icon": result["emoji"],
-            # "ai_comment": result["feedback"],
-            "ai_comment": None,
+            "mood": mood,
             "analysis": {
                 "keywords": result["keywords"],
                 "emotion_score": result["emotion_score"]
@@ -52,6 +52,27 @@ def merge_memo():
     except Exception as e:
         return jsonify({"error": str(e)}), 401
     
+@merge_bp.route("/mood", methods=["POST"])
+def generate_mood_route():
+    """ POST http://localhost:5001/merge/mood
+    \{
+        "diary": "완성된 일기 텍스트",
+        "style_prompt": {...},
+        "style_examples": ["...", "..."]
+    \}
+    """
+    try:
+        data = request.get_json()
+        diary = data["diary"]
+        style_prompt = data["style_prompt"]
+        style_examples = data["style_examples"]
+
+        mood = generate_mood(diary, style_prompt, style_examples)
+        return jsonify({"mood": mood}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 @merge_bp.route("/paragraph", methods=["POST"])
 def merge_memo_paragraph():
     """ POST http://localhost:5001/merge/paragraph

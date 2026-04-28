@@ -11,6 +11,7 @@ const extractController = require('../controllers/ai/extractController');
 
 // api list
 router.post('/merge', mergeController.merge); // merge memos
+router.post('/mood', mergeController.mood);   // generate pet-perspective mood for completed diary
 
 router.post('/analyze', analyzeController.analyze); // analyze a diary: summary, emotion-score, emoji, feedback
 router.post('/summarize-week', analyzeController.summarizeWeek); // summarize week
