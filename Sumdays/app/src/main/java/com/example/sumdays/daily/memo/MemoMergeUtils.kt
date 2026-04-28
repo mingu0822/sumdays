@@ -15,6 +15,15 @@ object MemoMergeUtils {
         return gson.fromJson(jsonString, type)
     }
 
+    /** extract mood sentence from final merge json */
+    fun extractMood(json: JsonObject): String? {
+        if (json.has("result")) {
+            val result = json.getAsJsonObject("result")
+            return result.get("mood")?.takeIf { !it.isJsonNull }?.asString
+        }
+        return null
+    }
+
     /** extract merged text from json file */
     fun extractMergedText(json: JsonObject): String {
         Log.d("test", "TEST: " + json.toString())

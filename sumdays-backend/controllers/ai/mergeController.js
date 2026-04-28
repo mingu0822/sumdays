@@ -73,6 +73,28 @@ const mergeController = {
             });
         }
     },
+    mood: async (req, res) => {
+        try {
+            const { diary, style_prompt, style_examples } = req.body;
+
+            if (!diary) {
+                return res.status(400).json({ success: false, message: "diary is required." });
+            }
+            if (!style_prompt || !style_examples) {
+                return res.status(400).json({ success: false, message: "style_prompt and style_examples are required." });
+            }
+
+            const response = await axios.post(
+                `${PYTHON_SERVER_URL}/merge/mood`,
+                { diary, style_prompt, style_examples }
+            );
+
+            return res.status(200).json({ success: true, result: response.data });
+        } catch (err) {
+            console.error("[mergeController.mood] Error:", err.message);
+            return res.status(400).json({ success: false, error: err.message || err });
+        }
+    },
 };
 
 module.exports = mergeController;
