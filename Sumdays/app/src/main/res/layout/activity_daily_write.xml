@@ -123,7 +123,7 @@
 
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/sum_btn">
+            app:layout_constraintBottom_toBottomOf="parent">
 
             <EditText
                 android:id="@+id/memo_input_edittext"
@@ -241,25 +241,19 @@
             </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-            <ImageButton
-                android:id="@+id/sum_btn"
-                android:layout_width="300dp"
-                android:layout_height="150dp"
-                android:layout_marginBottom="-20dp"
-                android:background="@drawable/header_sum"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
-        <include
-            android:id="@+id/bottom_buttons_layout"
-            layout="@layout/include_navigation_bar"
-            android:layout_width="0dp"
-            android:layout_height="110dp"
+
+        <ImageButton
+            android:id="@+id/sum_btn"
+            android:layout_width="300dp"
+            android:layout_height="150dp"
+            android:layout_marginBottom="-20dp"
+            android:background="@drawable/header_sum"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
