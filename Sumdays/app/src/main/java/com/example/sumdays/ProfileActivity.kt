@@ -145,7 +145,6 @@ class ProfileActivity : AppCompatActivity() {
         binding.labsBlockText.setTextColor(getColor(basicColor))
         binding.accountBlockText.setTextColor(getColor(basicColor))
         binding.themeBlockText.setTextColor(getColor(basicColor))
-        binding.socialBlockText.setTextColor(getColor(basicColor))
     }
 
 
@@ -169,9 +168,7 @@ class ProfileActivity : AppCompatActivity() {
         themeBlock.setOnClickListener {
             startActivity(Intent(this@ProfileActivity, ThemeSettingsActivity::class.java))
         }
-        socialBlock.setOnClickListener {
-            startActivity(Intent(this@ProfileActivity, SocialActivity::class.java))
-        }
+
     }
 
 

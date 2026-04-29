@@ -161,16 +161,6 @@
                     android:layout_marginLeft="24dp"
                     android:text="계정 설정" />
             </LinearLayout>
-            <LinearLayout
-                android:id="@+id/socialBlock"
-                style="@style/SettingsItemStyle">
-                <TextView
-                    android:id="@+id/socialBlockText"
-                    android:text="친구 관리"
-                    style="@style/TextAppearance.App.Normal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/themeBlock"

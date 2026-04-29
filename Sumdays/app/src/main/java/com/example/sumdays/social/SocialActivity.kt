@@ -35,7 +35,6 @@ class SocialActivity : AppCompatActivity() {
 
     private lateinit var tvSocialRequests: TextView
     private lateinit var btnAddSocial: ImageButton
-    private lateinit var btnBack: ImageButton
     private lateinit var btnUpdate: ImageButton
     private lateinit var tvEmpty: TextView
     private lateinit var tvError: TextView
@@ -56,8 +55,7 @@ class SocialActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_social)
         navBarController = NavBarController(this)
-        navBarController.setNavigationBar(NavSource.PROFILE)
-
+        navBarController.setNavigationBar(NavSource.SOCIAL)
 
         initViewModel()
         initView()
@@ -73,7 +71,6 @@ class SocialActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this, factory)[SocialViewModel::class.java]
     }
     private fun initView() {
-        btnBack = findViewById(R.id.btnBack)
         recyclerSocial = findViewById(R.id.recyclerSocial)
         etSearchSocial = findViewById(R.id.etSearchSocial)
         tvSocialRequests = findViewById(R.id.tvSocialRequests)
@@ -85,7 +82,6 @@ class SocialActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
-        btnBack.setOnClickListener { finish() }
 
         tvSocialRequests.setOnClickListener {
             val dialog = FriendRequestDialog()
