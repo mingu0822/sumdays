@@ -5,7 +5,6 @@ import android.net.ConnectivityManager
 import android.app.ActivityManager
 import android.util.Log
 import androidx.work.*
-import androidx.work.testing.WorkManagerTestInitHelper
 import androidx.room.RoomDatabase // withTransaction 모킹을 위해 필요
 import androidx.room.withTransaction
 import com.example.sumdays.auth.SessionManager
@@ -15,8 +14,7 @@ import com.example.sumdays.data.dao.MemoDao
 import com.example.sumdays.data.dao.UserStyleDao
 import com.example.sumdays.data.dao.WeekSummaryDao
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.network.ApiService
-import com.google.gson.Gson
+import com.example.sumdays.network.apiService.ApiService
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import retrofit2.Response

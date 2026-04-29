@@ -8,11 +8,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.sumdays.TestApplication
 import com.example.sumdays.daily.memo.MemoMergeUtils
 import com.example.sumdays.data.style.StylePrompt
-import com.example.sumdays.data.style.UserStyle
 import com.example.sumdays.data.style.UserStyleViewModel
 import com.example.sumdays.network.*
+import com.example.sumdays.network.apiService.ApiService
 import com.example.sumdays.utils.FileUtil
-import com.google.gson.JsonObject
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.Dispatchers

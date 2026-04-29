@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.sumdays.TestApplication
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.network.ApiService
+import com.example.sumdays.network.apiService.ApiService
 import com.example.sumdays.network.STTResponse
 import io.mockk.*
 import okhttp3.MultipartBody

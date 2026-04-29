@@ -4,8 +4,7 @@ import android.os.Build
 import com.example.sumdays.TestApplication
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.network.ApiService
-import com.google.gson.JsonObject
+import com.example.sumdays.network.apiService.ApiService
 import com.google.gson.JsonParser
 import io.mockk.*
 import kotlinx.coroutines.runBlocking

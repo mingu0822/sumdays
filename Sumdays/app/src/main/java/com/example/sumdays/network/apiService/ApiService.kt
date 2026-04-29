@@ -1,4 +1,4 @@
-package com.example.sumdays.network
+package com.example.sumdays.network.apiService
 
 import com.example.sumdays.daily.diary.AnalysisRequest
 import com.example.sumdays.daily.memo.MergeRequest
@@ -6,12 +6,27 @@ import com.example.sumdays.daily.memo.MoodRequest
 import com.example.sumdays.data.sync.SyncFetchResponse
 import com.example.sumdays.data.sync.SyncRequest
 import com.example.sumdays.data.sync.SyncResponse
+import com.example.sumdays.network.ChangePasswordRequest
+import com.example.sumdays.network.ChangePasswordResponse
+import com.example.sumdays.network.LoginRequest
+import com.example.sumdays.network.LoginResponse
+import com.example.sumdays.network.OcrResponse
+import com.example.sumdays.network.STTResponse
+import com.example.sumdays.network.SignupRequest
+import com.example.sumdays.network.SignupResponse
+import com.example.sumdays.network.StyleExtractionResponse
+import com.example.sumdays.network.UpdateNicknameRequest
+import com.example.sumdays.network.UpdateNicknameResponse
+import com.example.sumdays.network.WeekAnalysisRequest
+import com.example.sumdays.network.WeekAnalysisResponse
+import com.google.gson.JsonObject
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.Response
 import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -41,16 +56,16 @@ interface ApiService {
     suspend fun syncData(
         @Header("Authorization") token: String,
         @Body body: SyncRequest
-    ): retrofit2.Response<SyncResponse>
+    ): Response<SyncResponse>
     
     // 동기화
     @GET("/api/db/sync")
     suspend fun fetchServerData(
         @Header("Authorization") token: String
-    ): retrofit2.Response<SyncFetchResponse>
+    ): Response<SyncFetchResponse>
 
     @POST("/api/ai/merge")
-    suspend fun mergeMemos(@Body req: MergeRequest): retrofit2.Response<com.google.gson.JsonObject>
+    suspend fun mergeMemos(@Body req: MergeRequest): Response<JsonObject>
     @Streaming
     @POST("/api/ai/merge")
     fun mergeMemosStream(@Body request: MergeRequest): Call<ResponseBody>
@@ -66,7 +81,7 @@ interface ApiService {
         @Part("type") type: RequestBody
     ): Call<OcrResponse>
     @POST("/api/ai/analyze")
-    suspend fun diaryAnalyze(@Body req: AnalysisRequest): retrofit2.Response<com.google.gson.JsonObject>
+    suspend fun diaryAnalyze(@Body req: AnalysisRequest): Response<JsonObject>
 
     @POST("/api/ai/mood")
     suspend fun generateMood(@Body req: MoodRequest): retrofit2.Response<com.google.gson.JsonObject>
@@ -79,8 +94,10 @@ interface ApiService {
     ): Call<StyleExtractionResponse>
 
     @POST("/api/ai/summarize-week")
-    suspend fun summarizeWeek(@Body request: WeekAnalysisRequest): retrofit2.Response<WeekAnalysisResponse>
+    suspend fun summarizeWeek(@Body request: WeekAnalysisRequest): Response<WeekAnalysisResponse>
 }
+
+
 
 // 응답 DTO (nullable 권장)
 data class MergeResponse(

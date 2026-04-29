@@ -165,7 +165,7 @@ exports.fetchServerData = async (req, res) => {
     );
 
     const [dailyEntry] = await pool.query(
-      `SELECT * FROM daily_entry WHERE user_id=?`, [userId]
+      `SELECT * FROM daily_entries WHERE user_id=?`, [userId]
     );
 
     const [weekSummary] = await pool.query(
@@ -221,3 +221,5 @@ exports.fetchServerData = async (req, res) => {
     res.status(500).json({ status: "error", message: e.message });
   }
 };
+
+

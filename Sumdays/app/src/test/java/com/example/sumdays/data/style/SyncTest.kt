@@ -13,7 +13,7 @@ import com.example.sumdays.data.dao.UserStyleDao
 import com.example.sumdays.data.dao.WeekSummaryDao
 import com.example.sumdays.data.style.UserStyle
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.network.ApiService
+import com.example.sumdays.network.apiService.ApiService
 import com.example.sumdays.statistics.WeekSummary
 import io.mockk.*
 import kotlinx.coroutines.test.runTest
