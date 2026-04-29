@@ -19,16 +19,213 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <TextView
-        android:id="@+id/tv_widget_placeholder"
-        android:layout_width="wrap_content"
+
+    <LinearLayout
+        android:id="@+id/widget_row_01"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="통계 위젯"
-        android:textSize="@dimen/text_size_L"
-        android:textColor="@color/theme_default_primary"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/swipe_down_hint"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- 왼쪽 열 (1/3): Streak + 나뭇잎/포도 수직 배치 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Streak 위젯 (1×1) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_streak"
+                android:layout_width="match_parent"
+                android:layout_height="130dp"
+                android:layout_margin="6dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="#E8FFFFFF"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔥"
+                        android:textSize="32sp" />
+
+                    <TextView
+                        android:id="@+id/tv_streak_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="0"
+                        android:textSize="@dimen/text_size_XXL"
+                        android:textColor="@color/theme_default_primary"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/odaesan" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="연속"
+                        android:textSize="@dimen/text_size_XS"
+                        android:textColor="@color/gray" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 나뭇잎/포도 위젯 (1×1) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_leaf_grape"
+                android:layout_width="match_parent"
+                android:layout_height="130dp"
+                android:layout_margin="6dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="#E8FFFFFF"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="8dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🍃"
+                            android:textSize="20sp" />
+
+                        <TextView
+                            android:id="@+id/tv_leaf_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:text="0"
+                            android:textSize="@dimen/text_size_L"
+                            android:textStyle="bold"
+                            android:textColor="@color/theme_default_textcolor_basic" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="6dp"
+                        android:background="@color/gray" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🍇"
+                            android:textSize="20sp" />
+
+                        <TextView
+                            android:id="@+id/tv_grape_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:text="0"
+                            android:textSize="@dimen/text_size_L"
+                            android:textStyle="bold"
+                            android:textColor="@color/theme_default_textcolor_basic" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+
+        <!-- 오른쪽 열 (2/3): 여우/나무 위젯 (2×2, 높이 = 왼쪽 열 전체) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_fox_tree"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:layout_margin="6dp"
+            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="#E8FFFFFF"
+            app:cardElevation="4dp"
+            android:foreground="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <!-- Z1: 배경 -->
+                <ImageView
+                    android:id="@+id/iv_fox_tree_bg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/statistics_background_morning"
+                    android:contentDescription="배경" />
+
+                <!-- Z2: 다음 배경까지 남은 층수 -->
+                <TextView
+                    android:id="@+id/tv_levels_to_next_bg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="12dp"
+                    android:textSize="@dimen/text_size_XS"
+                    android:textColor="#FFFFFFFF"
+                    android:textStyle="bold"
+                    android:background="#66000000"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp" />
+
+                <!-- Z3: 여우 -->
+                <ImageView
+                    android:id="@+id/iv_fox"
+                    android:layout_width="80dp"
+                    android:layout_height="70dp"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginBottom="52dp"
+                    android:src="@drawable/statistics_fox_on_branch"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="여우" />
+
+                <!-- Z4: 자세히 보기 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="8dp"
+                    android:text="자세히 보기 ›"
+                    android:textSize="@dimen/text_size_XS"
+                    android:textColor="#CCFFFFFF"
+                    android:background="#66000000"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp" />
+
+            </FrameLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+    <!-- Row 2–4: 미래 위젯 공간 (필요 시 LinearLayout 추가) -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
