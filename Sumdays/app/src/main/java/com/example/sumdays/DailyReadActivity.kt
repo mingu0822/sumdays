@@ -24,8 +24,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.sumdays.daily.diary.AnalysisRepository
+import com.example.sumdays.daily.memo.MoodRepository
+import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
+import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.databinding.ActivityDailyReadBinding
 import com.example.sumdays.image.GalleryItem
 import com.example.sumdays.image.PhotoGalleryAdapter
@@ -52,6 +55,9 @@ class DailyReadActivity : AppCompatActivity() {
 
     // Uri 문자열 저장 리스트
     private val currentPhotoList = mutableListOf<String>()
+
+    private val userStatsPrefs: UserStatsPrefs by lazy { UserStatsPrefs(this) }
+    private val userStyleDao by lazy { AppDatabase.getDatabase(this).userStyleDao() }
 
     private val repoKeyFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     private val displayFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -437,10 +443,16 @@ class DailyReadActivity : AppCompatActivity() {
             .setMessage("일기 내용을 수정했습니다. AI 코멘트와 분석 결과도 새로고침할까요?")
             .setPositiveButton("예 (새로 분석)") { dialog, _ ->
                 lifecycleScope.launch {
+                    val mood = MoodRepository.generateMood(
+                        diary = updatedContent,
+                        userStatsPrefs = userStatsPrefs,
+                        userStyleDao = userStyleDao
+                    )
                     AnalysisRepository.requestAnalysis(
                         date = dateKey,
                         diary = updatedContent,
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        precomputedMood = mood
                     )
                 }
                 toggleEditMode(false)

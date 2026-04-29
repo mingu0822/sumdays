@@ -339,24 +339,8 @@ class MemoMergeAdapter(
         }
     }
 
-    suspend fun generateMood(diary: String): String? {
-        return try {
-            val style = loadStyle()
-            val request = MoodRequest(
-                diary = diary,
-                stylePrompt = style.stylePrompt,
-                styleExamples = style.styleExample
-            )
-            val response = ApiClient.api.generateMood(request)
-            if (!response.isSuccessful) return null
-            val json = response.body() ?: return null
-            json.getAsJsonObject("result")
-                ?.get("mood")?.takeIf { !it.isJsonNull }?.asString
-        } catch (e: Exception) {
-            Log.e("MemoMergeAdapter", "generateMood failed", e)
-            null
-        }
-    }
+    suspend fun generateMood(diary: String): String? =
+        MoodRepository.generateMood(diary, userStatsPrefs, userStyleDao)
 
     @Throws(MergeException::class)
     suspend fun mergeTextToServer(
