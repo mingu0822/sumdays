@@ -1,9 +1,9 @@
 const mysql = require('mysql2/promise'); // MySQL 데이터베이스와 비동기 통신을 위한 라이브러리
 
 const dbConfig = {
-    host: 'database-1.cjkge2608sxi.ap-northeast-2.rds.amazonaws.com',      // 예: sumdays-db.abcdefg12345.ap-northeast-2.rds.amazonaws.com
-    user: 'swpp_admin',       // 예: admin
-    password: 'sumdays1',   // RDS 생성 시 설정한 마스터 암호
+    host: 'sumdays.cjkge2608sxi.ap-northeast-2.rds.amazonaws.com',      // 예: sumdays-db.abcdefg12345.ap-northeast-2.rds.amazonaws.com
+    user: 'admin',       // 예: admin
+    password: 'kimstyle123##',   // RDS 생성 시 설정한 마스터 암호
     database: 'sumdays_db',         // 연결할 데이터베이스 이름
     waitForConnections: true,
     connectionLimit: 10,
@@ -18,3 +18,5 @@ module.exports = {
   pool,
   dbConfig
 };
+
+

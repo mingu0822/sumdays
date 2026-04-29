@@ -4,7 +4,7 @@ import android.widget.Button
 import com.google.android.material.textfield.TextInputEditText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.network.ApiService
+import com.example.sumdays.network.apiService.ApiService
 import com.example.sumdays.network.SignupResponse
 import com.example.sumdays.network.SignupRequest
 import io.mockk.*
@@ -14,7 +14,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
-import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowToast
 import retrofit2.Call

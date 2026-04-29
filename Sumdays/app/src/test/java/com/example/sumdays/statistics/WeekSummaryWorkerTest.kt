@@ -10,7 +10,7 @@ import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.data.repository.DailyEntryRepository
 import com.example.sumdays.data.repository.WeekSummaryRepository
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.network.ApiService
+import com.example.sumdays.network.apiService.ApiService
 import com.example.sumdays.network.NetworkEmotionAnalysis
 import com.example.sumdays.network.NetworkHighlight
 import com.example.sumdays.network.NetworkInsights

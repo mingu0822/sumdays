@@ -14,7 +14,7 @@ import com.example.sumdays.DailyWriteActivity
 import com.example.sumdays.ProfileActivity
 import com.example.sumdays.R
 import com.example.sumdays.ShopActivity
-import com.example.sumdays.StatisticsActivity
+import com.example.sumdays.social.SocialActivity
 import org.threeten.bp.LocalDate
 
 enum class NavSource {
@@ -23,6 +23,7 @@ enum class NavSource {
     READ,
     PROFILE,
     SEARCH,
+    SOCIAL
 }
 
 class NavBarController(
@@ -43,7 +44,7 @@ class NavBarController(
         sumIntentProvider: (() -> Intent)? = null
     ) {
         val btnCalendar = activity.findViewById<ImageButton>(R.id.btnCalendar)
-        val btnStatistic = activity.findViewById<ImageButton>(R.id.statistic_btn)
+        val btnSocial = activity.findViewById<ImageButton>(R.id.social_btn)
         val btnShop = activity.findViewById<ImageButton>(R.id.btnShop)
         val btnInfo = activity.findViewById<ImageButton>(R.id.btnInfo)
 
@@ -71,11 +72,13 @@ class NavBarController(
             }
         }
 
-        btnStatistic.setOnClickListener {
-            activity.startActivity(
-                Intent(activity, StatisticsActivity::class.java)
-            )
-            activity.overridePendingTransition(0, 0)
+        btnSocial.setOnClickListener {
+            if (from != NavSource.SOCIAL) {
+                activity.startActivity(
+                    Intent(activity, SocialActivity::class.java)
+                )
+                activity.overridePendingTransition(0, 0)
+            }
         }
 
         btnCenter?.setOnClickListener {

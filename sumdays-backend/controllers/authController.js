@@ -1,5 +1,10 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const util = require('util');
+const upload = require('../middlewares/uploadMiddleware');
+const uploadPromise = util.promisify(upload.single('profileImage'));
+const path = require('path');
+const fs = require('fs').promises;
 
 // =================================================================
 // ★★★ 중요: 이 비밀 키와 DB 정보는 절대로 코드에 하드코딩하면 안 됩니다. ★★★
@@ -85,35 +90,46 @@ exports.login = async (req, res) => {
 exports.signup = async (req, res) => {
     const { nickname, email, password } = req.body;
     console.log(`[회원가입 시도] 이메일: ${email}`);
+    const connection = await pool.getConnection(); // 트랜잭션을 위한 커넥션 확보
 
-    // 1. 입력 값 유효성 검사
-    if (!nickname || !email || !password) {
-        return res.status(400).json({ success: false, message: '모든 정보를 입력해주세요.' });
-    }
     try {
+        await connection.beginTransaction(); // 트랜잭션 시작
+
         // 1. 이메일 중복 확인
-        const [existingUsers] = await pool.query('SELECT email FROM users WHERE email = ?', [email]);
-        if (existingUsers.length > 0) {
+        const [existing] = await connection.query('SELECT id FROM users WHERE email = ?', [email]);
+        if (existing.length > 0) {
+            connection.release();
             return res.status(409).json({ success: false, message: '이미 사용 중인 이메일입니다.' });
         }
 
-        // 2. 비밀번호 해시 생성
-        const saltRounds = 10; // 해시 복잡도
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        // 2. 비밀번호 해싱
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        // 3. 새로운 사용자 정보를 DB에 저장
-        const sql = 'INSERT INTO users (nickname, email, password_hash) VALUES (?, ?, ?)';
-        await pool.query(sql, [nickname, email, hashedPassword]);
+        // 3. users 테이블 삽입
+        const [userResult] = await connection.query(
+            'INSERT INTO users (nickname, email, password_hash) VALUES (?, ?, ?)',
+            [nickname, email, hashedPassword]
+        );
+        const newUserId = userResult.insertId;
 
-        console.log(`[회원가입 성공] 이메일: ${email}`);
-        res.status(201).json({ success: true, message: '회원가입이 성공적으로 완료되었습니다.' });
+        // 4. user_info 테이블 초기화 
+        await connection.query(
+            'INSERT INTO user_info (user_id) VALUES (?)',
+            [newUserId]
+        );
+
+        await connection.commit(); // 모든 작업 확정
+        console.log(`[회원가입 성공] ID: ${newUserId}, 이메일: ${email}`);
+        res.status(201).json({ success: true, message: '회원가입 성공!' });
 
     } catch (error) {
-        console.error('[서버 오류] 회원가입 처리 중 에러 발생:', error);
-        res.status(500).json({ success: false, message: '서버 내부 오류가 발생했습니다.' });
-    } 
+        await connection.rollback(); // 에러 발생 시 롤백
+        console.error('[서버 오류] 회원가입 중 롤백됨:', error);
+        res.status(500).json({ success: false, message: '서버 내부 오류' });
+    } finally {
+        connection.release(); // 커넥션 반납
+    }
 };
-
 
 exports.changePassword = async (req, res) => {
     const userId = req.user.userId;
@@ -234,3 +250,74 @@ exports.changeNickname = async (req, res) => {
         });
     }
 };
+
+exports.updateProfileImage = async (req, res) => {
+    try {
+        // 함수 안에 넣지 않고 '기다려(await)'라고 시킴
+        await uploadPromise(req, res); 
+
+        if (!req.file) return res.status(400).send("파일 없음");
+
+        const userId = req.user.userId;
+        const imageUrl = `/profile/${req.file.filename}`;
+
+        await pool.query("UPDATE users SET profile_image_url = ? WHERE id = ?", [imageUrl, userId]);
+
+        return res.status(200).json({ success: true, profileImageUrl: imageUrl });
+    } catch (err) {
+        return res.status(500).send("에러 발생");
+    }
+};
+
+exports.getMe = async (req, res) => {
+    const userId = req.user.userId; // authMiddleware에서 검증된 ID
+    const includePhoto = req.query.includeProfileImage === 'true';
+
+    try {
+        const sql = `
+            SELECT id, email, nickname, profile_image_url, create_at
+            FROM users 
+            WHERE id = ?
+        `;
+        const [rows] = await pool.query(sql, [userId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: '유저를 찾을 수 없습니다.' });
+        }
+
+        const user = rows[0];
+        let photoData = null;
+
+        if (includePhoto && user.profile_image_url) {
+            try {
+                const filePath = path.join(__dirname, '..', 'storage', 'profile', path.basename(user.profile_image_url));
+                const imageBuffer = await fs.readFile(filePath);
+                photoData = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
+            } catch (fileErr) {
+                console.error("사진 파일 읽기 실패:", fileErr);
+                photoData = null; 
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                nickname: user.nickname,
+                createAt: user.create_at,
+                // 요청했을 때만 데이터가 담기고, 아니면 null이 나감
+                profileImageBase64: photoData
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: '서버 오류' });
+    }
+};
+
+/*
+추가할만한 Endpoints
+1. 계정 탈퇴
+2. 닉네임 중복 확인
+*/
