@@ -119,13 +119,12 @@ class StatisticsWidgetActivity : AppCompatActivity() {
             R.drawable.statistics_background_stratosphere,
             R.drawable.statistics_background_space
         )
-        val grapeCount = leafCount / 5
-        val bgIndex = (grapeCount / 5).coerceIn(0, backgrounds.lastIndex)
+        // 배경 1개당 10층 (0~9: 아침, 10~19: 저녁, 20~29: 성층권, 30+: 우주)
+        val bgIndex = (leafCount / 10).coerceIn(0, backgrounds.lastIndex)
         ivFoxTreeBg.setImageResource(backgrounds[bgIndex])
 
-        // 다음 배경 전환까지 남은 층수 (배경 1개당 25층)
         if (bgIndex < backgrounds.lastIndex) {
-            val nextBgLeafThreshold = (bgIndex + 1) * 25
+            val nextBgLeafThreshold = (bgIndex + 1) * 10
             val remaining = nextBgLeafThreshold - leafCount
             tvLevelsToNextBg.text = "다음 배경까지 ${remaining}층"
         } else {

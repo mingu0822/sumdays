@@ -54,15 +54,4 @@ object WeekSummaryScheduler {
         )
         Log.d("WeekSummaryScheduler", "스케줄러 등록 요청 완료")
     }
-
-    // 테스트용
-    fun triggerTestRun(context: Context) {
-        val testData = Data.Builder()
-            .putBoolean("IS_TEST_MODE", true)
-            .build()
-        val request = OneTimeWorkRequestBuilder<WeekSummaryWorker>()
-            .setInputData(testData)
-            .build()
-        WorkManager.getInstance(context).enqueue(request)
-    }
 }
