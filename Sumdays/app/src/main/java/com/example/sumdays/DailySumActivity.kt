@@ -1,6 +1,7 @@
 package com.example.sumdays
 
 import android.app.Dialog
+import android.util.Log
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -237,20 +238,14 @@ class DailySumActivity : AppCompatActivity() {
                     val text = memoMergeAdapter.getMemoContent(0)
                     val mood = memoMergeAdapter.generateMood(text)
                     saveDiary(text, mood)
-                    moveToReadActivity()
                 } catch (e: CancellationException) {
-                    showLoading(false)
-                    Toast.makeText(
-                        this@DailySumActivity,
-                        "메모 저장이 중단되었습니다",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    // 분석/mood 취소됐어도 일기 텍스트는 이미 저장됨, 그냥 넘어감
                 } catch (e: Exception) {
-                    showLoading(false)
-                    Toast.makeText(this@DailySumActivity, "오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                    Log.w("DailySumActivity", "팝업 저장 중 오류 (일기 텍스트는 저장됨): ${e.message}")
                 } finally {
                     sheet.dismiss()
                 }
+                moveToReadActivity()
             }
         }
 

@@ -3,7 +3,6 @@ package com.example.sumdays.daily.diary
 import android.util.Log
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.network.ApiClient
-// import com.example.sumdays.utils.PersonaManager
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -42,6 +41,8 @@ object AnalysisRepository {
                     themeIcon = analysis.icon
                 )
                 return@withContext analysis
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e("AnalysisRepository", "'$date' 분석 결과 요청 중 예외 발생", e)
                 null
