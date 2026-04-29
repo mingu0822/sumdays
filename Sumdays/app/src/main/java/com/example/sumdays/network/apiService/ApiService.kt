@@ -2,6 +2,7 @@ package com.example.sumdays.network.apiService
 
 import com.example.sumdays.daily.diary.AnalysisRequest
 import com.example.sumdays.daily.memo.MergeRequest
+import com.example.sumdays.daily.memo.MoodRequest
 import com.example.sumdays.data.sync.SyncFetchResponse
 import com.example.sumdays.data.sync.SyncRequest
 import com.example.sumdays.data.sync.SyncResponse
@@ -82,17 +83,16 @@ interface ApiService {
     @POST("/api/ai/analyze")
     suspend fun diaryAnalyze(@Body req: AnalysisRequest): Response<JsonObject>
 
+    @POST("/api/ai/mood")
+    suspend fun generateMood(@Body req: MoodRequest): retrofit2.Response<com.google.gson.JsonObject>
+
     @Multipart
     @POST("/api/ai/extract-style")
     fun extractStyle(
-        // 1. diaries: JSON 배열을 담은 하나의 RequestBody 파트 (String으로 변환하여 사용)
         @Part("diaries") diaries: RequestBody,
-        // 2. images: MultipartBody.Part 리스트 (파일명과 함께 전송)
         @Part images: List<MultipartBody.Part>
     ): Call<StyleExtractionResponse>
 
-    // [신규] 주간 요약 요청
-    // WeekAnalysisRequest와 WeekAnalysisResponse는 같은 패키지에 있다고 가정
     @POST("/api/ai/summarize-week")
     suspend fun summarizeWeek(@Body request: WeekAnalysisRequest): Response<WeekAnalysisResponse>
 }

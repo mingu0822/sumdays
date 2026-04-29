@@ -98,7 +98,7 @@ class AnalysisRepositoryTest {
         )
 
         requireNotNull(result)
-        assertThat(result.aiComment, `is`("좋은 하루네요"))
+        assertThat(result.aiComment, `is`(nullValue()))
         assertThat(result.diary, `is`(diaryText))
         assertThat(result.entryDate, `is`(date))
         assertThat(result.icon, `is`("sunny"))
@@ -111,7 +111,7 @@ class AnalysisRepositoryTest {
                 date = date,
                 diary = diaryText,
                 keywords = "행복;즐거움",
-                aiComment = "좋은 하루네요",
+                aiComment = null,
                 emotionScore = 0.88,
                 emotionIcon = null,
                 themeIcon = "sunny"

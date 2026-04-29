@@ -78,6 +78,10 @@
             android:screenOrientation="portrait"
             android:exported="false" />
         <activity
+            android:name=".StatisticsWidgetActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
             android:name=".statistics.WeekStatsDetailActivity"
             android:screenOrientation="portrait"
             android:exported="false" />

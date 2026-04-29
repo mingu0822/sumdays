@@ -15,8 +15,8 @@ import android.transition.TransitionManager
 import android.util.Base64
 import android.util.Log
 import android.view.View
-import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -58,8 +58,6 @@ import com.example.sumdays.image.PhotoGalleryAdapter
 import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
-import com.example.sumdays.ui.component.NavBarController
-import com.example.sumdays.ui.component.NavSource
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -70,6 +68,7 @@ class DailyWriteActivity : AppCompatActivity() {
     private lateinit var memoAdapter: MemoAdapter
 
     // UI 뷰들
+    private lateinit var dateTextBox : ImageView
     private lateinit var dateTextView: TextView
     private lateinit var memoListView: RecyclerView
     private lateinit var memoInputEditText: EditText
@@ -82,9 +81,11 @@ class DailyWriteActivity : AppCompatActivity() {
     private lateinit var waveBar2: View
     private lateinit var waveBar3: View
     private lateinit var micStopContainer: View
-    private lateinit var readDiaryButton: Button
-    private lateinit var navBarController: NavBarController
+    private lateinit var readBackButton: ImageButton
+    private lateinit var readCalendarButton : ImageButton
+    private lateinit var readDiaryButton: ImageButton
     private lateinit var audioRecorderHelper: AudioRecorderHelper
+    private lateinit var sumBtn: ImageButton
 
     // 오른쪽 드로어 & 이미지 갤러리
     private lateinit var drawerLayout: DrawerLayout
@@ -128,14 +129,6 @@ class DailyWriteActivity : AppCompatActivity() {
         setupTextChangedListener() // instagram style active text box
 
         updateOwned()
-        navBarController = NavBarController(this)
-        navBarController.setNavigationBar(NavSource.WRITE) {
-            val currentMemos = memoAdapter.currentList
-            Intent(this, DailySumActivity::class.java).apply {
-                putExtra("date", date)
-                putParcelableArrayListExtra("memo_list", ArrayList(currentMemos))
-            }
-        }
         applyThemeModeSettings()
 
         onBackPressedDispatcher.addCallback(this) {
@@ -220,9 +213,6 @@ class DailyWriteActivity : AppCompatActivity() {
             getColor(android.R.color.black)
         )
 
-        readDiaryButton.setTextColor(
-            getColor(R.color.white)
-        )
 
         memoInputEditText.setTextColor(
             getColor(android.R.color.black)
@@ -236,7 +226,8 @@ class DailyWriteActivity : AppCompatActivity() {
         micIcon.setImageResource(currentTheme.recordIcon)
         imageIcon.setImageResource(currentTheme.addImageIcon)
 
-        navBarController.setCenterSumIcon(foxFaceImage)
+        dateTextBox.setBackgroundResource(currentTheme.blockStyle)
+        memoListView.setBackgroundResource(currentTheme.blockStyle)
     }
 
     private fun createAudioRecorderHelper(): AudioRecorderHelper {
@@ -345,6 +336,7 @@ class DailyWriteActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
+        dateTextBox = findViewById(R.id.date_text_box)
         dateTextView = findViewById(R.id.date_text_view)
         memoListView = findViewById(R.id.memo_list_view)
         memoInputEditText = findViewById(R.id.memo_input_edittext)
@@ -352,7 +344,10 @@ class DailyWriteActivity : AppCompatActivity() {
         micIcon = findViewById(R.id.mic_icon)
         stopIcon = findViewById(R.id.stop_icon)
         imageIcon = findViewById(R.id.image_icon)
+        readBackButton = findViewById(R.id.read_back_button)
+        readCalendarButton = findViewById(R.id.read_calendar_button)
         readDiaryButton = findViewById(R.id.read_diary_button)
+        sumBtn = findViewById(R.id.sum_btn)
 
         audioWaveView = findViewById(R.id.audio_wave_view)
         waveBar1 = findViewById(R.id.wave_bar_1)
@@ -509,12 +504,26 @@ class DailyWriteActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun handleBackPress() {
+        finish()
+    }
     private fun setupClickListeners() {
         readDiaryButton.setOnClickListener {
             val intent = Intent(this, DailyReadActivity::class.java)
             intent.putExtra("date", date)
             startActivity(intent)
             overridePendingTransition(0, 0)
+        }
+
+        readBackButton.setOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
+
+        readCalendarButton.setOnClickListener {
+            val intent = Intent(this, CalendarActivity::class.java)
+//            intent.putExtra("date", date)
+            startActivity(intent)
+
         }
 
         sendIcon.setOnClickListener {
@@ -562,6 +571,17 @@ class DailyWriteActivity : AppCompatActivity() {
                 drawerLayout.openDrawer(GravityCompat.END)
             }
         }
+
+        sumBtn.setOnClickListener {
+            val currentMemos = memoAdapter.currentList
+            val intent = Intent(this, DailySumActivity::class.java).apply {
+                putExtra("date", date)
+                putParcelableArrayListExtra("memo_list", ArrayList(currentMemos))
+            }
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+        }
+
     }
 
     // instagram style active text box
@@ -589,12 +609,10 @@ class DailyWriteActivity : AppCompatActivity() {
     private fun setupKeyboardAnimation() {
         val rootView = findViewById<View>(R.id.write)
         val contentArea = findViewById<View>(R.id.content_area)
-        val navBarViewHeightPx = (110 * resources.displayMetrics.density).toInt()
+        val navBarViewHeightPx = (130 * resources.displayMetrics.density).toInt() // height(130)는 sum_btn에서 가져옴
         var navBarHeight = 0
         var imeAnimationInProgress = false
-        var previousPaddingBottom = navBarViewHeightPx // 메모 위치를 유지하기 위함
-
-        // 초기 상태: 키보드 없음 → nav bar 높이만큼 패딩
+        var previousPaddingBottom = navBarViewHeightPx
         contentArea.updatePadding(bottom = navBarViewHeightPx)
 
         // root: status bar top + system nav bar bottom 처리

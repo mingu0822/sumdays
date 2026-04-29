@@ -205,7 +205,13 @@ class DailyReadActivity : AppCompatActivity() {
         binding.diaryContentTextView.text = diaryText
         binding.commentIcon.text = entry?.themeIcon ?: "🤔"
         binding.keywordsText.text = entry?.keywords?.replace(";", ", ")
-        binding.commentText.text = entry?.aiComment ?: ""
+        val mood = entry?.aiComment
+        if (!mood.isNullOrBlank()) {
+            binding.commentText.text = mood
+            binding.commentText.visibility = android.view.View.VISIBLE
+        } else {
+            binding.commentText.visibility = android.view.View.GONE
+        }
 
         val score = entry?.emotionScore ?: 0.0
         val foxFaceResId = when {
@@ -260,8 +266,10 @@ class DailyReadActivity : AppCompatActivity() {
         }
 
         binding.foxFaceImage.setOnClickListener {
-            binding.commentText.visibility =
-                if (binding.commentText.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            if (!binding.commentText.text.isNullOrBlank()) {
+                binding.commentText.visibility =
+                    if (binding.commentText.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            }
         }
     }
 
@@ -432,8 +440,6 @@ class DailyReadActivity : AppCompatActivity() {
                     AnalysisRepository.requestAnalysis(
                         date = dateKey,
                         diary = updatedContent,
-                        personaId = 1, // 임시 하드코딩
-                        context = this@DailyReadActivity,
                         viewModel = viewModel
                     )
                 }

@@ -150,6 +150,49 @@ Merge the base memo and the piece memo into a single diary paragraph that follow
         if text:
             yield chunk
 
+def generate_mood(diary: str, style_features, style_examples) -> str:
+    style_features_text, style_examples_text = prep(style_features, style_examples)
+
+    developer_msg = """
+You are the diary writer's pet. You have been watching your owner all day.
+Write EXACTLY ONE sentence from your perspective as the pet, describing your owner's emotional state or mood for today.
+
+Rules:
+- Write in first-person as the pet observing the owner (e.g. "집사는...", "주인은...").
+- Express the owner's emotional state — not what events happened.
+- Absorb the owner's writing style: tone, sentence endings, speech quirks, formality.
+- The sentence should feel warm and observational — the way a pet quietly notices its owner.
+- Output ONLY the sentence. No quotes, no explanation.
+"""
+
+    prompt = f"""
+<style_features>
+{style_features_text}
+</style_features>
+
+<style_examples>
+{style_examples_text}
+</style_examples>
+
+<diary>
+{diary}
+</diary>
+
+Write one sentence from the pet's perspective about the owner's emotional state today.
+"""
+
+    response = client.chat.completions.create(
+        model=os.getenv("GPT_MODEL", "gpt-4.1-nano"),
+        messages=[
+            {"role": "developer", "content": developer_msg},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.7,
+        max_tokens=120,
+    )
+
+    return response.choices[0].message.content.strip()
+
 def prep(style_features, style_examples):
     if isinstance(style_features, dict):
         style_features_text = json.dumps(style_features, ensure_ascii=False, indent=2)

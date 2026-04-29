@@ -9,13 +9,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -64,15 +62,16 @@ class DailySumActivity : AppCompatActivity() {
             insets
         }
 
+
+        val recyclerView = findViewById<RecyclerView>(R.id.memo_list_view)
+
         userStatsPrefs = UserStatsPrefs(this)
         userStyleDao = AppDatabase.getDatabase(this).userStyleDao()
 
         date = intent.getStringExtra("date") ?: "알 수 없는 날짜"
         loadingOverlay = findViewById(R.id.loading_overlay)
         loadingGifView = findViewById(R.id.loading_gif_view)
-        findViewById<TextView>(R.id.date_text_view).text = date
 
-        recyclerView = findViewById(R.id.memo_list_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         val receivedMemoList: List<Memo> =
@@ -106,12 +105,12 @@ class DailySumActivity : AppCompatActivity() {
             handleBackPress()
         }
 
-        findViewById<ImageButton>(R.id.skip_icon).setOnClickListener {
+        findViewById<ImageButton>(R.id.go_icon).setOnClickListener {
             showLoading(true)
             mergeJob = lifecycleScope.launch {
                 try {
                     val result = memoMergeAdapter.mergeAllMemo()
-                    saveDiary(result)
+                    saveDiary(result, memoMergeAdapter.lastMood)
                     moveToReadActivity()
                 } catch (e: CancellationException) {
                     showLoading(false)
@@ -145,20 +144,19 @@ class DailySumActivity : AppCompatActivity() {
 
         val rootView = findViewById<View>(R.id.sum_layout)
         val memoListView = findViewById<RecyclerView>(R.id.memo_list_view)
-        val dateTextView = findViewById<TextView>(R.id.date_text_view)
         val backIcon = findViewById<ImageView>(R.id.back_icon)
         val undoIcon = findViewById<ImageView>(R.id.undo_icon)
-        val skipIcon = findViewById<ImageButton>(R.id.skip_icon)
+        val skipIcon = findViewById<ImageButton>(R.id.go_icon)
 
         rootView.setBackgroundResource(currentTheme.backgroundColor)
-        memoListView.setBackgroundResource(currentTheme.blockColor)
+        memoListView.setBackgroundResource(currentTheme.blockStyle)
 
-        dateTextView.setTextColor(
-            ContextCompat.getColor(this, currentTheme.textPrimaryColor)
-        )
-
-        backIcon.setImageResource(currentTheme.backIcon)
-    }
+//        dateTextView.setTextColor(
+//            ContextCompat.getColor(this, currentTheme.textPrimaryColor)
+//        )
+//
+//        backIcon.setImageResource(currentTheme.backIcon)
+        }
 
     private fun handleBackPress() {
         if (loadingOverlay.isVisible) {
@@ -199,7 +197,7 @@ class DailySumActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private suspend fun saveDiary(mergedResult: String) {
+    private suspend fun saveDiary(mergedResult: String, precomputedMood: String? = null) {
         val todayStr = getTodayDate()
         StreakPrefs.onDiarySaved(this, todayStr)
 
@@ -207,9 +205,8 @@ class DailySumActivity : AppCompatActivity() {
         AnalysisRepository.requestAnalysis(
             date = date,
             diary = mergedResult,
-            personaId = 1, // 임시 하드코딩
-            context = this@DailySumActivity,
-            viewModel = viewModel
+            viewModel = viewModel,
+            precomputedMood = precomputedMood
         )
     }
 
@@ -234,10 +231,23 @@ class DailySumActivity : AppCompatActivity() {
         }
 
         btnSave.setOnClickListener {
+            showLoading(true)
             lifecycleScope.launch {
                 try {
-                    saveDiary(memoMergeAdapter.getMemoContent(0))
+                    val text = memoMergeAdapter.getMemoContent(0)
+                    val mood = memoMergeAdapter.generateMood(text)
+                    saveDiary(text, mood)
                     moveToReadActivity()
+                } catch (e: CancellationException) {
+                    showLoading(false)
+                    Toast.makeText(
+                        this@DailySumActivity,
+                        "메모 저장이 중단되었습니다",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } catch (e: Exception) {
+                    showLoading(false)
+                    Toast.makeText(this@DailySumActivity, "오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
                 } finally {
                     sheet.dismiss()
                 }

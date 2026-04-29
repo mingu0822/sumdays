@@ -6,7 +6,8 @@
         android:id="@+id/root_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".CalendarActivity">
+        tools:context=".CalendarActivity"
+    android:clipChildren="false">
 
         <LinearLayout
             android:id="@+id/top_container"
@@ -93,7 +94,7 @@
                     android:layout_width="180dp"
                     android:layout_height="40dp"
                     android:src="@drawable/bg_image_drawer_rounded_light"
-                    app:tint="@color/dark_foxrange" />
+                    app:tint="@color/foxrange" />
                 <TextView
                     android:id="@+id/tv_month_year"
                     android:layout_width="wrap_content"
@@ -130,31 +131,23 @@
 <!--            />-->
 
 
-    <LinearLayout
-        android:id="@+id/stats_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@+id/calendarViewPager"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+    <ImageView
+        android:id="@+id/swipe_up_hint_pill"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginBottom="4dp"
+        android:src="@drawable/ic_chevron_up"
+        android:contentDescription="위로 스와이프"
         app:layout_constraintBottom_toTopOf="@id/navigation_bar"
-        app:layout_constraintVertical_bias="0.0">
-        <ImageButton
-        android:id="@+id/CalenderView_Statistics"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginHorizontal="10dp"
-        android:src="@drawable/ic_arrow_back_white"
-        android:background="@drawable/theme_default_block" />
-    </LinearLayout>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <include
+            android:clipChildren="false"
             android:id="@+id/navigation_bar"
             layout="@layout/include_navigation_bar"
             android:layout_width="0dp"
-            android:layout_height="110dp"
+            android:layout_height="80dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
