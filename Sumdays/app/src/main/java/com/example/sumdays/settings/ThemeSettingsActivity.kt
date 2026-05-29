@@ -31,9 +31,9 @@ class ThemeSettingsActivity : AppCompatActivity() {
         val themeKey = ThemePrefs.getTheme(this)
         val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-        val primaryColor = ContextCompat.getColor(this, currentTheme.textPrimaryColor)
+        val primaryColor = ContextCompat.getColor(this, currentTheme.themeTextColorSpecialA)
         val backgroundColor = currentTheme.backgroundColor
-        val blockColor = currentTheme.blockColor
+        val blockColor = currentTheme.themeColorA
 
         // 전체 배경
         binding.root.setBackgroundResource(backgroundColor)

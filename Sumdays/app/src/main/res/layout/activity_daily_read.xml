@@ -74,7 +74,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:padding="8dp"
-            android:src="@drawable/ic_arrow_back_white"
+            android:src="@drawable/ic_arrow_back_default"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/date_text"
             app:layout_constraintTop_toTopOf="parent" />
@@ -84,7 +84,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:padding="8dp"
-            android:src="@drawable/ic_arrow_forward_white"
+            android:src="@drawable/ic_arrow_forward_default"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/date_text"
             app:layout_constraintTop_toTopOf="parent" />
@@ -99,7 +99,9 @@
         android:id="@+id/bottom_buttons_layout"
         layout="@layout/include_navigation_bar"
         android:layout_width="0dp"
-        android:layout_height="110dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -162,13 +164,13 @@
         android:id="@+id/diary_scroll_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="40dp"
+        android:layout_marginStart="12dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="40dp"
+        android:layout_marginEnd="12dp"
         android:layout_marginBottom="16dp"
         android:fillViewport="true"
         android:clipToPadding="false"
-        android:paddingBottom="80dp"
+        android:paddingBottom="0dp"
         app:layout_constraintBottom_toTopOf="@+id/comment_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -176,7 +178,9 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:background="@drawable/blockstyle_d_basic"
+            >
 
             <TextView
                 android:id="@+id/diary_content_text_view"
@@ -185,6 +189,8 @@
                 android:lineSpacingExtra="8sp"
                 android:textSize="@dimen/text_size_S"
                 android:visibility="visible"
+                android:layout_marginVertical="8dp"
+
                 tools:text="오늘은 산책하면서 생각이 많았던 하루였다. (일기 내용...)" />
 
             <EditText

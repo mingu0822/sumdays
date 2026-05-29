@@ -114,8 +114,8 @@ class PhotoGalleryAdapter(
             val themeKey = ThemePrefs.getTheme(context)
             val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-            val blockColor = ContextCompat.getColor(context, currentTheme.blockColor)
-            val primaryColor = ContextCompat.getColor(context, currentTheme.textPrimaryColor)
+            val blockColor = ContextCompat.getColor(context, currentTheme.themeColorA)
+            val primaryColor = ContextCompat.getColor(context, currentTheme.themeTextColorSpecialA)
 
             cardView.setCardBackgroundColor(blockColor)
             deleteButton.setColorFilter(primaryColor)
@@ -136,8 +136,8 @@ class PhotoGalleryAdapter(
             val themeKey = ThemePrefs.getTheme(context)
             val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-            val blockColor = ContextCompat.getColor(context, currentTheme.blockColor)
-            val primaryColor = ContextCompat.getColor(context, currentTheme.textPrimaryColor)
+            val blockColor = ContextCompat.getColor(context, currentTheme.themeColorA)
+            val primaryColor = ContextCompat.getColor(context, currentTheme.themeTextColorSpecialA)
 
             cardView.setCardBackgroundColor(blockColor)
             addIcon.setColorFilter(primaryColor)

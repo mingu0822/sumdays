@@ -5,17 +5,27 @@
     android:layout_height="match_parent"
     android:foregroundGravity="center">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/btnDaily"
         android:tag="nav_center"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="62dp"
+        android:layout_height="62dp"
         android:layout_gravity="center"
-        android:src="@drawable/ic_edit_white"
         android:translationY="-18dp"
-        app:backgroundTint="@color/black"
-        app:fabCustomSize="62dp"
-        app:maxImageSize="45dp"
-        app:tint="@android:color/white" />
+        app:cardCornerRadius="31dp"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="#b7594d"
+        app:strokeWidth="1.6dp"
+        app:strokeColor="#600000"
+        app:cardMaxElevation="6dp">
+
+        <ImageView
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_edit_white"
+            app:tint="@android:color/white" />
+
+    </com.google.android.material.card.MaterialCardView>
 
 </FrameLayout>

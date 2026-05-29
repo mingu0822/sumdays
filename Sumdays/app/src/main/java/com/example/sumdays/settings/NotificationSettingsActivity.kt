@@ -57,10 +57,10 @@ class NotificationSettingsActivity : AppCompatActivity() {
         val themeKey = ThemePrefs.getTheme(this)
         val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-        val primaryColor = ContextCompat.getColor(this, currentTheme.textPrimaryColor)
-        val buttonColor = ContextCompat.getColor(this, currentTheme.buttonColor)
+        val primaryColor = ContextCompat.getColor(this, currentTheme.themeTextColorSpecialA)
+        val buttonColor = ContextCompat.getColor(this, currentTheme.themeColorA)
         val backgroundColor = currentTheme.backgroundColor
-        val blockColor = currentTheme.blockColor
+        val blockColor = currentTheme.themeColorA
 
         // 전체 배경
         binding.root.setBackgroundResource(backgroundColor)

@@ -12,6 +12,13 @@ import com.example.sumdays.settings.NotificationSettingsActivity
 import com.example.sumdays.statistics.WeekSummaryWorker
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
+import com.example.sumdays.utils.setupEdgeToEdge
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.settings.ThemeSettingsActivity
+import com.example.sumdays.settings.prefs.ThemeState
 
 class SettingActivity : AppCompatActivity() {
 
@@ -37,18 +44,8 @@ class SettingActivity : AppCompatActivity() {
             startActivity(Intent(this@SettingActivity, TutorialActivity::class.java))
         }
 
-        binding.summaryBlock.setOnClickListener {
-            val inputData = workDataOf("IS_TEST_MODE" to false) // true로 설정하면 더미 데이터 생성
-
-            // 2. OneTimeWorkRequest 생성 (즉시 실행)
-            val workRequest = OneTimeWorkRequestBuilder<WeekSummaryWorker>()
-                .setInputData(inputData)
-                .build()
-
-            // 3. WorkManager에 큐 삽입
-            WorkManager.getInstance(applicationContext).enqueue(workRequest)
-
-            Toast.makeText(this@SettingActivity, "주간 통계 생성 요청됨", Toast.LENGTH_SHORT).show()
+        binding.themeBlock.setOnClickListener {
+            startActivity(Intent(this@SettingActivity, ThemeSettingsActivity::class.java))
         }
 
         binding.btnBack.setOnClickListener {
@@ -62,10 +59,10 @@ class SettingActivity : AppCompatActivity() {
         val currentTheme = themeRepo.ownedThemes.get(themeKey)
 
         val themePreviewImage = currentTheme!!.themePreviewImage
-        val primaryColor = currentTheme!!.textPrimaryColor
-        val buttonColor = currentTheme!!.buttonColor
+        val primaryColor = currentTheme!!.themeTextColorSpecialA
+        val buttonColor = currentTheme!!.themeColorA
         val backgroundColor = currentTheme!!.backgroundColor
-        val blockColor = currentTheme!!.blockColor
+        val blockColor = currentTheme!!.themeColorA
         val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
         val memoImage = currentTheme!!.memoImage
 //        val foxIcon = currentTheme!!.foxIcon

@@ -42,10 +42,10 @@ class LabsSettingsActivity : AppCompatActivity() {
         val themeKey = ThemePrefs.getTheme(this)
         val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-        val primaryColor = currentTheme.textPrimaryColor
-        val buttonColor = currentTheme.buttonColor
+        val primaryColor = currentTheme.themeColorA
+        val buttonColor = currentTheme.themeColorA
         val backgroundColor = currentTheme.backgroundColor
-        val blockColor = currentTheme.blockColor
+        val blockColor = currentTheme.themeColorA
 
         // 전체 배경
         binding.root.setBackgroundResource(backgroundColor)
