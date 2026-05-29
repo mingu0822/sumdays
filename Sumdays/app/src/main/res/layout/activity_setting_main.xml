@@ -87,14 +87,15 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/themeBlock"
+                android:id="@+id/summaryBlock"
                 style="@style/SettingsItemStyle">
+
                 <TextView
-                    android:id="@+id/themeBlockText"
-                    android:text="테마 변경"
+                    android:id="@+id/summaryBlockText"
                     style="@style/TextAppearance.App.Normal"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:text="주간통계 수동 추가" />
             </LinearLayout>
 
         </LinearLayout>

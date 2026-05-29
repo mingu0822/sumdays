@@ -150,7 +150,7 @@ class DailySumActivity : AppCompatActivity() {
         val skipIcon = findViewById<ImageButton>(R.id.go_icon)
 
         rootView.setBackgroundResource(currentTheme.backgroundColor)
-        memoListView.setBackgroundResource(currentTheme.blockStyleD)
+        memoListView.setBackgroundResource(currentTheme.blockStyle)
 
 //        dateTextView.setTextColor(
 //            ContextCompat.getColor(this, currentTheme.textPrimaryColor)

@@ -147,18 +147,36 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/summaryBlock"
-                style="@style/SettingsItemStyle">
+                android:id="@+id/accountBlock"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="12dp">
 
                 <TextView
-                    android:id="@+id/summaryBlockText"
+                    android:id="@+id/accountBlockText"
                     style="@style/TextAppearance.App.Normal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="주간통계 수동 추가" />
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="24dp"
+                    android:text="계정 설정" />
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/themeBlock"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="12dp">
 
+                <TextView
+                    android:id="@+id/themeBlockText"
+                    style="@style/TextAppearance.App.Normal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="24dp"
+                    android:text="테마 변경" />
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>

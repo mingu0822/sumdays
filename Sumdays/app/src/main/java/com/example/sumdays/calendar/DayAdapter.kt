@@ -77,7 +77,7 @@ class DayAdapter(
             tvDayNumber.setTextColor(textColor)
 
             val hasDiary = activity.currentStatusMap[cell.dateString]?.first ?: false
-            //val emoji = activity.currentStatusMap[cell.dateString]?.second
+            val emoji = activity.currentStatusMap[cell.dateString]?.second
 
             when {
                 isToday -> {
@@ -105,12 +105,12 @@ class DayAdapter(
                 }
             }
 
-//            if (!emoji.isNullOrEmpty()) {
-//                tvEmoji.text = emoji
-//                tvEmoji.visibility = View.VISIBLE
-//            } else {
-//                tvEmoji.visibility = View.GONE
-//            }
+            if (!emoji.isNullOrEmpty()) {
+                tvEmoji.text = emoji
+                tvEmoji.visibility = View.VISIBLE
+            } else {
+                tvEmoji.visibility = View.GONE
+            }
 
             if (!cell.isCurrentMonth) {
                 tvEmoji.visibility = View.GONE

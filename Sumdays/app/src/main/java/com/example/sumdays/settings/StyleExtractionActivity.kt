@@ -99,10 +99,10 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
         val themeKey = ThemePrefs.getTheme(this)
         val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-        val primaryColor = ContextCompat.getColor(this, currentTheme.themeTextColorSpecialA)
-        val buttonColor = ContextCompat.getColor(this, currentTheme.themeColorA)
+        val primaryColor = ContextCompat.getColor(this, currentTheme.textPrimaryColor)
+        val buttonColor = ContextCompat.getColor(this, currentTheme.buttonColor)
         val backgroundColor = currentTheme.backgroundColor
-        val blockColor = currentTheme.themeColorA
+        val blockColor = currentTheme.blockColor
 
         // 전체 배경
         binding.root.setBackgroundResource(backgroundColor)

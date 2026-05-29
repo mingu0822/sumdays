@@ -49,7 +49,7 @@
     <!-- default 테마 주요 색 -->
     <color name="theme_default">#FFFFFF</color> //안쓰이는중. 참고
     <color name="theme_default_primary">#d03b2f</color>
-    <color name="theme_default_background">#f7f5ef</color>
+    <color name="theme_default_background">#F7F4F1</color>
     <color name="theme_default_block">#ffffff</color>
     <color name="theme_default_textcolor_basic">#000000</color>
     <color name="theme_default_textcolor_special">#7c0200</color>

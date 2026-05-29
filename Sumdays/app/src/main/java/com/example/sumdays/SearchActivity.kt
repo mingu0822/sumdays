@@ -6,7 +6,6 @@ import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
@@ -27,7 +26,6 @@ import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
-import com.example.sumdays.utils.setupEdgeToEdge
 
 class SearchActivity : AppCompatActivity() {
 
@@ -58,9 +56,6 @@ class SearchActivity : AppCompatActivity() {
         navBarController.setNavigationBar(NavSource.SEARCH)
 
         applyThemeModeSettings()
-
-        val searchLayout = findViewById<View>(R.id.search_layout)
-        setupEdgeToEdge(searchLayout)
 
         // Room DB/DAO 가져오기
         val db = AppDatabase.getDatabase(this)
@@ -106,10 +101,10 @@ class SearchActivity : AppCompatActivity() {
         val themeKey = ThemePrefs.getTheme(this)
         val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
 
-        val primaryColor = currentTheme.themeTextColorSpecialA
-        val buttonColor = currentTheme.themeColorA
+        val primaryColor = currentTheme.textPrimaryColor
+        val buttonColor = currentTheme.buttonColor
         val backgroundColor = currentTheme.backgroundColor
-        val blockColor = currentTheme.themeColorA
+        val blockColor = currentTheme.blockColor
 
         // 화면 전체 배경
         findViewById<android.view.View>(android.R.id.content).setBackgroundResource(backgroundColor)

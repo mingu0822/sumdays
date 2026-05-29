@@ -181,8 +181,8 @@ class CalendarActivity : AppCompatActivity() {
             calendarViewPager.getChildAt(0) as? androidx.recyclerview.widget.RecyclerView
         recyclerView?.itemAnimator = null
 
-        val headerLayout = findViewById<LinearLayout>(R.id.day_of_week_header)
-        headerLayout.removeAllViews()
+//        val headerLayout = findViewById<LinearLayout>(R.id.day_of_week_header)
+//        headerLayout.removeAllViews()
 
         val dayNamesKOR = listOf("일", "월", "화", "수", "목", "금", "토")
         val dayNamesENG = listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
@@ -213,7 +213,7 @@ class CalendarActivity : AppCompatActivity() {
                             android.R.color.holo_blue_dark
                         )
 
-                        else -> currentTheme?.themeTextColorSpecialA
+                        else -> currentTheme?.textPrimaryColor
                             ?: ContextCompat.getColor(
                                 this@CalendarActivity,
                                 android.R.color.black

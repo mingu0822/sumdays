@@ -268,7 +268,6 @@ class DailyReadActivity : AppCompatActivity() {
             val intent = Intent(this, DailyWriteActivity::class.java)
             intent.putExtra("date", repoKeyFormatter.format(currentDate.time))
             startActivity(intent)
-            overridePendingTransition(0, 0)
             finish()
         }
 
