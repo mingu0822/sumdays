@@ -1,7 +1,6 @@
 package com.example.sumdays.shop
 
 import com.example.sumdays.ShopItem
-import com.example.sumdays.theme.FoxChar
 
 data class FoxShopItem(
     override val id: Int,
@@ -9,10 +8,9 @@ data class FoxShopItem(
     override val description: String,
     override val price: Int,
     override var isOwned: Boolean = false,
-
-    val fox: FoxChar
+    var count: Int = 0,
 
 ) : ShopItem {
 
-    override val category: String = "fox"
+    override val category: String = "item"
 }

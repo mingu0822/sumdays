@@ -7,12 +7,17 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:background="@color/background"
-    tools:context=".CalendarActivity">
+    tools:context=".CalendarActivity"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
+    <!-- 🔥 핵심 수정: bottom padding 추가 -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="20dp">
+        android:padding="20dp"
+        android:paddingBottom="120dp"
+        android:clipToPadding="false">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -25,8 +30,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="10dp"
-               >
+                android:padding="10dp">
 
                 <RelativeLayout
                     android:layout_width="match_parent"
@@ -36,7 +40,6 @@
                         android:id="@+id/nickname"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-
                         android:layout_toEndOf="@id/profileImageContainer"
                         android:text="닉네임"
                         android:layout_marginTop="24dp"
@@ -53,18 +56,16 @@
                         android:layout_centerVertical="true"
                         android:clickable="true"
                         android:focusable="true"
-                        app:cornerRadius="12dp"
-                        android:foreground="?attr/selectableItemBackground"
-                        android:background="@color/background">
+                        android:background="@color/background"
+                        android:foreground="?attr/selectableItemBackground">
 
-                        <!-- 사진 모드-->
                         <ImageView
                             android:id="@+id/imgPhoto"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:scaleType="centerCrop"
                             android:visibility="gone" />
-                        <!-- 아바타 모드 -->
+
                         <ImageView
                             android:id="@+id/imgBase"
                             android:layout_width="match_parent"
@@ -110,10 +111,13 @@
     </ScrollView>
 
     <include
+        android:clipChildren="false"
         android:id="@+id/navigation_bar"
         layout="@layout/include_navigation_bar"
         android:layout_width="0dp"
-        android:layout_height="80dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

@@ -23,7 +23,8 @@ enum class NavSource {
     READ,
     PROFILE,
     SEARCH,
-    SOCIAL
+    SOCIAL,
+    SHOP,
 }
 
 class NavBarController(
@@ -38,7 +39,6 @@ class NavBarController(
         centerIcon?.setImageResource(drawableRes)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun setNavigationBar(
         from: NavSource,
         sumIntentProvider: (() -> Intent)? = null
@@ -98,7 +98,7 @@ class NavBarController(
         }
 
         btnShop.setOnClickListener {
-            if (from != NavSource.SEARCH) {
+            if (from != NavSource.SHOP) {
                 activity.startActivity(
                     Intent(activity, ShopActivity::class.java)
                 )

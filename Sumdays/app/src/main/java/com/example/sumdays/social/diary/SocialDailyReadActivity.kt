@@ -87,18 +87,18 @@ class SocialDailyReadActivity : AppCompatActivity() {
         foxRepo.updateOwned()
 
         val themeKey = ThemePrefs.getTheme(this)
-        val foxKey = ThemePrefs.getFox(this)
+//        val foxKey = ThemePrefs.getFox(this)
 
         val currentTheme =
             themeRepo.ownedThemes[themeKey]
                 ?: themeRepo.allThemeMap[themeKey]
 
-        val currentFox =
-            foxRepo.ownedFoxes[foxKey]
-                ?: foxRepo.allFoxMap[foxKey]
+//        val currentFox =
+//            foxRepo.ownedFoxes[foxKey]
+//                ?: foxRepo.allFoxMap[foxKey]
 
         // ⭐ null 방어
-        if (currentTheme == null || currentFox == null) {
+        if (currentTheme == null) {
             Toast.makeText(this, "기본 테마를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
             return
         }

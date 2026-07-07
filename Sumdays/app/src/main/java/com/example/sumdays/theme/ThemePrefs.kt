@@ -20,12 +20,12 @@ object ThemePrefs {
         return prefs.getString(KEY_THEME, "default") ?: "default"
     }
 
-    fun saveFox(context: Context, foxName: String) {
+    fun saveFoxItem(context: Context, foxName: String) {
         val prefs = context.getSharedPreferences(PREF_FOX, Context.MODE_PRIVATE)
         prefs.edit().putString(KEY_FOX, foxName).apply()
     }
 
-    fun getFox(context: Context): String {
+    fun getFoxItem(context: Context): String {
         val prefs = context.getSharedPreferences(PREF_FOX, Context.MODE_PRIVATE)
         return prefs.getString(KEY_FOX, "default") ?: "default"
     }
