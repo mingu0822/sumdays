@@ -1,12 +1,17 @@
 package com.example.sumdays.social.reqeust
 
 import FriendRequestAdapter
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -22,6 +27,8 @@ import com.example.sumdays.network.apiService.FriendRequest
 import com.example.sumdays.network.apiService.HandleRequestBody
 import com.example.sumdays.social.SocialActivity
 import com.example.sumdays.social.SocialViewModel
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.getErrorMessage
 
 class FriendRequestDialog : DialogFragment() {
@@ -49,6 +56,7 @@ class FriendRequestDialog : DialogFragment() {
         viewModel = ViewModelProvider(requireActivity())[SocialViewModel::class.java]
         setupAdapter()
         setupTabLayout()
+        applyThemeModeSettings()
 
         // X 버튼 누르면 닫기
         binding.btnClose.setOnClickListener {
@@ -60,6 +68,28 @@ class FriendRequestDialog : DialogFragment() {
 
         // 초기 데이터 로드 (첫 번째 탭: 일반 친구 요청)
         showList(0)
+    }
+
+    private fun applyThemeModeSettings() {
+        ThemeRepository.updateOwned()
+        val themeKey = ThemePrefs.getTheme(requireContext())
+        val currentTheme = ThemeRepository.ownedThemes[themeKey]
+            ?: ThemeRepository.allThemeMap[themeKey]
+            ?: return
+
+        val pointColor = ContextCompat.getColor(requireContext(), currentTheme.themeColorA)
+        val basicTextColor = ContextCompat.getColor(requireContext(), currentTheme.themeTextColorBasic)
+        val helperTextColor = ContextCompat.getColor(requireContext(), currentTheme.themeColorD)
+
+        binding.root.background = GradientDrawable().apply {
+            setColor(ContextCompat.getColor(requireContext(), currentTheme.backgroundColor))
+            cornerRadius = 24 * resources.displayMetrics.density
+        }
+        binding.tvDialogTitle.setTextColor(basicTextColor)
+        binding.tvEmptyMessage.setTextColor(helperTextColor)
+        binding.btnClose.imageTintList = ColorStateList.valueOf(helperTextColor)
+        binding.tabLayout.setSelectedTabIndicatorColor(pointColor)
+        binding.tabLayout.setTabTextColors(helperTextColor, pointColor)
     }
 
     // adapter 초기화 (버튼 action 등)
@@ -269,8 +299,11 @@ class FriendRequestDialog : DialogFragment() {
     // 다이얼로그 크기를 화면에 맞게 조정
     override fun onStart() {
         super.onStart()
+        dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val horizontalMargin = (24 * resources.displayMetrics.density).toInt()
+        val dialogWidth = resources.displayMetrics.widthPixels - horizontalMargin * 2
         dialog?.window?.setLayout(
-            ViewGroup.LayoutParams.MATCH_PARENT,
+            dialogWidth,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
     }

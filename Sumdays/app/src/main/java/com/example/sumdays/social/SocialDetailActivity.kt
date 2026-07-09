@@ -1,16 +1,20 @@
 package com.example.sumdays.social
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -18,17 +22,25 @@ import com.example.sumdays.R
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.FriendInfo
 import com.example.sumdays.social.diary.SocialCalendarActivity
+import com.example.sumdays.theme.Theme
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.getErrorMessage
 import kotlinx.coroutines.launch
 
 class SocialDetailActivity : AppCompatActivity() {
 
+    private lateinit var rootLayout: ConstraintLayout
     private lateinit var btnBack: ImageButton
     private lateinit var btnManage: ImageButton
     private lateinit var btnOpenDiary: Button
 
     private lateinit var tvDetailTitle: TextView
     private lateinit var ivProfile: ImageView
+    private lateinit var cardTotalDiary: LinearLayout
+    private lateinit var cardJoinDate: LinearLayout
+    private lateinit var cardPublicDiary: LinearLayout
+    private lateinit var cardRecentWrite: LinearLayout
     private lateinit var tvTotalDiaryCount: TextView
     private lateinit var tvJoinDate: TextView
     private lateinit var tvPublicDiaryCount: TextView
@@ -41,21 +53,58 @@ class SocialDetailActivity : AppCompatActivity() {
 
         friendInfo = intent.getParcelableExtra("friendInfo")
         initViews()
+        applyThemeModeSettings()
         bindData()
         setupListeners()
     }
 
     private fun initViews() {
+        rootLayout = findViewById(R.id.socialDetailRoot)
         btnBack = findViewById(R.id.btnBack)
         btnManage = findViewById(R.id.btnManage)
         btnOpenDiary = findViewById(R.id.btnOpenDiary)
 
         tvDetailTitle = findViewById(R.id.tvDetailTitle)
         ivProfile = findViewById(R.id.ivProfile)
+        cardTotalDiary = findViewById(R.id.cardTotalDiary)
+        cardJoinDate = findViewById(R.id.cardJoinDate)
+        cardPublicDiary = findViewById(R.id.cardPublicDiary)
+        cardRecentWrite = findViewById(R.id.cardRecentWrite)
         tvTotalDiaryCount = findViewById(R.id.tvTotalDiaryCount)
         tvJoinDate = findViewById(R.id.tvJoinDate)
         tvPublicDiaryCount = findViewById(R.id.tvPublicDiaryCount)
         tvRecentWriteDate = findViewById(R.id.tvRecentWriteDate)
+    }
+
+    private fun getCurrentThemeOrNull(): Theme? {
+        ThemeRepository.updateOwned()
+        val themeKey = ThemePrefs.getTheme(this)
+        return ThemeRepository.ownedThemes[themeKey]
+            ?: ThemeRepository.allThemeMap[themeKey]
+    }
+
+    private fun applyThemeModeSettings() {
+        val currentTheme = getCurrentThemeOrNull() ?: return
+        val basicTextColor = ContextCompat.getColor(this, currentTheme.themeTextColorBasic)
+        val blockPointColor = ContextCompat.getColor(this, currentTheme.themeColorA)
+        val buttonTextColor = ContextCompat.getColor(this, currentTheme.themeColorC)
+        val strongPointColor = ContextCompat.getColor(this, currentTheme.themeColorD)
+
+        rootLayout.setBackgroundResource(currentTheme.backgroundColor)
+        ivProfile.setBackgroundResource(currentTheme.blockStyleA)
+        listOf(cardTotalDiary, cardJoinDate, cardPublicDiary, cardRecentWrite).forEach {
+            it.setBackgroundResource(currentTheme.blockStyleA)
+        }
+
+        tvDetailTitle.setTextColor(basicTextColor)
+        tvTotalDiaryCount.setTextColor(strongPointColor)
+        tvJoinDate.setTextColor(strongPointColor)
+        tvPublicDiaryCount.setTextColor(strongPointColor)
+        tvRecentWriteDate.setTextColor(strongPointColor)
+        btnBack.imageTintList = ColorStateList.valueOf(strongPointColor)
+        btnManage.imageTintList = ColorStateList.valueOf(strongPointColor)
+        btnOpenDiary.backgroundTintList = ColorStateList.valueOf(blockPointColor)
+        btnOpenDiary.setTextColor(buttonTextColor)
     }
 
     private fun bindData() {

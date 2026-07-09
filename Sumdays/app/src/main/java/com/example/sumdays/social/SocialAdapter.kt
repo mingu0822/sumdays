@@ -6,12 +6,16 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.sumdays.R
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.FriendInfo
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 
 class SocialAdapter(
     private val friendList: MutableList<FriendInfo>,
@@ -21,6 +25,7 @@ class SocialAdapter(
 
     // 원소 1개
     class SocialViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val cardRoot: CardView = itemView.findViewById(R.id.cardSocialRoot)
         val ivProfile: ImageView = itemView.findViewById(R.id.ivProfile)
         val tvUserName: TextView = itemView.findViewById(R.id.tvUserName)
         val tvUserInfo: TextView = itemView.findViewById(R.id.tvUserInfo)
@@ -38,9 +43,25 @@ class SocialAdapter(
     // ui 알맹이
     override fun onBindViewHolder(holder: SocialViewHolder, position: Int) {
         val friendInfo = friendList[position]
+        val context = holder.itemView.context
+        ThemeRepository.updateOwned()
+        val themeKey = ThemePrefs.getTheme(context)
+        val currentTheme = ThemeRepository.ownedThemes[themeKey]
+            ?: ThemeRepository.allThemeMap[themeKey]
+
+        currentTheme?.let { theme ->
+            holder.cardRoot.setBackgroundResource(theme.blockStyleA)
+            holder.ivProfile.setBackgroundResource(theme.blockStyleA)
+            holder.tvUserName.setTextColor(ContextCompat.getColor(context, theme.themeTextColorBasic))
+            holder.tvUserInfo.setTextColor(ContextCompat.getColor(context, theme.themeColorD))
+            holder.btnFriend.imageTintList =
+                android.content.res.ColorStateList.valueOf(
+                    ContextCompat.getColor(context, theme.themeColorD)
+                )
+        }
 
         val fullUrl = "${ApiClient.BASE_URL.removeSuffix("/")}${friendInfo.profileImageUrl}"
-        Glide.with(holder.itemView.context)
+        Glide.with(context)
             .load(fullUrl)
             .placeholder(R.drawable.loading_animation) // 로딩 중에 보여줄 이미지
             .error(R.drawable.ic_account_circle)             // 로드 실패 시 보여줄 이미지

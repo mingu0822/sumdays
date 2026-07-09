@@ -1,6 +1,7 @@
 package com.example.sumdays.social
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
@@ -26,13 +27,21 @@ import com.example.sumdays.social.reqeust.AddFriendDialog
 import com.example.sumdays.social.reqeust.FriendRequestDialog
 import kotlinx.coroutines.launch
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
+import com.example.sumdays.theme.Theme
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 
 class SocialActivity : AppCompatActivity() {
     private lateinit var navBarController: NavBarController
+    private lateinit var rootLayout: ConstraintLayout
     private lateinit var recyclerSocial: RecyclerView
     private lateinit var etSearchSocial: EditText
     private lateinit var socialAdapter: SocialAdapter
 
+    private lateinit var tvTitle: TextView
+    private lateinit var tvAllSocialSection: TextView
     private lateinit var tvSocialRequests: TextView
     private lateinit var btnAddSocial: ImageButton
     private lateinit var btnUpdate: ImageButton
@@ -63,6 +72,7 @@ class SocialActivity : AppCompatActivity() {
         setupRecyclerView()
         setupSearch()
         observeViewModel()
+        applyThemeModeSettings()
         viewModel.loadFriends()
     }
     private fun initViewModel() {
@@ -71,8 +81,11 @@ class SocialActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this, factory)[SocialViewModel::class.java]
     }
     private fun initView() {
+        rootLayout = findViewById(R.id.setting_main_root)
         recyclerSocial = findViewById(R.id.recyclerSocial)
         etSearchSocial = findViewById(R.id.etSearchSocial)
+        tvTitle = findViewById(R.id.tvTitle)
+        tvAllSocialSection = findViewById(R.id.tvAllSocialSection)
         tvSocialRequests = findViewById(R.id.tvSocialRequests)
         btnAddSocial = findViewById(R.id.btnAddSocial)
         btnUpdate = findViewById(R.id.btnUpdate)
@@ -116,6 +129,32 @@ class SocialActivity : AppCompatActivity() {
 
         recyclerSocial.layoutManager = LinearLayoutManager(this)
         recyclerSocial.adapter = socialAdapter
+    }
+
+    private fun getCurrentThemeOrNull(): Theme? {
+        ThemeRepository.updateOwned()
+        val themeKey = ThemePrefs.getTheme(this)
+        return ThemeRepository.ownedThemes[themeKey]
+            ?: ThemeRepository.allThemeMap[themeKey]
+    }
+
+    private fun applyThemeModeSettings() {
+        val currentTheme = getCurrentThemeOrNull() ?: return
+        val basicTextColor = ContextCompat.getColor(this, currentTheme.themeTextColorBasic)
+        val pointColor = ContextCompat.getColor(this, currentTheme.themeColorB)
+        val iconColor = ContextCompat.getColor(this, currentTheme.themeColorD)
+
+        rootLayout.setBackgroundResource(currentTheme.backgroundColor)
+        etSearchSocial.setBackgroundResource(currentTheme.blockStyleA)
+
+        tvTitle.setTextColor(basicTextColor)
+        tvAllSocialSection.setTextColor(basicTextColor)
+        tvSocialRequests.setTextColor(pointColor)
+        etSearchSocial.setTextColor(basicTextColor)
+        etSearchSocial.setHintTextColor(iconColor)
+        tvEmpty.setTextColor(pointColor)
+        btnAddSocial.imageTintList = ColorStateList.valueOf(iconColor)
+        btnUpdate.imageTintList = ColorStateList.valueOf(iconColor)
     }
     private fun setupSearch() {
         etSearchSocial.addTextChangedListener(object : TextWatcher {
