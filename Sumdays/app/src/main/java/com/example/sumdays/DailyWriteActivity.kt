@@ -15,6 +15,7 @@ import android.transition.TransitionManager
 import android.util.Base64
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -84,7 +85,7 @@ class DailyWriteActivity : AppCompatActivity() {
     private lateinit var micStopContainer: View
     private lateinit var readBackButton: ImageButton
     private lateinit var readCalendarButton : ImageButton
-    private lateinit var readDiaryButton: ImageButton
+    private lateinit var readDiaryButton: Button
     private lateinit var audioRecorderHelper: AudioRecorderHelper
     private lateinit var sumBtn: ImageButton
 
@@ -348,6 +349,7 @@ class DailyWriteActivity : AppCompatActivity() {
         readBackButton = findViewById(R.id.read_back_button)
         readCalendarButton = findViewById(R.id.read_calendar_button)
         readDiaryButton = findViewById(R.id.read_diary_button)
+        readDiaryButton.text = "일기 보기"
         sumBtn = findViewById(R.id.sum_btn)
 
         audioWaveView = findViewById(R.id.audio_wave_view)

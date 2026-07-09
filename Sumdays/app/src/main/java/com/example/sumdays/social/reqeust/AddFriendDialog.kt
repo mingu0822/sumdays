@@ -1,18 +1,26 @@
 package com.example.sumdays.social.reqeust
 
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.example.sumdays.R
 import com.example.sumdays.databinding.DialogAddFriendBinding
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.RequestFriendBody
 import com.example.sumdays.social.SocialViewModel
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.getErrorMessage
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -32,6 +40,7 @@ class AddFriendDialog() : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(requireActivity())[SocialViewModel::class.java]
+        applyThemeModeSettings()
 
         binding.btnCancel.setOnClickListener { dismiss() }
 
@@ -45,11 +54,38 @@ class AddFriendDialog() : DialogFragment() {
         }
     }
 
+    private fun applyThemeModeSettings() {
+        ThemeRepository.updateOwned()
+        val themeKey = ThemePrefs.getTheme(requireContext())
+        val currentTheme = ThemeRepository.ownedThemes[themeKey]
+            ?: ThemeRepository.allThemeMap[themeKey]
+            ?: return
+
+        val pointColor = ContextCompat.getColor(requireContext(), currentTheme.themeColorA)
+        val basicTextColor = ContextCompat.getColor(requireContext(), currentTheme.themeTextColorBasic)
+        val helperTextColor = ContextCompat.getColor(requireContext(), currentTheme.themeColorD)
+
+        binding.root.background = GradientDrawable().apply {
+            setColor(ContextCompat.getColor(requireContext(), currentTheme.backgroundColor))
+            cornerRadius = 24 * resources.displayMetrics.density
+        }
+        binding.etFriendId.setBackgroundResource(R.drawable.bg_social_input_gray)
+        binding.etFriendId.setTextColor(basicTextColor)
+        binding.etFriendId.setHintTextColor(helperTextColor)
+        binding.btnConfirm.setTextColor(pointColor)
+        binding.btnCancel.setTextColor(helperTextColor)
+        binding.btnConfirm.backgroundTintList = ColorStateList.valueOf(pointColor)
+        binding.btnCancel.backgroundTintList = ColorStateList.valueOf(helperTextColor)
+    }
+
     override fun onStart() {
         super.onStart()
+        dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val horizontalMargin = (24 * resources.displayMetrics.density).toInt()
+        val dialogWidth = resources.displayMetrics.widthPixels - horizontalMargin * 2
         // 다이얼로그 너비를 화면에 맞게 조정
         dialog?.window?.setLayout(
-            ViewGroup.LayoutParams.MATCH_PARENT,
+            dialogWidth,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
     }

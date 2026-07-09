@@ -106,6 +106,6 @@ class SettingActivity : AppCompatActivity() {
         binding.notificationBlockText.setTextColor(getColor(basicColor))
         binding.tutorialBlockText.setTextColor(getColor(basicColor))
         // binding.summaryBlockText.setTextColor(getColor(basicColor))
-        binding.btnBack.setImageResource(currentTheme.backIcon)
+        binding.btnBack.setImageResource(R.drawable.ic_left)
     }
 }
