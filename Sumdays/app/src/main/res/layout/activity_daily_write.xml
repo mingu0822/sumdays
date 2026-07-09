@@ -32,13 +32,17 @@
                 android:background="@android:color/transparent"
                 android:src="@drawable/ic_left"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageButton
+            <Button
                 android:id="@+id/read_diary_button"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="@drawable/statistics_background_stratosphere"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/foxrange"
+                android:minHeight="0dp"
+                android:paddingVertical="8dp"
+                android:text="일기 보기"
                 android:contentDescription="일기 보기"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -46,14 +50,14 @@
 
             <ImageButton
                 android:id="@+id/read_calendar_button"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginEnd="12dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="24dp"
                 android:background="@drawable/ic_calendar"
                 android:contentDescription="달력 보기"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/read_diary_button" />
+                app:layout_constraintStart_toEndOf="@id/read_back_button" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
