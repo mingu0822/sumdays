@@ -37,6 +37,8 @@ object AllThemeMap {
             seeDiary = R.drawable.ic_setting_menu_gray,
             calendarIcon = R.drawable.ic_calendar,
 
+            previewImage = R.drawable.dailyread_fox_face_level_5,
+
             isOwned = true
         ),
 
@@ -70,6 +72,8 @@ object AllThemeMap {
             seeMemo = R.drawable.calendar_shape_fox_today,
             seeDiary = R.drawable.ic_setting_menu_gray,
             calendarIcon = R.drawable.ic_calendar,
+
+            previewImage = R.drawable.dailyread_fox_face_level_4,
             isOwned = false,
         )
     )

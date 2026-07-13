@@ -1,6 +1,8 @@
 package com.example.sumdays
 
+import android.content.res.ColorStateList
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
@@ -15,6 +17,7 @@ import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
+import com.google.android.material.button.MaterialButton
 
 class ShopActivity : AppCompatActivity() {
 
@@ -32,6 +35,8 @@ class ShopActivity : AppCompatActivity() {
     private lateinit var rootLayout: ConstraintLayout
 
     private lateinit var navBarController: NavBarController
+
+    private lateinit var indicator: View
 
     private val allItems = mutableListOf<ShopItem>()
     private val filteredItems = mutableListOf<ShopItem>()
@@ -73,6 +78,8 @@ class ShopActivity : AppCompatActivity() {
         chipItem = findViewById(R.id.chipItem)
 
         rvShopItems = findViewById(R.id.rvShopItems)
+
+        indicator = findViewById(R.id.tabIndicator)
     }
 
     private fun setupRecyclerView() {
@@ -186,27 +193,33 @@ class ShopActivity : AppCompatActivity() {
 
     private fun updateChipStyle() {
 
-        val selectedBg = getColor(R.color.foxrange)
-        val normalBg = getColor(android.R.color.transparent)
+        chipTheme.post {
 
-        val selectedText = getColor(android.R.color.white)
-        val normalText = getColor(android.R.color.black)
+            val width = chipTheme.width
 
-        listOf(chipTheme, chipItem).forEach {
-            it.setBackgroundColor(normalBg)
-            it.setTextColor(normalText)
-        }
+            val params = indicator.layoutParams
+            params.width = width
+            indicator.layoutParams = params
 
-        when (selectedCategory) {
+            if (selectedCategory == "theme") {
 
-            "theme" -> {
-                chipTheme.setBackgroundColor(selectedBg)
-                chipTheme.setTextColor(selectedText)
-            }
+                chipTheme.setTextColor(getColor(R.color.foxrange))
+                chipItem.setTextColor(getColor(android.R.color.black))
 
-            "item" -> {
-                chipItem.setBackgroundColor(selectedBg)
-                chipItem.setTextColor(selectedText)
+                indicator.animate()
+                    .translationX(0f)
+                    .setDuration(200)
+                    .start()
+
+            } else {
+
+                chipTheme.setTextColor(getColor(android.R.color.black))
+                chipItem.setTextColor(getColor(R.color.foxrange))
+
+                indicator.animate()
+                    .translationX(width.toFloat())
+                    .setDuration(200)
+                    .start()
             }
         }
     }

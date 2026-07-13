@@ -73,6 +73,10 @@
             android:screenOrientation="portrait"
             android:exported="false" />
         <activity
+            android:name=".CustomizeActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"/>
+        <activity
             android:name=".CalendarActivity"
             android:screenOrientation="portrait"
             android:exported="false"
