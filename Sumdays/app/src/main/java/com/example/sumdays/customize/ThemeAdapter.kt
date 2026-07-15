@@ -11,11 +11,11 @@ import com.example.sumdays.R
 import com.example.sumdays.shop.ThemeShopItem
 import com.google.android.material.card.MaterialCardView
 
-class CustomizeAdapter(
+class ThemeAdapter(
     private val items: List<ThemeShopItem>,
     private var appliedTheme: String,
     private val onClick: (ThemeShopItem) -> Unit
-) : RecyclerView.Adapter<CustomizeAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<ThemeAdapter.ViewHolder>() {
 
     fun setAppliedTheme(themeName: String) {
         appliedTheme = themeName
