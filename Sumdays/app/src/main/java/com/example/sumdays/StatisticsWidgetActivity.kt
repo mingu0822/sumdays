@@ -2,6 +2,7 @@ package com.example.sumdays
 
 import android.animation.ObjectAnimator
 import android.content.Intent
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.GestureDetector
@@ -19,6 +20,8 @@ import com.example.sumdays.data.viewModel.WeekSummaryViewModel
 import com.example.sumdays.data.viewModel.WeekSummaryViewModelFactory
 import com.example.sumdays.statistics.FoxTreeBackground
 import com.example.sumdays.statistics.StreakPrefs
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
 import kotlin.math.abs
 import kotlinx.coroutines.Dispatchers
@@ -41,6 +44,8 @@ class StatisticsWidgetActivity : AppCompatActivity() {
     private lateinit var ivFoxTreeBg: ImageView
     private lateinit var ivFox: ImageView
     private lateinit var tvLevelsToNextBg: TextView
+    private lateinit var cardStreak: CardView
+    private lateinit var cardLeafGrape: CardView
     private lateinit var cardFoxTree: CardView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,7 +60,10 @@ class StatisticsWidgetActivity : AppCompatActivity() {
         ivFoxTreeBg      = findViewById(R.id.iv_fox_tree_bg)
         ivFox            = findViewById(R.id.iv_fox)
         tvLevelsToNextBg = findViewById(R.id.tv_levels_to_next_bg)
+        cardStreak       = findViewById(R.id.card_streak)
+        cardLeafGrape    = findViewById(R.id.card_leaf_grape)
         cardFoxTree     = findViewById(R.id.card_fox_tree)
+        applyThemeModeSettings()
 
         cardFoxTree.setOnClickListener {
             startActivity(Intent(this, StatisticsActivity::class.java))
@@ -83,6 +91,19 @@ class StatisticsWidgetActivity : AppCompatActivity() {
 
         setupSwipeDownHint()
         loadWidgetData()
+    }
+
+    private fun applyThemeModeSettings() {
+        ThemeRepository.updateOwned()
+        val themeKey = ThemePrefs.getTheme(this)
+        val currentTheme = ThemeRepository.ownedThemes[themeKey]
+            ?: ThemeRepository.allThemeMap[themeKey]
+            ?: return
+
+        cardStreak.setCardBackgroundColor(Color.TRANSPARENT)
+        cardLeafGrape.setCardBackgroundColor(Color.TRANSPARENT)
+        cardStreak.setBackgroundResource(currentTheme.blockStyleA)
+        cardLeafGrape.setBackgroundResource(currentTheme.blockStyleA)
     }
 
     private fun setupSwipeDownHint() {
@@ -138,6 +159,9 @@ class StatisticsWidgetActivity : AppCompatActivity() {
         super.onResume()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             StreakPrefs.refreshOnOpen(this)
+        }
+        if (::cardStreak.isInitialized && ::cardLeafGrape.isInitialized) {
+            applyThemeModeSettings()
         }
         if (::swipeDownAnimator.isInitialized) swipeDownAnimator.start()
         loadWidgetData()

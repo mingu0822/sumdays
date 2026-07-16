@@ -240,6 +240,7 @@ class DailyReadActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
+        binding.readBackButton.setOnClickListener { finish() }
         binding.dateText.setOnClickListener { showDatePickerDialog() }
         binding.prevDayButton.setOnClickListener { changeDate(-1) }
         binding.nextDayButton.setOnClickListener { changeDate(1) }

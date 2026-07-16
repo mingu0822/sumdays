@@ -1,10 +1,14 @@
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.databinding.ItemFriendRequestBinding // 패키지명 확인 필요
 import com.example.sumdays.network.apiService.FriendRequest
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 class FriendRequestAdapter(
     private val onAccept: (FriendRequest) -> Unit, // 수락 클릭 시 실행할 코드
     private val onReject: (FriendRequest) -> Unit, // 거절 클릭 시 실행할 코드
@@ -40,6 +44,27 @@ class FriendRequestAdapter(
             onCancel: (FriendRequest) -> Unit
         ) {
             // 1. 닉네임 설정 (XML의 @id/tvNickname 반영)
+            ThemeRepository.updateOwned()
+            val context = binding.root.context
+            val themeKey = ThemePrefs.getTheme(context)
+            val currentTheme = ThemeRepository.ownedThemes[themeKey]
+                ?: ThemeRepository.allThemeMap[themeKey]
+
+            currentTheme?.let { theme ->
+                val pointColor = ContextCompat.getColor(context, theme.themeColorA)
+                val buttonTextColor = ContextCompat.getColor(context, theme.themeColorC)
+                val basicTextColor = ContextCompat.getColor(context, theme.themeTextColorBasic)
+
+                binding.root.setBackgroundResource(theme.blockStyleA)
+                binding.tvNickname.setTextColor(basicTextColor)
+                binding.btnAccept.setTextColor(buttonTextColor)
+                binding.btnReject.setTextColor(buttonTextColor)
+                binding.btnCancel.setTextColor(buttonTextColor)
+                binding.btnAccept.backgroundTintList = ColorStateList.valueOf(pointColor)
+                binding.btnReject.backgroundTintList = ColorStateList.valueOf(pointColor)
+                binding.btnCancel.backgroundTintList = ColorStateList.valueOf(pointColor)
+            }
+
             binding.tvNickname.text = request.nickname
 
             // 2. 탭 종류에 따른 버튼 가시성 제어
