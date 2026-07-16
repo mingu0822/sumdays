@@ -11,33 +11,6 @@ exports.syncData = async (req, res) => {
     const {deleted, edited } = req.body;
     const userId = req.user.userId
 
-    /** -----------------------------------------------------
-     * 🧩 0. users 테이블에서 userId 없으면 자동 생성
-     * ----------------------------------------------------- */
-    const [userRows] = await pool.query(
-      `SELECT id FROM users WHERE id = ?`,
-      [userId]
-    );
-
-    if (userRows.length === 0) {
-      console.log(`⚠ user_id=${userId} 없음 → 자동 생성합니다.`);
-
-      await pool.query(
-        `INSERT INTO users (id, email, password_hash, nickname)
-         VALUES (?, ?, ?, ?)`,
-        [
-          userId,
-          `auto_user_${userId}@example.com`,
-          'auto_created_dummy_hash',
-          `auto_user_${userId}`
-        ]
-      );
-      console.log(`✅ user_id=${userId} 자동 생성 완료`);
-    } else {
-      console.log(`👍 user_id=${userId} 이미 존재`);
-    }
-    ////////////////////
-
 
      /** ------------------------------
      * 🧩 공통 INSERT or UPDATE 함수

@@ -10,8 +10,9 @@ import java.util.concurrent.TimeUnit
 import com.example.sumdays.network.apiService.SocialApiService
 
 object ApiClient {
-    // const val BASE_URL = "http://172.30.1.44:3000/"
     const val BASE_URL = "http://ec2-13-125-101-143.ap-northeast-2.compute.amazonaws.com:3000/"
+    // const val BASE_URL = "http://http://192.168.35.6:3000/"
+
     // OkHttp 로깅 + 타임아웃 설정
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.HEADERS

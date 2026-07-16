@@ -303,10 +303,10 @@ const friendController = {
           id: friend.id,
           nickname: friend.nickname,
           profileImageUrl: friend.profile_image_url,
-          createdAt: moment(friend.created_at).format('YYYY-MM-DD'),
-          countDiaries: friend.count_diaries,
           streak: finalStreak,
           countWeeklySummaries: friend.count_weekly_summaries,
+          createdAt: moment(friend.created_at).format('YYYY-MM-DD'),
+          countDiaries: friend.count_diaries,
           lastDiaryUpdateDate: friend.last_diary_update_date
         };
       });
