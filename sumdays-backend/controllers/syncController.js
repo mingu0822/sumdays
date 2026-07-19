@@ -7,41 +7,47 @@ const fs = require("fs");
 // 1. local to server
 exports.syncData = async (req, res) => {
   try {
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
     console.log(JSON.stringify(req.body, null, 2));
     const {deleted, edited } = req.body;
     const userId = req.user.userId
+
+    let diaryChanged = false;
+    let weekSummaryChanged = false;
 
 
      /** ------------------------------
      * 🧩 공통 INSERT or UPDATE 함수
      * ------------------------------ */
     const upsert = async (table, data, columns) => {
-  if (!Array.isArray(data) || data.length === 0) return;
+      if (!Array.isArray(data) || data.length === 0) return;
 
-  const fields = columns.join(', ');
-  const placeholders = columns.map(() => '?').join(', ');
-  const updates = columns.map(col => `${col}=VALUES(${col})`).join(', ');
+      const fields = columns.join(', ');
+      const placeholders = columns.map(() => '?').join(', ');
+      const updates = columns.map(col => `${col}=VALUES(${col})`).join(', ');
 
-  const sql = `
-    INSERT INTO ${table} (user_id, ${fields})
-    VALUES ${data.map(() => `(?, ${placeholders})`).join(', ')}
-    ON DUPLICATE KEY UPDATE ${updates};
-  `;
+      const sql = `
+        INSERT INTO ${table} (user_id, ${fields})
+        VALUES ${data.map(() => `(?, ${placeholders})`).join(', ')}
+        ON DUPLICATE KEY UPDATE ${updates};
+      `;
 
-  const values = data.flatMap(item => [
-    userId,
-    ...columns.map(c => {
-      const value = item[c];
-      // JSON 컬럼이면 stringify
-      if (typeof value === 'object' && value !== null) {
-        return JSON.stringify(value);
-      }
-      return value;
-    })
-  ]);
+      const values = data.flatMap(item => [
+        userId,
+        ...columns.map(c => {
+          const value = item[c];
+          // JSON 컬럼이면 stringify
+          if (typeof value === 'object' && value !== null) {
+            return JSON.stringify(value);
+          }
+          return value;
+        })
+      ]);
 
-  await pool.query(sql, values);
-  console.log(`✅ Upserted ${data.length} rows into ${table}`);
+      await connection.query(sql, values);
+      console.log(`✅ Upserted ${data.length} rows into ${table}`);
     };
 
 
@@ -50,11 +56,12 @@ exports.syncData = async (req, res) => {
     // 1. 삭제 data
     if (deleted) {
         const deleteIfExists = async (table, keyField, ids) => {
-            if (!Array.isArray(ids) || ids.length === 0) return;
-            const placeholders = ids.map(() => '?').join(',');
-            const sql = `DELETE FROM ${table} WHERE ${keyField} IN (${placeholders}) AND user_id = ?`;
-          await pool.query(sql, [...ids, userId]);
-            console.log(`✅ Deleted from ${table}: ${ids.length} rows`);
+          if (!Array.isArray(ids) || ids.length === 0) return;
+          const placeholders = ids.map(() => '?').join(',');
+          const sql = `DELETE FROM ${table} WHERE ${keyField} IN (${placeholders}) AND user_id = ?`;
+          await connection.query(sql, [...ids, userId]);
+          console.log(`✅ Deleted from ${table}: ${ids.length} rows`);
+          return result.affectedRows > 0;
         };
 
     // 🧱 각 테이블별 삭제 반영
@@ -62,13 +69,19 @@ exports.syncData = async (req, res) => {
             await deleteIfExists('memo', 'room_id', deleted.memo);
         }
         if (deleted.dailyEntry) {
-            await deleteIfExists('daily_entry', 'date', deleted.dailyEntry);
+            const actuallyDeleted = await deleteIfExists('daily_entry', 'date', deleted.dailyEntry);
+            if (actuallyDeleted) {
+              diaryChanged = true;
+            }
         }
         if (deleted.userStyle) {
             await deleteIfExists('user_style', 'styleId', deleted.userStyle);
         }
         if (deleted.weekSummary) {
-            await deleteIfExists('week_summary', 'startDate', deleted.weekSummary);
+            const actuallyDeleted = await deleteIfExists('week_summary', 'startDate', deleted.weekSummary);
+            if (actuallyDeleted) {
+              weekSummaryChanged = true;
+            }
         }
     }
     // 2. 추가, 수정 data 
