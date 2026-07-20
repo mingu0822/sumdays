@@ -48,6 +48,7 @@ CREATE TABLE daily_entry (
   emotionIcon TEXT,
   themeIcon TEXT,
   photoUrls Text,
+  is_allowed TINYINT(1) NOT NULL DEFAULT 0,
   UNIQUE KEY unique_user_date (user_id, date),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

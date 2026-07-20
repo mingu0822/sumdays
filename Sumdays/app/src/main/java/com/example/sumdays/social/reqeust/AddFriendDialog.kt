@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.sumdays.R
 import com.example.sumdays.databinding.DialogAddFriendBinding
 import com.example.sumdays.network.ApiClient
+import com.example.sumdays.network.apiService.FriendRequest
 import com.example.sumdays.network.apiService.RequestFriendBody
 import com.example.sumdays.social.SocialViewModel
 import com.example.sumdays.theme.ThemePrefs
@@ -103,9 +104,26 @@ class AddFriendDialog() : DialogFragment() {
                 )
                 if (response.isSuccessful) {
                     val body = response.body()
-                    if (body?.code == "AUTO_ACCEPTED" && body.data != null) {
-                        viewModel.addFriendLocally(body.data)
+                    Log.d("SocialVM", "sendRequest 호출: $body")
+
+
+
+                    body?.data?.let { friendInfo ->
+                        val parsedRequest = FriendRequest(
+                            userId = friendInfo.id,
+                            nickname = friendInfo.nickname,
+                            profile_image_url = friendInfo.profileImageUrl
+                        )
+
+                        if (body.code == "AUTO_ACCEPTED") {
+                            // 자동 수락시 바로 랜더링
+                            viewModel.addFriendLocally(friendInfo)
+                        } else {
+                            // 일반적인 신청인 경우 ➔ 보낸 요청 대기 목록에 추가하여 렌더링!
+                            viewModel.addSentRequestLocally(parsedRequest)
+                        }
                     }
+
                     Toast.makeText(requireContext(), body?.message, Toast.LENGTH_SHORT).show()
                     dismiss()
                 } else {

@@ -117,12 +117,18 @@
         android:id="@+id/tvSocialRequests"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="23dp"
+        android:layout_marginTop="20dp"
         android:layout_marginEnd="16dp"
         android:text="친구 요청 3"
         android:textColor="#D17B0F"
-        android:textSize="15sp"
+        android:textSize="14sp"
         android:textStyle="bold"
+        android:background="@drawable/bg_social_request_badge"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackground"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTitle" />
 
@@ -144,8 +150,8 @@
         app:layout_constraintEnd_toStartOf="@id/btnAddSocial" />
     <ImageButton
         android:id="@+id/btnAddSocial"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
         android:layout_marginEnd="6dp"
         android:contentDescription="친구 추가"
         android:background="@android:color/transparent"

@@ -54,7 +54,8 @@ data class DailyEntryPayload(
     val emotionScore: Double?,
     val emotionIcon: String?,
     val themeIcon: String?,
-    val photoUrls: String?
+    val photoUrls: String?,
+    val is_allowd: Boolean?
 )
 
 // ------------------ WeekSummary 데이터 ------------------
@@ -139,6 +140,7 @@ fun buildSyncRequest(
             emotionIcon = it.emotionIcon,
             themeIcon = it.themeIcon,
             photoUrls = it.photoUrls,
+            is_allowd = it.isAllowed,
         )
     }
 

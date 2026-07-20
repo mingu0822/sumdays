@@ -2,6 +2,40 @@ const { pool } = require('../db/db');
 const moment = require('moment-timezone');
 const { success, fail } = require('../utils/response');
 
+async function getFriendInfo(friendId) {
+  const [friendRows] = await pool.query(`
+    SELECT u.id, u.nickname, u.profile_image_url, ui.streak, ui.count_weekly_summaries,
+           ui.count_diaries, u.created_at, ui.last_diary_update_date
+    FROM users u
+    JOIN user_info ui ON u.id = ui.user_id
+    WHERE u.id = ?
+  `, [friendId]);
+
+  if (friendRows.length === 0) return null;
+
+  const friend = friendRows[0];
+
+  const today = moment().tz('Asia/Seoul').format('YYYY-MM-DD');
+  const yesterday = moment().tz('Asia/Seoul').subtract(1, 'days').format('YYYY-MM-DD');
+
+  const lastUpdate = friend.last_diary_update_date
+    ? moment(friend.last_diary_update_date).format('YYYY-MM-DD')
+    : null;
+
+  const isStreakValid = lastUpdate === today || lastUpdate === yesterday;
+  const finalStreak = isStreakValid ? friend.streak : 0;
+
+  return {
+    id: friend.id,
+    nickname: friend.nickname,
+    profileImageUrl: friend.profile_image_url,
+    createdAt: moment(friend.created_at).format('YYYY-MM-DD'),
+    countDiaries: friend.count_diaries,
+    streak: finalStreak,
+    countWeeklySummaries: friend.count_weekly_summaries,
+    lastDiaryUpdateDate: friend.last_diary_update_date
+  };
+}
 async function getFriendship(u1, u2, isDirected = false) {
   console.log(`[getFriendship] u1=${u1}, u2=${u2}`);
 
@@ -41,7 +75,7 @@ const friendController = {
 
     try {
       const [users] = await pool.query(
-        'SELECT id FROM users WHERE email = ?', 
+        'SELECT id, nickname, profile_image_url FROM users WHERE email = ?', 
         [receiverEmail]
       );
 
@@ -82,37 +116,9 @@ const friendController = {
               [existing.id]
             );
 
-            const [friendRows] = await pool.query(`
-              SELECT u.id, u.nickname, u.profile_image_url, u.created_at,
-                    ui.count_diaries, ui.streak, ui.count_weekly_summaries, ui.last_diary_update_date
-              FROM users u
-              JOIN user_info ui ON u.id = ui.user_id
-              WHERE u.id = ?
-            `, [receiverId]);
-
-            const friend = friendRows[0];
-
-            const today = moment().tz('Asia/Seoul').format('YYYY-MM-DD');
-            const yesterday = moment().tz('Asia/Seoul').subtract(1, 'days').format('YYYY-MM-DD');
-
-            const lastUpdate = friend.last_diary_update_date
-              ? moment(friend.last_diary_update_date).format('YYYY-MM-DD')
-              : null;
-
-            const isStreakValid = lastUpdate === today || lastUpdate === yesterday;
-            const finalStreak = isStreakValid ? friend.streak : 0;
-
-            const friendInfo = {
-              id: friend.id,
-              nickname: friend.nickname,
-              profileImageUrl: friend.profile_image_url,
-              createdAt: moment(friend.created_at).format('YYYY-MM-DD'),
-              countDiaries: friend.count_diaries,
-              streak: finalStreak,
-              countWeeklySummaries: friend.count_weekly_summaries,
-              lastDiaryUpdateDate: friend.last_diary_update_date
-            };
+            const friendInfo = await getFriendInfo(receiverId);
             return success(res, "AUTO_ACCEPTED", "상대방의 요청이 있어 즉시 친구가 되었습니다!", friendInfo);
+            
           }
         }
 
@@ -127,8 +133,16 @@ const friendController = {
         'INSERT INTO friendship (requester_id, receiver_id, status) VALUES (?, ?, "PENDING")',
         [requesterId, receiverId]
       );
-
-      return success(res, "REQUEST_SENT", "친구 요청 완료", null, 201);
+      
+      // 🌟 [수정] 일반 요청이지만 클라의 편의를 위해 FriendInfo 규격으로 데이터를 조립합니다.
+      console.log(`[requestFriend success0]`);
+      const friendInfo = {
+        id: users[0].id,                
+        nickname: users[0].nickname,     
+        profileImageUrl: users[0].profile_image_url, 
+      };
+      console.log(`[requestFriend success]`, friendInfo);
+      return success(res, "REQUEST_SENT", "친구 요청 완료", friendInfo, 201);
 
     } catch (error) {
       console.error(`[requestFriend ERROR]`, error);
@@ -191,7 +205,8 @@ const friendController = {
           [requesterId, myId]
         );
 
-        return success(res, "REQUEST_ACCEPTED", "친구 수락 완료");
+        const friendInfo = await getFriendInfo(requesterId);
+        return success(res, "REQUEST_ACCEPTED", "친구 수락 완료", friendInfo);
       }
 
       if (action === 'REJECT') {

@@ -34,6 +34,7 @@ data class DailyEntry(
     val emotionIcon: String?,              // 감정 이모지
     val themeIcon: String?,                // 테마 이모지
     val photoUrls: String? = null,
+    val isAllowed: Boolean? = false, // 외부 권한 허용 여부
     val isEdited: Boolean = false,
     val isDeleted: Boolean = false,
 )

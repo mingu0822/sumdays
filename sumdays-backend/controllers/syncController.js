@@ -112,7 +112,7 @@ exports.syncData = async (req, res) => {
         await upsert(
           'daily_entry',
           edited.dailyEntry,
-          ['date', 'diary', 'keywords', 'aiComment', 'emotionScore', 'emotionIcon', 'themeIcon', 'photoUrls']
+          ['date', 'diary', 'keywords', 'aiComment', 'emotionScore', 'emotionIcon', 'themeIcon', 'photoUrls', 'is_allowed']
         );
       }
 

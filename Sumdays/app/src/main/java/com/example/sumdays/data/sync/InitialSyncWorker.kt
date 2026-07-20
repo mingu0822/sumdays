@@ -130,6 +130,7 @@ class InitialSyncWorker(
                         emotionIcon = p.emotionIcon,
                         themeIcon = p.themeIcon,
                         photoUrls = p.photoUrls,
+                        isAllowed = p.is_allowd,
                         isEdited = false,
                         isDeleted = false
                     )
@@ -146,6 +147,7 @@ class InitialSyncWorker(
         emotionIcon = ${entry.emotionIcon}
         themeIcon = ${entry.themeIcon}
         photoUrls = ${entry.photoUrls}
+        isAllowed = ${entry.isAllowed}
         isEdited = ${entry.isEdited}
         isDeleted = ${entry.isDeleted}
     """.trimIndent())

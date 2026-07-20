@@ -80,9 +80,13 @@ data class FriendInfo(
     val id: Int,
     val nickname: String,
     val profileImageUrl: String?,
-    val createdAt: String, // yyyy-mm-dd
-    val countDiaries: Int,
     val streak: Int,
     val countWeeklySummaries: Int,
+
+    // detail 화면
+    val countDiaries: Int,
+    val createdAt: String, // yyyy-mm-dd
+
+
     val lastDiaryUpdateDate: String?
 ) : Parcelable
