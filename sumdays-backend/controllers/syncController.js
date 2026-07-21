@@ -120,6 +120,7 @@ exports.syncData = async (req, res) => {
         }
       }
 
+      
       if (edited.userStyle) {
         await upsert(
           'user_style',
