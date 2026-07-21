@@ -1,8 +1,8 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const util = require('util');
-const upload = require('../middlewares/uploadMiddleware');
-const uploadPromise = util.promisify(upload.single('profileImage'));
+const { uploadProfile } = require('../middlewares/uploadMiddleware');
+const uploadProfilePromise = util.promisify(uploadProfile.single('profileImage'));
 const path = require('path');
 const fs = require('fs').promises;
 
@@ -253,66 +253,59 @@ exports.changeNickname = async (req, res) => {
 
 exports.updateProfileImage = async (req, res) => {
     try {
-        // 함수 안에 넣지 않고 '기다려(await)'라고 시킴
-        await uploadPromise(req, res); 
+        // 1️⃣ Multer를 통한 파일 업로드 대기 (storage/profile/{userId}/ 에 저장)
+        await uploadProfilePromise(req, res);
 
-        if (!req.file) return res.status(400).send("파일 없음");
+        if (!req.file) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "업로드할 파일이 없습니다." 
+            });
+        }
 
         const userId = req.user.userId;
-        const imageUrl = `/profile/${req.file.filename}`;
+        // 🌟 변수명 통일: newImageUrl
+        const newImageUrl = `/storage/profile/${userId}/${req.file.filename}`;
+        
+        // 2️⃣ 기존 프로필 사진 경로 조회
+        const [rows] = await pool.query(
+            "SELECT profile_image_url FROM users WHERE id = ?", 
+            [userId]
+        );
+        const oldImageUrl = rows[0]?.profile_image_url;
 
-        await pool.query("UPDATE users SET profile_image_url = ? WHERE id = ?", [imageUrl, userId]);
-
-        return res.status(200).json({ success: true, profileImageUrl: imageUrl });
-    } catch (err) {
-        return res.status(500).send("에러 발생");
-    }
-};
-
-exports.getMe = async (req, res) => {
-    const userId = req.user.userId; // authMiddleware에서 검증된 ID
-    const includePhoto = req.query.includeProfileImage === 'true';
-
-    try {
-        const sql = `
-            SELECT id, email, nickname, profile_image_url, create_at
-            FROM users 
-            WHERE id = ?
-        `;
-        const [rows] = await pool.query(sql, [userId]);
-
-        if (rows.length === 0) {
-            return res.status(404).json({ success: false, message: '유저를 찾을 수 없습니다.' });
-        }
-
-        const user = rows[0];
-        let photoData = null;
-
-        if (includePhoto && user.profile_image_url) {
+        // 3️⃣ 기존 파일이 존재하고, 새 파일과 주소가 다르면 안전하게 물리 파일 삭제
+        if (oldImageUrl && oldImageUrl !== newImageUrl) {
             try {
-                const filePath = path.join(__dirname, '..', 'storage', 'profile', path.basename(user.profile_image_url));
-                const imageBuffer = await fs.readFile(filePath);
-                photoData = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
+                const relativePath = oldImageUrl.replace(/^\//, ''); // 앞의 '/' 제거
+                const oldFilePath = path.join(__dirname, '..', relativePath);
+
+                await fs.unlink(oldFilePath);
+                console.log(`[안전 삭제 성공] 기존 프로필 파일 삭제 완료: ${oldFilePath}`);
             } catch (fileErr) {
-                console.error("사진 파일 읽기 실패:", fileErr);
-                photoData = null; 
+                console.warn("[기존 파일 삭제 패스] 파일이 없거나 이미 지워짐:", fileErr.message);
             }
         }
 
-        res.status(200).json({
-            success: true,
-            user: {
-                id: user.id,
-                email: user.email,
-                nickname: user.nickname,
-                createAt: user.create_at,
-                // 요청했을 때만 데이터가 담기고, 아니면 null이 나감
-                profileImageBase64: photoData
-            }
+        // 4️⃣ DB에 새 상대 경로 UPDATE
+        await pool.query(
+            "UPDATE users SET profile_image_url = ? WHERE id = ?", 
+            [newImageUrl, userId]
+        );
+        
+        console.log(`[프로필 이미지 변경 성공] userId=${userId} → ${newImageUrl}`);
+        return res.status(200).json({ 
+            success: true, 
+            message: "프로필 이미지가 변경되었습니다.",
+            profileImageUrl: newImageUrl 
         });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: '서버 오류' });
+
+    } catch (err) {
+        console.error("[서버 오류] 프로필 이미지 업로드 중 에러:", err);
+        return res.status(500).json({
+            success: false,
+            message: "서버 내부 오류가 발생했습니다."
+        });
     }
 };
 
