@@ -1,6 +1,8 @@
 package com.example.sumdays.network.apiService
 
 import android.os.Parcelable
+import com.example.sumdays.data.sync.DailyEntryPayload
+import com.example.sumdays.data.sync.MemoPayload
 import kotlinx.parcelize.Parcelize
 import retrofit2.Response
 import retrofit2.http.*
@@ -38,6 +40,20 @@ interface SocialApiService {
     suspend fun deleteFriend(
         @Path("friendId") friendId: Int
     ): Response<ApiResponse<Unit?>>
+
+    // 7. 친구 일기 날짜 가져오기 (모든 날)
+    @GET("/api/friend/friends/{friendId}/diaries/dates")
+    suspend fun getFriendDiaryDates(
+        @Path("friendId") friendId: Int
+    ): Response<ApiResponse<FriendDiaryDatesResponse>>
+
+    // 8. 친구 특정 달(한 달 기준) 일기 가져오기
+    @GET("/api/friend/friends/{friendId}/diaries")
+    suspend fun getFriendMonthlyDiaries(
+        @Path("friendId") friendId: Int,
+        @Query("yearMonth") yearMonth: String // 예: "2026-06"
+    ): Response<ApiResponse<FriendMonthlyDiariesResponse>>
+
 }
 
 // 공통 응답 DTO
@@ -72,6 +88,14 @@ data class FriendRequest(
     val userId: Int,
     val nickname: String,
     val profile_image_url: String?
+)
+
+data class FriendDiaryDatesResponse(
+    val dateMap: Map<String, Boolean>?
+)
+
+data class FriendMonthlyDiariesResponse(
+    val diaries: List<DailyEntryPayload>
 )
 
 // 친구 목록 data

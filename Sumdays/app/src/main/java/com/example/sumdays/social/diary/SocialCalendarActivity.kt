@@ -45,8 +45,8 @@ class SocialCalendarActivity : AppCompatActivity() {
     private lateinit var tvUserName: TextView
 
 
-    var socialCalendarMasterMap: Map<String, Map<String, Pair<Boolean, Boolean>>> = emptyMap()
-    var currentMonthStatusMap: Map<String, Pair<Boolean, Boolean>> = emptyMap()
+    var socialCalendarMasterMap: Map<String, Map<String, Boolean>> = emptyMap()
+    var currentMonthStatusMap: Map<String, Boolean> = emptyMap()
     var friendId : Int = -1
 
     private var currentLanguage: CalendarLanguage = CalendarLanguage.KOREAN
@@ -215,8 +215,8 @@ class SocialCalendarActivity : AppCompatActivity() {
         socialDiaryMonthAdapter.notifyItemChanged(position)
     }
 
-    private fun getFriendDayList(): Map<String, Map<String, Pair<Boolean, Boolean>>> {
-        val masterMap = HashMap<String, HashMap<String, Pair<Boolean, Boolean>>>()
+    private fun getFriendDayList(): Map<String, Map<String, Boolean>> {
+        val masterMap = HashMap<String, HashMap<String, Boolean>>()
 
         // 📅 5월 데이터 상자
         val mayMap = HashMap<String, Pair<Boolean, Boolean>>().apply {

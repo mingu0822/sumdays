@@ -118,3 +118,4 @@ data class UpdateProfileImageResponse(
     val success: Boolean,
     val profileImageUrl: String?
 )
+
