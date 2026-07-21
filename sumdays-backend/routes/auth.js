@@ -15,7 +15,6 @@ router.post('/signup', authController.signup);
 
 // 비밀번호, 닉네임 변경은 토큰 필요 
 router.use(requireLogin);
-router.get('/me', authController.getMe);
 router.put('/password', authController.changePassword);
 router.put('/nickname', authController.changeNickname);
 router.post('/profile-image', authController.updateProfileImage);
