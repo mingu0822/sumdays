@@ -15,10 +15,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import com.example.sumdays.R
 import com.example.sumdays.calendar.CalendarLanguage
 import com.example.sumdays.data.viewModel.CalendarViewModel
+import com.example.sumdays.network.ApiClient
 import com.example.sumdays.shop.AllFoxMap
 import com.example.sumdays.shop.AllThemeMap
 import com.example.sumdays.theme.FoxRepository
@@ -28,6 +30,7 @@ import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.jakewharton.threetenabp.AndroidThreeTen
+import kotlinx.coroutines.launch
 import org.threeten.bp.YearMonth
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.temporal.ChronoUnit
@@ -72,7 +75,7 @@ class SocialCalendarActivity : AppCompatActivity() {
         tvUserName.text = "${nickname}의 일기장"
         friendId = intent.getIntExtra("friendId", -1)
 
-        socialCalendarMasterMap = getFriendDayList()
+        getFriendDayList()
         setCustomCalendar()
         applyThemeModeSettings()
         setupEdgeToEdge(rootLayout)
@@ -215,35 +218,39 @@ class SocialCalendarActivity : AppCompatActivity() {
         socialDiaryMonthAdapter.notifyItemChanged(position)
     }
 
-    private fun getFriendDayList(): Map<String, Map<String, Boolean>> {
-        val masterMap = HashMap<String, HashMap<String, Boolean>>()
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun getFriendDayList() {
+        if (friendId == -1) return
 
-        // 📅 5월 데이터 상자
-        val mayMap = HashMap<String, Pair<Boolean, Boolean>>().apply {
-            put("2026-05-12", Pair(true, true))
-            put("2026-05-20", Pair(true, false)) // 일기 있음, 열람 권한 없음 (🔒 잠김)
+        lifecycleScope.launch {
+            try {
+                val response = ApiClient.socialApi.getFriendDiaryDates(friendId)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    // 서버에서 온 원본 맵: {"2026-06-01": true, "2026-06-02": false, ...}
+                    val dateMap = response.body()?.data?.dateMap ?: emptyMap()
+
+                    // 연월("YYYY-MM") 단위로 묶어서 MasterMap 생성
+                    val masterMap = HashMap<String, HashMap<String, Boolean>>()
+
+                    for ((fullDate, hasDiary) in dateMap) {
+                        // "2026-06-01" -> "2026-06" 추출
+                        if (fullDate.length >= 7) {
+                            val yearMonthKey = fullDate.substring(0, 7)
+
+                            val monthMap = masterMap.getOrPut(yearMonthKey) { HashMap() }
+                            monthMap[fullDate] = hasDiary
+                        }
+                    }
+
+                    // 마스터 맵 할당 및 현재 페이지 UI 갱신
+                    socialCalendarMasterMap = masterMap
+                    observeMonthlyData(CENTER_POSITION)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
-        masterMap["2026-05"] = mayMap
-
-        // 📅 6월 데이터 상자 (현재 타깃 달 테스트용)
-        val juneMap = HashMap<String, Pair<Boolean, Boolean>>().apply {
-            put("2026-06-01", Pair(true, true))   // 일기 있음, 열람 가능 (정상 진입)
-            put("2026-06-10", Pair(true, false))  // 일기 있음, 열람 권한 없음 (🔒 잠김)
-            put("2026-06-15", Pair(false, false)) // 일기 자체가 안 써진 날
-            put("2026-06-20", Pair(true, true))   // 일기 있음, 열람 가능 (정상 진입)
-            put("2026-06-24", Pair(true, false))  // 일기 있음, 열람 권한 없음 (🔒 잠김)
-            put("2026-06-25", Pair(true, true))   // 일기 있음, 열람 가능 (정상 진입)
-        }
-        masterMap["2026-06"] = juneMap
-
-        // 📅 7월 데이터 상자
-        val julyMap = HashMap<String, Pair<Boolean, Boolean>>().apply {
-            put("2026-07-05", Pair(true, true))
-            put("2026-07-07", Pair(true, false)) // 일기 있음, 열람 권한 없음 (🔒 잠김)
-        }
-        masterMap["2026-07"] = julyMap
-
-        return masterMap
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
