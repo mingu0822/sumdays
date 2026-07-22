@@ -7,7 +7,8 @@ object AllItemMap {
             id = 3,
             description = "귀여운 안경입니다.",
             price = 300,
-            isOwned = true
+            isOwned = true,
+            itemCategory = ItemCategory.GLASSES
         ),
 
         "hat" to FoxShopItem(
@@ -15,7 +16,8 @@ object AllItemMap {
             id = 4,
             description = "귀여운 모자입니다.",
             price = 400,
-            isOwned = false
+            isOwned = false,
+            itemCategory = ItemCategory.HAT
         ),
     )
 }

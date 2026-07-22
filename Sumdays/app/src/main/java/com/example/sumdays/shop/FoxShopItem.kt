@@ -9,6 +9,7 @@ data class FoxShopItem(
     override val price: Int,
     override var isOwned: Boolean = false,
     var count: Int = 0,
+    val itemCategory: ItemCategory
 
 ) : ShopItem {
 

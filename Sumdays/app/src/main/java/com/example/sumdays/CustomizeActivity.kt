@@ -1,5 +1,6 @@
 package com.example.sumdays
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -26,6 +27,8 @@ class CustomizeActivity : AppCompatActivity() {
 
     private lateinit var btnBack: ImageButton
     private lateinit var btnShop: ImageButton
+
+    private lateinit var btnAlchemy: ImageButton
 
     private lateinit var imgPreview: ImageView
 
@@ -61,12 +64,19 @@ class CustomizeActivity : AppCompatActivity() {
         btnBack.setOnClickListener {
             finish()
         }
+
+        btnAlchemy.setOnClickListener {
+            val intent = Intent(this, FoxAlchemyActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+        }
     }
 
     private fun initViews() {
 
         btnBack = findViewById(R.id.btnBack)
         btnShop = findViewById(R.id.btnShop)
+        btnAlchemy = findViewById(R.id.btnAlchemy)
 
         rvTheme = findViewById(R.id.rvTheme)
         rvFox = findViewById(R.id.rvFox)
