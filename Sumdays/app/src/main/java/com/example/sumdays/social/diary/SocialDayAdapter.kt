@@ -11,12 +11,15 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.R
 import com.example.sumdays.calendar.DateCell
+import kotlinx.coroutines.launch
 import org.threeten.bp.DayOfWeek
 import org.threeten.bp.LocalDate
 import org.threeten.bp.YearMonth
+import kotlin.collections.set
 
 class SocialDayAdapter(
     private val days: List<DateCell>,
@@ -65,6 +68,7 @@ class SocialDayAdapter(
             val date = LocalDate.parse(cell.dateString)
             val isToday = date.isEqual(today)
             val isFutureDay = date.isAfter(today)
+            val yearMonth = cell.dateString.substring(0, 7)
 
             val dayOfWeek = date.dayOfWeek
             val textColor = when {
@@ -157,11 +161,20 @@ class SocialDayAdapter(
                         when {
                             // 🟢 Case 1: 일기도 있고 나한테 권한도 준 날 -> 친구 전용 읽기창 빌드
                             hasDiary && isAllowed -> {
-                                val intent = Intent(activity, SocialDailyReadActivity::class.java).apply {
-                                    putExtra("date", cell.dateString)
-                                    putExtra("friendId", activity.friendId) // 친구 모드 플래그 주입
+                                activity.lifecycleScope.launch {
+                                    activity.getMonthlyDiariesFromServer(yearMonth)
+
+                                    val dailyEntry = activity.friendDiaryList[yearMonth]?.get(cell.dateString)
+
+                                    val intent =
+                                        Intent(
+                                            activity,
+                                            SocialDailyReadActivity::class.java
+                                        ).apply {
+                                            putExtra("dailyEntry", dailyEntry)
+                                        }
+                                    activity.startActivity(intent)
                                 }
-                                activity.startActivity(intent)
                             }
 
                             // 🔒 Case 2: 일기는 썼는데 나한테는 잠가둔 날 -> 토스트 디펜스

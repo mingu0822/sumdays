@@ -255,7 +255,7 @@ class SocialCalendarActivity : AppCompatActivity() {
         }
     }
 
-    private fun getMonthlyDiariesFromServer(yearMonth: String, position: Int) {
+    suspend fun getMonthlyDiariesFromServer(yearMonth: String) {
         if (friendId == -1) return
 
         lifecycleScope.launch {
