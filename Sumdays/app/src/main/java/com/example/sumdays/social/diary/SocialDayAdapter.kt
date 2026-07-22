@@ -74,10 +74,8 @@ class SocialDayAdapter(
             }
             tvDayNumber.setTextColor(textColor)
 
-            // 🌟 [변경] 액티비티가 연-월 최적화로 갈아끼워 준 currentMonthStatusMap을 직접 참조!
-            val statusPair = activity.currentMonthStatusMap[cell.dateString]
-            val hasDiary = statusPair?.first ?: false   // 친구가 일기를 작성했는가?
-            val isAllowed = statusPair?.second ?: false // 나에게 열람 권한이 있는가?
+            val isAllowed = activity.currentMonthStatusMap[cell.dateString] ?: false
+            val hasDiary = activity.currentMonthStatusMap.containsKey(cell.dateString)
 
             // 🌟 [변경] 형의 기획대로 완료 스킨(completed)은 빼버리고 오직 '오늘'만 특수 배경 처리!
             when {
@@ -171,15 +169,6 @@ class SocialDayAdapter(
                                 Toast.makeText(
                                     activity,
                                     "친구가 비공개로 설정한 일기입니다. 🔒",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-
-                            // ❌ Case 3: 친구가 아예 일기를 생략한 날
-                            else -> {
-                                Toast.makeText(
-                                    activity,
-                                    "친구가 일기를 작성하지 않은 날입니다.",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }

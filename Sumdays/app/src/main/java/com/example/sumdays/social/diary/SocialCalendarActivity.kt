@@ -19,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import com.example.sumdays.R
 import com.example.sumdays.calendar.CalendarLanguage
+import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.data.viewModel.CalendarViewModel
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.shop.AllFoxMap
@@ -49,6 +50,7 @@ class SocialCalendarActivity : AppCompatActivity() {
 
 
     var socialCalendarMasterMap: Map<String, Map<String, Boolean>> = emptyMap()
+    var friendDiaryList: MutableMap<String, Map<String, DailyEntry>> = mutableMapOf()
     var currentMonthStatusMap: Map<String, Boolean> = emptyMap()
     var friendId : Int = -1
 
@@ -245,7 +247,47 @@ class SocialCalendarActivity : AppCompatActivity() {
 
                     // 마스터 맵 할당 및 현재 페이지 UI 갱신
                     socialCalendarMasterMap = masterMap
-                    observeMonthlyData(CENTER_POSITION)
+                    observeMonthlyData(calendarViewPager.currentItem)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun getMonthlyDiariesFromServer(yearMonth: String, position: Int) {
+        if (friendId == -1) return
+
+        lifecycleScope.launch {
+            try {
+                val response = ApiClient.socialApi.getFriendMonthlyDiaries(friendId, yearMonth)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val diaryList = response.body()?.data?.diaries ?: emptyList()
+
+                    // 1. 서버 응답(Payload) -> 앱 내부 DailyEntry 객체 리스트로 매핑
+                    val dailyEntryList = diaryList.map { p ->
+                        DailyEntry(
+                            date = p.date,
+                            diary = p.diary,
+                            keywords = p.keywords,
+                            aiComment = p.aiComment,
+                            emotionScore = p.emotionScore,
+                            emotionIcon = p.emotionIcon,
+                            themeIcon = p.themeIcon,
+                            photoUrls = p.photoUrls,
+                            isEdited = false,
+                            isDeleted = false
+                        )
+                    }
+                    여기서 허용안된 일기는 필터링 하는 옵션 필요함 (혹시 모르니)
+
+                    // 2. 날짜("YYYY-MM-DD")를 키로 하는 단일 월 맵 생성: Map<String, DailyEntry>
+                    val monthlyMap = dailyEntryList.associateBy { it.date }
+
+                    // 3. 기존 마스터 맵(friendDiaryList)에 "YYYY-MM" 키로 병합해서 저장
+                    friendDiaryList[yearMonth] = monthlyMap
+
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
