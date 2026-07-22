@@ -255,7 +255,7 @@ class SocialCalendarActivity : AppCompatActivity() {
         }
     }
 
-    suspend fun getMonthlyDiariesFromServer(yearMonth: String) {
+    fun getMonthlyDiariesFromServer(yearMonth: String) {
         if (friendId == -1) return
 
         lifecycleScope.launch {
@@ -276,11 +276,11 @@ class SocialCalendarActivity : AppCompatActivity() {
                             emotionIcon = p.emotionIcon,
                             themeIcon = p.themeIcon,
                             photoUrls = p.photoUrls,
+                            isAllowed = p.is_allowd,
                             isEdited = false,
                             isDeleted = false
                         )
                     }
-                    여기서 허용안된 일기는 필터링 하는 옵션 필요함 (혹시 모르니)
 
                     // 2. 날짜("YYYY-MM-DD")를 키로 하는 단일 월 맵 생성: Map<String, DailyEntry>
                     val monthlyMap = dailyEntryList.associateBy { it.date }
