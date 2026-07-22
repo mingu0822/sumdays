@@ -346,7 +346,95 @@ const friendController = {
       console.error(`[deleteFriend ERROR]`, error);
       return fail(res, "INTERNAL_SERVER_ERROR", "Database delete failed", 500);
     }
-  }
+  },
+
+  // 7. 친구 일기 날짜 목록 및 열람 권한 조회 (전체 날짜 대상)
+  getFriendDiaryDates: async (req, res) => {
+    const myId = req.user.userId;
+    const { friendId } = req.params;
+
+    console.log(`[getFriendDiaryDates] myId=${myId}, friendId=${friendId}`);
+
+    try {
+      // 1. 실제 친구 관계 검증
+      const friendship = await getFriendship(myId, friendId);
+      if (!friendship || friendship.status !== 'ACCEPTED') {
+        return fail(res, "FORBIDDEN", "친구 관계가 아닙니다.", 403);
+      }
+
+      // 2. 해당 친구의 모든 일기 날짜 및 공개 여부 조회
+      const [diaries] = await pool.query(
+        `SELECT date, is_allowed 
+         FROM daily_entry 
+         WHERE user_id = ?`,
+        [friendId]
+      );
+
+      // 3. 클라이언트 대응 객체 생성: {"YYYY-MM-DD": true/false}
+      // 해당 일에 일기를 작성했고, 나에게 열람 권한(is_public)이 있다면 true, 아니면 false
+      const dateMap = {};
+      diaries.forEach(diary => {
+        const dateStr = moment(diary.date).format('YYYY-MM-DD');
+        dateMap[dateStr] = Boolean(diary.is_allowed);
+      });
+
+      return success(res, "FRIEND_DIARY_DATES_FETCHED", "친구 일기 날짜 목록 조회 성공", { dateMap });
+
+    } catch (error) {
+      console.error(`[getFriendDiaryDates ERROR]`, error);
+      return fail(res, "INTERNAL_SERVER_ERROR", "친구 일기 날짜 조회 실패", 500);
+    }
+  },
+
+  // 8. 친구 특정 달(한 달 기준) 상세 일기 가져오기
+  getFriendMonthlyDiaries: async (req, res) => {
+    const myId = req.user.userId;
+    const { friendId } = req.params;
+    const { yearMonth } = req.query; // 예: "2026-07"
+
+    console.log(`[getFriendMonthlyDiaries] myId=${myId}, friendId=${friendId}, yearMonth=${yearMonth}`);
+
+    if (!yearMonth) {
+      return fail(res, "INVALID_PARAM", "yearMonth 쿼리 파라미터가 필요합니다.", 400);
+    }
+
+    try {
+      // 1. 친구 관계 검증
+      const friendship = await getFriendship(myId, friendId);
+      if (!friendship || friendship.status !== 'ACCEPTED') {
+        return fail(res, "FORBIDDEN", "친구 관계가 아닙니다.", 403);
+      }
+
+      // 2. 해당 달("YYYY-MM")의 일기 중 '열람 허용(is_allowed = 1)'된 일기만 조회
+      // 🌟 [수정] 테이블명(daily_entry), 공개여부(is_allowed = 1), 별칭 매핑 적용
+      const startDate = `${yearMonth}-01`;
+      const endDate = moment(startDate).endOf('month').format('YYYY-MM-DD');
+
+      const [diaries] = await pool.query(
+        `SELECT date, diary, keywords, aiComment, 
+                emotionScore, emotionIcon, 
+                themeIcon, photoUrls, is_allowed
+         FROM daily_entry 
+         WHERE user_id = ? 
+           AND date BETWEEN ? AND ? 
+           AND is_allowed = 1
+         ORDER BY date ASC`,
+        [friendId, startDate, endDate]
+      );
+
+      // 3. 날짜 포맷팅 정돈 ("YYYY-MM-DD")
+      const formattedDiaries = diaries.map(item => ({
+        ...item,
+        date: moment(item.date).format('YYYY-MM-DD')
+      }));
+
+      return success(res, "FRIEND_MONTHLY_DIARIES_FETCHED", "친구 월별 일기 조회 성공", { diaries: formattedDiaries });
+
+    } catch (error) {
+      console.error(`[getFriendMonthlyDiaries ERROR]`, error);
+      return fail(res, "INTERNAL_SERVER_ERROR", "친구 월별 일기 조회 실패", 500);
+    }
+  },
 };
 
 module.exports = friendController;

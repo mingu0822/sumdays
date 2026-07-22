@@ -28,4 +28,18 @@ router.get('/friends', friendController.getMyFriends);
 // DELETE /api/friend/friends/:friendId
 router.delete('/friends/:friendId', friendController.deleteFriend);
 
+// 5. 친구 일기 
+// GET /api/friend/friends/:friendId/diaries/dates
+router.get(
+  '/friends/:friendId/diaries/dates',
+  friendController.getFriendDiaryDates
+);
+
+// GET /api/friend/friends/:friendId/diaries?yearMonth=2026-06
+router.get(
+  '/friends/:friendId/diaries',
+  friendController.getFriendMonthlyDiaries
+);
+
+
 module.exports = router;

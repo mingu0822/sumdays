@@ -276,7 +276,7 @@ class SocialCalendarActivity : AppCompatActivity() {
                             emotionIcon = p.emotionIcon,
                             themeIcon = p.themeIcon,
                             photoUrls = p.photoUrls,
-                            isAllowed = p.is_allowd,
+                            isAllowed = p.is_allowed,
                             isEdited = false,
                             isDeleted = false
                         )
