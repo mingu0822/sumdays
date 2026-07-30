@@ -33,6 +33,19 @@
             app:layout_constraintTop_toTopOf="parent"
             />
 
+        <ImageButton
+            android:id="@+id/lock_toggle_button"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="8dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="일기 공개 여부 토글"
+            android:src="@drawable/ic_lock_closed"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/edit_memos_button"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <Button
             android:id="@+id/edit_memos_button"
             android:layout_width="wrap_content"

@@ -111,6 +111,22 @@
             -->
 
             <LinearLayout
+                android:id="@+id/diaryPermissionBlock"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="6dp">
+
+                <TextView
+                    android:id="@+id/diaryPermissionBlockText"
+                    style="@style/TextAppearance.App.Normal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="24dp"
+                    android:text="일기 공개 설정" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/accountBlock"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"

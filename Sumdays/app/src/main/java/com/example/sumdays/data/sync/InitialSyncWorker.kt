@@ -130,7 +130,7 @@ class InitialSyncWorker(
                         emotionIcon = p.emotionIcon,
                         themeIcon = p.themeIcon,
                         photoUrls = p.photoUrls,
-                        isAllowed = p.is_allowed,
+                        isAllowed = (p.is_allowed ?: 0) != 0,
                         isEdited = false,
                         isDeleted = false
                     )

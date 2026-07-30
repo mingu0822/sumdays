@@ -2,7 +2,9 @@ package com.example.sumdays
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.example.sumdays.settings.prefs.DiaryPermissionPrefs
 import com.example.sumdays.databinding.ActivitySettingMainBinding
 import com.example.sumdays.settings.AccountSettingsActivity
 import com.example.sumdays.settings.DiaryStyleSettingsActivity
@@ -53,6 +55,10 @@ class SettingActivity : AppCompatActivity() {
             startActivity(Intent(this@SettingActivity, NotificationSettingsActivity::class.java))
         }
 
+        binding.diaryPermissionBlock.setOnClickListener {
+            showDiaryPermissionDialog()
+        }
+
         binding.tutorialBlock.setOnClickListener {
             startActivity(Intent(this@SettingActivity, TutorialActivity::class.java))
         }
@@ -77,6 +83,26 @@ class SettingActivity : AppCompatActivity() {
         }
     }
 
+    // 일기 생성 시 소셜 공개 기본값 선택
+    private fun showDiaryPermissionDialog() {
+        val options = arrayOf("매번 물어보기", "기본 비공개", "기본 공개")
+        val modes = intArrayOf(
+            DiaryPermissionPrefs.MODE_ASK,
+            DiaryPermissionPrefs.MODE_DEFAULT_FALSE,
+            DiaryPermissionPrefs.MODE_DEFAULT_TRUE
+        )
+        val checkedIndex = modes.indexOf(DiaryPermissionPrefs.getMode(this))
+
+        AlertDialog.Builder(this)
+            .setTitle("일기 공개 설정")
+            .setSingleChoiceItems(options, checkedIndex) { dialog, which ->
+                DiaryPermissionPrefs.setMode(this, modes[which])
+                dialog.dismiss()
+            }
+            .setNegativeButton("취소") { dialog, _ -> dialog.dismiss() }
+            .show()
+    }
+
     private fun applyThemeModeSettings() {
         val themeRepo = ThemeRepository
         val themeKey = ThemePrefs.getTheme(this)
@@ -94,6 +120,7 @@ class SettingActivity : AppCompatActivity() {
         binding.root.setBackgroundResource(backgroundColor)
 
         binding.diaryStyleBlock.setBackgroundResource(blockShape)
+        binding.diaryPermissionBlock.setBackgroundResource(blockShape)
         binding.notificationBlock.setBackgroundResource(blockShape)
         binding.accountBlock.setBackgroundResource(blockShape)
         binding.labsBlock.setBackgroundResource(blockShape)
@@ -101,6 +128,7 @@ class SettingActivity : AppCompatActivity() {
         // binding.summaryBlock.setBackgroundResource(blockShape)
 
         binding.diaryStyleBlockText.setTextColor(getColor(basicColor))
+        binding.diaryPermissionBlockText.setTextColor(getColor(basicColor))
         binding.accountBlockText.setTextColor(getColor(basicColor))
         binding.labsBlockText.setTextColor(getColor(basicColor))
         binding.notificationBlockText.setTextColor(getColor(basicColor))
