@@ -52,6 +52,91 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- 사용자 블록 (프로필 이미지 / 닉네임 / 로그인·로그아웃) -->
+            <LinearLayout
+                android:id="@+id/userBlock"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/nickname"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="12dp"
+                        android:layout_marginTop="24dp"
+                        android:layout_toEndOf="@id/profileImageContainer"
+                        android:text="닉네임"
+                        android:textSize="@dimen/text_size_M"
+                        android:textStyle="bold" />
+
+                    <FrameLayout
+                        android:id="@+id/profileImageContainer"
+                        android:layout_width="66dp"
+                        android:layout_height="66dp"
+                        android:layout_centerVertical="true"
+                        android:layout_marginTop="18dp"
+                        android:layout_marginLeft="18dp"
+                        android:background="@color/background"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        app:cornerRadius="12dp">
+
+                        <!-- 사진 모드-->
+                        <ImageView
+                            android:id="@+id/imgPhoto"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone" />
+                        <!-- 아바타 모드 -->
+                        <ImageView
+                            android:id="@+id/imgBase"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside" />
+
+                        <ImageView
+                            android:id="@+id/imgMouth"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside" />
+
+                        <ImageView
+                            android:id="@+id/imgEyes"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside" />
+
+                        <ImageView
+                            android:id="@+id/imgAccessory"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside" />
+
+                    </FrameLayout>
+                </RelativeLayout>
+
+                <Button
+                    android:id="@+id/loginButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="0dp"
+                    android:layout_marginBottom="12dp"
+                    android:layout_marginHorizontal="10dp"
+                    android:text="회원가입 / 로그인"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="18dp" />
+            </LinearLayout>
+
             <!-- 구분선 -->
             <View
                 android:layout_width="match_parent"
