@@ -7,12 +7,15 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.EmojiData
+import com.example.sumdays.data.repository.DailyEntryRepository
+import com.example.sumdays.data.sync.BackupScheduler
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class DailyEntryViewModel(application: Application) : AndroidViewModel(application) {
 
     private val dao = AppDatabase.Companion.getDatabase(application).dailyEntryDao()
+    private val repository = DailyEntryRepository(dao)
 
     fun getEntry(date: String) =
         dao.getEntry(date).asLiveData()
@@ -36,7 +39,8 @@ class DailyEntryViewModel(application: Application) : AndroidViewModel(applicati
         emotionScore: Double? = null,
         emotionIcon: String? = null,
         themeIcon: String? = null,
-        photoUrls: String? = null
+        photoUrls: String? = null,
+        isAllowed: Boolean? = null
     ) = viewModelScope.launch {
         dao.updateEntry(
             date = date,
@@ -46,8 +50,16 @@ class DailyEntryViewModel(application: Application) : AndroidViewModel(applicati
             emotionScore = emotionScore,
             emotionIcon = emotionIcon,
             themeIcon = themeIcon ,
-            photoUrls = photoUrls
+            photoUrls = photoUrls,
+            isAllowed = isAllowed
         )
+    }
+
+    // 소셜 공개 권한 변경
+    // 친구 화면에 바로 반영되도록 저장이 끝난 뒤 즉시 백업
+    fun updatePermission(date: String, isAllowed: Boolean) = viewModelScope.launch {
+        repository.updatePermission(date, isAllowed)
+        BackupScheduler.triggerManualBackup(getApplication())
     }
 
     // 모든 작성 날짜를 조회하는 함수 추가 (Strike 계산용)

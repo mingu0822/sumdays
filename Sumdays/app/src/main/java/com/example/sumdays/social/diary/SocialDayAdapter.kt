@@ -166,6 +166,15 @@ class SocialDayAdapter(
 
                                     val dailyEntry = activity.friendDiaryList[yearMonth]?.get(cell.dateString)
 
+                                    if (dailyEntry == null) {
+                                        Toast.makeText(
+                                            activity,
+                                            "일기를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        return@launch
+                                    }
+
                                     val intent =
                                         Intent(
                                             activity,

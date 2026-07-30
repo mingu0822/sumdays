@@ -254,44 +254,40 @@ class SocialCalendarActivity : AppCompatActivity() {
             }
         }
     }
-
-    fun getMonthlyDiariesFromServer(yearMonth: String) {
+    suspend fun getMonthlyDiariesFromServer(yearMonth: String) {
         if (friendId == -1) return
 
-        lifecycleScope.launch {
-            try {
-                val response = ApiClient.socialApi.getFriendMonthlyDiaries(friendId, yearMonth)
+        try {
+            val response = ApiClient.socialApi.getFriendMonthlyDiaries(friendId, yearMonth)
 
-                if (response.isSuccessful && response.body()?.success == true) {
-                    val diaryList = response.body()?.data?.diaries ?: emptyList()
+            if (response.isSuccessful && response.body()?.success == true) {
+                val diaryList = response.body()?.data?.diaries ?: emptyList()
 
-                    // 1. 서버 응답(Payload) -> 앱 내부 DailyEntry 객체 리스트로 매핑
-                    val dailyEntryList = diaryList.map { p ->
-                        DailyEntry(
-                            date = p.date,
-                            diary = p.diary,
-                            keywords = p.keywords,
-                            aiComment = p.aiComment,
-                            emotionScore = p.emotionScore,
-                            emotionIcon = p.emotionIcon,
-                            themeIcon = p.themeIcon,
-                            photoUrls = p.photoUrls,
-                            isAllowed = p.is_allowed,
-                            isEdited = false,
-                            isDeleted = false
-                        )
-                    }
-
-                    // 2. 날짜("YYYY-MM-DD")를 키로 하는 단일 월 맵 생성: Map<String, DailyEntry>
-                    val monthlyMap = dailyEntryList.associateBy { it.date }
-
-                    // 3. 기존 마스터 맵(friendDiaryList)에 "YYYY-MM" 키로 병합해서 저장
-                    friendDiaryList[yearMonth] = monthlyMap
-
+                // 1. 서버 응답(Payload) -> 앱 내부 DailyEntry 객체 리스트로 매핑
+                val dailyEntryList = diaryList.map { p ->
+                    DailyEntry(
+                        date = p.date,
+                        diary = p.diary,
+                        keywords = p.keywords,
+                        aiComment = p.aiComment,
+                        emotionScore = p.emotionScore,
+                        emotionIcon = p.emotionIcon,
+                        themeIcon = p.themeIcon,
+                        photoUrls = p.photoUrls,
+                        isAllowed = (p.is_allowed ?: 0) != 0,
+                        isEdited = false,
+                        isDeleted = false
+                    )
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
+
+                // 2. 날짜("YYYY-MM-DD")를 키로 하는 단일 월 맵 생성: Map<String, DailyEntry>
+                val monthlyMap = dailyEntryList.associateBy { it.date }
+
+                // 3. 기존 마스터 맵(friendDiaryList)에 "YYYY-MM" 키로 병합해서 저장
+                friendDiaryList[yearMonth] = monthlyMap
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
