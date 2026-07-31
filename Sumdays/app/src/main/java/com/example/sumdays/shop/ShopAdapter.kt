@@ -121,7 +121,7 @@ class ShopAdapter(
 
                     val count = ItemPrefs.getCount(
                         context,
-                        item.name
+                        item.id
                     )
 
                     tvShopItemPrice.text = "${item.price}P"
@@ -150,9 +150,7 @@ class ShopAdapter(
                 }
             }
 
-            ivShopItemImage.setImageResource(
-                android.R.drawable.ic_menu_gallery
-            )
+            ivShopItemImage.setImageResource(item.imageRes)
 
             btnShopItemAction.setOnClickListener {
                 onActionClick(item)

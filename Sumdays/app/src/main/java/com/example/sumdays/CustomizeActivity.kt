@@ -99,7 +99,8 @@ class CustomizeActivity : AppCompatActivity() {
                         description = theme.description,
                         price = theme.price,
                         isOwned = true,
-                        theme = theme
+                        theme = theme,
+                        imageRes = theme.previewImage
                     )
                 )
             }

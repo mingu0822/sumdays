@@ -29,6 +29,7 @@ import com.example.sumdays.data.sync.BackupScheduler
 import com.example.sumdays.data.viewModel.CalendarViewModel
 import com.example.sumdays.shop.AllItemMap
 import com.example.sumdays.shop.AllThemeMap
+import com.example.sumdays.shop.ItemPrefs
 import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.Theme
 import com.example.sumdays.theme.ThemePrefs
@@ -77,7 +78,6 @@ class CalendarActivity : AppCompatActivity() {
         updateOwned()
         setContentView(R.layout.activity_calendar)
         AndroidThreeTen.init(this)
-
 
         calendarViewPager = findViewById(R.id.calendarViewPager)
         tvMonthYear = findViewById(R.id.tv_month_year)

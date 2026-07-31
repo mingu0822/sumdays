@@ -131,7 +131,8 @@ class ShopActivity : AppCompatActivity() {
                     description = theme.description,
                     price = theme.price,
                     isOwned = theme.isOwned,
-                    theme = theme
+                    theme = theme,
+                    imageRes = theme.previewImage
                 )
             )
         }
@@ -143,10 +144,13 @@ class ShopActivity : AppCompatActivity() {
             allItems.add(
                 FoxShopItem(
                     id = fox.id,
-                    name = key,
+                    name = fox.name,
                     description = fox.description,
                     price = fox.price,
-                    isOwned = fox.isOwned
+                    isOwned = fox.isOwned,
+                    count = fox.count,
+                    itemCategory = fox.itemCategory,
+                    imageRes = fox.imageRes
                 )
             )
         }
@@ -276,7 +280,7 @@ class ShopActivity : AppCompatActivity() {
 
             is FoxShopItem -> {
 
-                ItemPrefs.addItem(this,item.name)
+                ItemPrefs.addItem(this,item.id)
             }
         }
 

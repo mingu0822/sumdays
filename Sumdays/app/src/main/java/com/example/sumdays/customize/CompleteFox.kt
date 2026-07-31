@@ -8,10 +8,10 @@ data class CompleteFox(
     val previewImage: Int,
 
     // 구성 요소
-    val face: Int,
-    val hat: Int?,
     val glasses: Int?,
-    val neck: Int?,
+    val hat: Int?,
+    val scarf: Int?,
+    val accessory: Int?,
 
     var isSelected: Boolean = false
 )

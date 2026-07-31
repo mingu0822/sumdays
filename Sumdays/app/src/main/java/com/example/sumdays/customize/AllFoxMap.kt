@@ -10,10 +10,10 @@ object AllFoxMap {
             id = 3,
 
             previewImage = R.drawable.dailyread_fox_face_level_1,
-            face = R.drawable.dailyread_fox_face_level_1,
             hat = null,
             glasses = null,
-            neck = null,
+            scarf = null,
+            accessory = null,
 
             isSelected = true,
         ),
@@ -23,10 +23,10 @@ object AllFoxMap {
             id = 4,
 
             previewImage = R.drawable.dailyread_fox_face_level_5,
-            face = R.drawable.dailyread_fox_face_level_5,
             hat = null,
             glasses = null,
-            neck = null,
+            scarf = null,
+            accessory = null,
 
             isSelected = false,
         ),

@@ -1,23 +1,38 @@
 package com.example.sumdays.shop
 
+import com.example.sumdays.R
+
+
 object AllItemMap {
     val allItemMap: MutableMap<String, FoxShopItem> = mutableMapOf(
         "glasses" to FoxShopItem(
-            name = "glasses",
-            id = 3,
+            name = "안경",
+            id = 1,
             description = "귀여운 안경입니다.",
             price = 300,
             isOwned = true,
-            itemCategory = ItemCategory.GLASSES
+            itemCategory = ItemCategory.GLASSES,
+            imageRes = R.drawable.foxitem_glasses
+        ),
+
+        "sunglasses" to FoxShopItem(
+            name = "선글라스",
+            id = 3,
+            description = "선글라스입니다.",
+            price = 200,
+            isOwned = false,
+            itemCategory = ItemCategory.GLASSES,
+            imageRes = R.drawable.foxitem_glasses
         ),
 
         "hat" to FoxShopItem(
-            name = "hat",
-            id = 4,
+            name = "모자",
+            id = 2,
             description = "귀여운 모자입니다.",
             price = 400,
             isOwned = false,
-            itemCategory = ItemCategory.HAT
+            itemCategory = ItemCategory.HAT,
+            imageRes = R.drawable.foxitem_magic_hat
         ),
     )
 }

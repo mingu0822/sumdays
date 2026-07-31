@@ -9,8 +9,9 @@ data class ThemeShopItem(
     override val description: String,
     override val price: Int,
     override var isOwned: Boolean = false,
+    override val imageRes: Int,
 
-    val theme: Theme
+    val theme: Theme,
 
 ) : ShopItem {
 
