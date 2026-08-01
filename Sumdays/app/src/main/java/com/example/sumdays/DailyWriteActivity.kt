@@ -226,7 +226,7 @@ class DailyWriteActivity : AppCompatActivity() {
         micIcon.setImageResource(currentTheme.recordIcon)
         imageIcon.setImageResource(currentTheme.addImageIcon)
 
-        dateTextBox.setBackgroundResource(currentTheme.blockStyleFox)
+//        dateTextBox.setBackgroundResource(currentTheme.blockStyleFox)
         memoListView.setBackgroundResource(currentTheme.blockStyleD)
     }
 

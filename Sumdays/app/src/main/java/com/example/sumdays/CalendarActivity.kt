@@ -30,6 +30,7 @@ import com.example.sumdays.data.viewModel.CalendarViewModel
 import com.example.sumdays.shop.AllItemMap
 import com.example.sumdays.shop.AllThemeMap
 import com.example.sumdays.shop.ItemPrefs
+import com.example.sumdays.shop.PointPrefs
 import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.Theme
 import com.example.sumdays.theme.ThemePrefs
