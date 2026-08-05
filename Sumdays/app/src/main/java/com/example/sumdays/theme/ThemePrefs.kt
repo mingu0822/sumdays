@@ -10,23 +10,31 @@ object ThemePrefs {
     private const val PREF_FOX = "fox_settings"
     private const val KEY_FOX = "selected_fox"
 
-    fun saveTheme(context: Context, themeName: String) {
+    fun saveTheme(context: Context, themeId: Int) {
         val prefs = context.getSharedPreferences(PREF_THEME, Context.MODE_PRIVATE)
-        prefs.edit().putString(KEY_THEME, themeName).apply()
+
+        prefs.edit()
+            .putInt(KEY_THEME, themeId)
+            .apply()
     }
 
-    fun getTheme(context: Context): String {
+    fun getTheme(context: Context): Int {
         val prefs = context.getSharedPreferences(PREF_THEME, Context.MODE_PRIVATE)
-        return prefs.getString(KEY_THEME, "default") ?: "default"
+
+        return prefs.getInt(KEY_THEME, 1)
     }
 
-    fun saveFoxItem(context: Context, foxName: String) {
+    fun saveFoxItem(context: Context, foxId: Int) {
         val prefs = context.getSharedPreferences(PREF_FOX, Context.MODE_PRIVATE)
-        prefs.edit().putString(KEY_FOX, foxName).apply()
+
+        prefs.edit()
+            .putInt(KEY_FOX, foxId)
+            .apply()
     }
 
-    fun getFoxItem(context: Context): String {
+    fun getFoxItem(context: Context): Int {
         val prefs = context.getSharedPreferences(PREF_FOX, Context.MODE_PRIVATE)
-        return prefs.getString(KEY_FOX, "default") ?: "default"
+
+        return prefs.getInt(KEY_FOX, 1)
     }
 }

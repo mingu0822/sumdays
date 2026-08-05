@@ -6,6 +6,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline35"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.35" />
+
     <!-- 배경 -->
     <ImageView
         android:id="@+id/alchemy_background"
@@ -152,38 +159,55 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- 솥 -->
+    <!-- ===================== -->
+    <!-- 솥 (맨 위) -->
+    <!-- ===================== -->
 
     <ImageButton
         android:id="@+id/alchemy_pot"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/alchemy_pot"/>
+        android:layout_width="695px"
+        android:layout_height="860px"
+        android:background="@drawable/alchemy_pot"
+        android:stateListAnimator="@null"
+        android:scaleType="centerInside"
+
+        app:layout_constraintTop_toTopOf="@id/guideline35"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+
+    <!-- ===================== -->
+    <!-- 여우 -->
+    <!-- ===================== -->
+
+    <ImageView
+        android:id="@+id/alchemy_fox"
+        android:layout_width="239px"
+        android:layout_height="755px"
+        android:background="@drawable/alchemy_fox"
+
+        app:layout_constraintStart_toEndOf="@id/alchemy_pot"
+        app:layout_constraintBottom_toBottomOf="@id/alchemy_pot"
+
+        android:layout_marginStart="-60dp"
+        android:layout_marginBottom="-80dp"/>
 
     <ImageView
         android:id="@+id/alchemyCloud"
         android:layout_width="330dp"
         android:layout_height="210dp"
         android:visibility="gone"
-        android:src="@drawable/alchemy_cloud"
         android:alpha="0.75"
+        android:src="@drawable/alchemy_cloud"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.34"/>
 
-        app:layout_constraintStart_toStartOf="@id/alchemy_fox"
-        app:layout_constraintEnd_toEndOf="@id/alchemy_fox"
-
-        app:layout_constraintTop_toTopOf="@id/alchemy_fox"
-        app:layout_constraintBottom_toBottomOf="@id/alchemy_fox"
-
-        app:layout_constraintVertical_bias="0.25"/>
-    <!-- 여우 -->
-
-    <ImageView
-        android:id="@+id/alchemy_fox"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/alchemy_fox"/>
-
+    <!-- ===================== -->
     <!-- 뒤로가기 -->
+    <!-- ===================== -->
 
     <ImageButton
         android:id="@+id/btnBack"

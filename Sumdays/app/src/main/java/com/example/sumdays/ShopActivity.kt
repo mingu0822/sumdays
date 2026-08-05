@@ -120,14 +120,14 @@ class ShopActivity : AppCompatActivity() {
 
         allItems.clear()
 
-        AllThemeMap.allThemeMap.forEach { (key, theme) ->
+        AllThemeMap.allThemeMap.forEach { (id, theme) ->
 
-            theme.isOwned = OwnedPrefs.isOwned(this, key)
+            theme.isOwned = OwnedPrefs.isOwned(this, id.toInt())
 
             allItems.add(
                 ThemeShopItem(
                     id = theme.id,
-                    name = key,
+                    name = theme.name,
                     description = theme.description,
                     price = theme.price,
                     isOwned = theme.isOwned,
@@ -137,9 +137,9 @@ class ShopActivity : AppCompatActivity() {
             )
         }
 
-        AllItemMap.allItemMap.forEach { (key, fox) ->
+        AllItemMap.allItemMap.forEach { (id, fox) ->
 
-            fox.isOwned = OwnedPrefs.isOwned(this, key)
+            fox.isOwned = OwnedPrefs.isOwned(this, id)
 
             allItems.add(
                 FoxShopItem(
@@ -247,12 +247,12 @@ class ShopActivity : AppCompatActivity() {
         when (item) {
 
             is ThemeShopItem -> {
-                ThemePrefs.saveTheme(this, item.name)
+                ThemePrefs.saveTheme(this, item.id)
                 Toast.makeText(this, "${item.name} 적용", Toast.LENGTH_SHORT).show()
             }
 
             is FoxShopItem -> {
-                ThemePrefs.saveFoxItem(this, item.name)
+                ThemePrefs.saveFoxItem(this, item.id)
                 Toast.makeText(this, "${item.name} 적용", Toast.LENGTH_SHORT).show()
             }
         }
@@ -275,7 +275,7 @@ class ShopActivity : AppCompatActivity() {
             is ThemeShopItem -> {
 
                 item.isOwned = true
-                OwnedPrefs.saveOwned(this,item.name)
+                OwnedPrefs.saveOwned(this,item.id)
             }
 
             is FoxShopItem -> {

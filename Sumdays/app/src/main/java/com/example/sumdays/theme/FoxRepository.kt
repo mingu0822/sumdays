@@ -4,8 +4,8 @@ import com.example.sumdays.shop.AllItemMap
 import com.example.sumdays.shop.FoxShopItem
 
 object FoxRepository {
-    val ownedFoxes: MutableMap<String, FoxShopItem> = mutableMapOf()
-    val allFoxMap: MutableMap<String, FoxShopItem> = AllItemMap.allItemMap
+    val ownedFoxes: MutableMap<Int, FoxShopItem> = mutableMapOf()
+    val allFoxMap: MutableMap<Int, FoxShopItem> = AllItemMap.allItemMap
 
     fun updateOwned() {
 

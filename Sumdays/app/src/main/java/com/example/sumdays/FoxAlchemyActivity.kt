@@ -3,6 +3,7 @@ package com.example.sumdays
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.os.Bundle
+import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.ImageButton
@@ -10,7 +11,9 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.sumdays.alchemy.AlchemyInventoryBottomSheet
+import com.example.sumdays.alchemy.AlchemyRecipeManager
 import com.example.sumdays.alchemy.AlchemySelectionManager
+import com.example.sumdays.customize.AllFoxMap
 import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.ItemCategory
 
@@ -94,6 +97,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
         }
 
         startPotAnimation()
+        setupPotTouchEffect()
     }
 
     /**
@@ -115,6 +119,30 @@ class FoxAlchemyActivity : AppCompatActivity() {
             AccelerateDecelerateInterpolator()
 
         animator.start()
+    }
+
+    private fun setupPotTouchEffect() {
+
+        alchemyPot.setOnTouchListener { _, event ->
+
+            when (event.action) {
+
+                MotionEvent.ACTION_DOWN -> {
+                    alchemyPot.setBackgroundResource(
+                        R.drawable.alchemy_pot_glowing
+                    )
+                }
+
+                MotionEvent.ACTION_UP,
+                MotionEvent.ACTION_CANCEL -> {
+                    alchemyPot.setBackgroundResource(
+                        R.drawable.alchemy_pot
+                    )
+                }
+            }
+
+            false
+        }
     }
 
     /**
@@ -243,8 +271,16 @@ class FoxAlchemyActivity : AppCompatActivity() {
             return
         }
 
-        // 이미 선택 시 차감되었으므로 확정만 한다.
         AlchemySelectionManager.commit()
+
+        val fox = AlchemyRecipeManager.createFox(
+
+            id = AllFoxMap.allFoxMap.size + 1,
+
+            name = "여우 ${AllFoxMap.allFoxMap.size + 1}",
+
+            items = items
+        )
 
         val names = items.joinToString(", ") {
             it.name

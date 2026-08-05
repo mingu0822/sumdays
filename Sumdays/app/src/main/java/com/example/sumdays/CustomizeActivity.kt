@@ -12,12 +12,9 @@ import com.example.sumdays.customize.AllFoxMap
 import com.example.sumdays.customize.CompleteFox
 import com.example.sumdays.customize.FoxAdapter
 import com.example.sumdays.customize.ThemeAdapter
-import com.example.sumdays.shop.AllItemMap
 import com.example.sumdays.shop.AllThemeMap
-import com.example.sumdays.shop.FoxShopItem
-import com.example.sumdays.shop.ItemPrefs
 import com.example.sumdays.shop.OwnedPrefs
-import com.example.sumdays.shop.ThemeShopItem
+import com.example.sumdays.theme.Theme
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
@@ -27,7 +24,6 @@ class CustomizeActivity : AppCompatActivity() {
 
     private lateinit var btnBack: ImageButton
     private lateinit var btnShop: ImageButton
-
     private lateinit var btnAlchemy: ImageButton
 
     private lateinit var imgPreview: ImageView
@@ -41,16 +37,17 @@ class CustomizeActivity : AppCompatActivity() {
     private lateinit var rvTheme: RecyclerView
     private lateinit var rvFox: RecyclerView
 
-    private val themeList = mutableListOf<ThemeShopItem>()
+    private val themeList = mutableListOf<Theme>()
     private val foxList = mutableListOf<CompleteFox>()
 
-    private var selectedTheme: ThemeShopItem? = null
+    private var selectedTheme: Theme? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_customize)
 
         initViews()
+
         loadThemes()
         loadFoxItems()
         setupRecycler()
@@ -66,8 +63,11 @@ class CustomizeActivity : AppCompatActivity() {
         }
 
         btnAlchemy.setOnClickListener {
-            val intent = Intent(this, FoxAlchemyActivity::class.java)
-            startActivity(intent)
+
+            startActivity(
+                Intent(this, FoxAlchemyActivity::class.java)
+            )
+
             overridePendingTransition(0, 0)
         }
     }
@@ -83,82 +83,153 @@ class CustomizeActivity : AppCompatActivity() {
 
         imgPreview = findViewById(R.id.imgPreview)
     }
+
+    /**
+     * 보유한 테마 불러오기
+     */
     private fun loadThemes() {
 
         themeList.clear()
 
-        AllThemeMap.allThemeMap.forEach { (name, theme) ->
+        AllThemeMap.allThemeMap.forEach { (id, theme) ->
 
-            val owned = OwnedPrefs.isOwned(this, name)
+            if (OwnedPrefs.isOwned(this, id)) {
+                themeList.add(theme)
+            }
+        }
 
-            if (owned) {
-                themeList.add(
-                    ThemeShopItem(
-                        id = theme.id,
-                        name = name,
-                        description = theme.description,
-                        price = theme.price,
-                        isOwned = true,
-                        theme = theme,
-                        imageRes = theme.previewImage
-                    )
-                )
+        // 기본 테마는 항상 존재하도록
+        if (themeList.none { it.id == 1 }) {
+
+            AllThemeMap.allThemeMap[1]?.let {
+                themeList.add(0, it)
             }
         }
     }
 
+    /**
+     * 여우 목록 불러오기
+     */
     private fun loadFoxItems() {
 
         foxList.clear()
 
-        AllFoxMap.allFoxMap.forEach { (_, fox) ->
+        AllFoxMap.allFoxMap.values.forEach { fox ->
             foxList.add(fox)
         }
     }
 
+    /**
+     * RecyclerView 설정
+     */
     private fun setupRecycler() {
 
-        val currentTheme = ThemePrefs.getTheme(this)
-
         rvTheme.layoutManager =
-            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+            LinearLayoutManager(
+                this,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
 
         themeAdapter = ThemeAdapter(
-            themeList,
-            currentTheme
-        ) { theme ->
 
-            ThemePrefs.saveTheme(this, theme.name)
+            items = themeList,
 
-            themeAdapter.setAppliedTheme(theme.name)
+            appliedTheme = ThemePrefs.getTheme(this),
 
-            selectedTheme = theme
+            onClick = { theme ->
 
-            updatePreviewTheme(theme)
-        }
+                ThemePrefs.saveTheme(
+                    this,
+                    theme.id
+                )
+
+                themeAdapter.setAppliedTheme(
+                    theme.id
+                )
+
+                selectedTheme = theme
+
+                updatePreviewTheme(theme)
+            }
+        )
 
         rvTheme.adapter = themeAdapter
 
         rvFox.layoutManager =
-            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+            LinearLayoutManager(
+                this,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
 
         foxAdapter = FoxAdapter(
-            foxList,
-            ThemePrefs.getFoxItem(this)
-        ) { fox ->
 
-            ThemePrefs.saveFoxItem(this, fox.name)
+            items = foxList,
 
-            imgPreview.setImageResource(fox.previewImage)
+            appliedFox = ThemePrefs.getFoxItem(this),
 
-            foxAdapter.setAppliedFox(fox.name)
-        }
+            onClick = { fox ->
+
+                ThemePrefs.saveFoxItem(
+                    this,
+                    fox.id
+                )
+
+                imgPreview.setImageResource(
+                    fox.previewImage
+                )
+
+                foxAdapter.setAppliedFox(
+                    fox.id
+                )
+            }
+        )
 
         rvFox.adapter = foxAdapter
     }
 
-    private fun updatePreviewTheme(theme: ThemeShopItem) {
+    /**
+     * 테마 미리보기 갱신
+     */
+    private fun updatePreviewTheme(theme: Theme) {
 
-        imgPreview.setImageResource(theme.theme.previewImage)
+        // 현재 선택된 여우 유지
+        val currentFox = foxList.firstOrNull {
+            it.id == ThemePrefs.getFoxItem(this)
+        }
+
+        if (currentFox != null) {
+            imgPreview.setImageResource(currentFox.previewImage)
+        } else {
+            imgPreview.setImageResource(theme.previewImage)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        // 상점/연금술에서 돌아왔을 때 목록 갱신
+        loadThemes()
+        loadFoxItems()
+
+        themeAdapter.notifyDataSetChanged()
+        foxAdapter.notifyDataSetChanged()
+
+        // 적용된 여우 미리보기 표시
+        foxList.firstOrNull {
+            it.id == ThemePrefs.getFoxItem(this)
+        }?.let {
+            imgPreview.setImageResource(it.previewImage)
+        }
+
+        // 선택 상태 동기화
+        themeAdapter.setAppliedTheme(
+            ThemePrefs.getTheme(this)
+        )
+
+        foxAdapter.setAppliedFox(
+            ThemePrefs.getFoxItem(this)
+        )
     }
 }

@@ -6,14 +6,14 @@ object OwnedPrefs {
 
     private const val PREF_NAME = "owned_items"
 
-    fun saveOwned(context: Context, key: String) {
+    fun saveOwned(context: Context, id: Int) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putBoolean(key, true).apply()
+        prefs.edit().putBoolean(id.toString(), true).apply()
     }
 
-    fun isOwned(context: Context, key: String): Boolean {
+    fun isOwned(context: Context, id: Int): Boolean {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        return prefs.getBoolean(key, false)
+        return prefs.getBoolean(id.toString(), false)
     }
 
     fun clear(context: Context) {

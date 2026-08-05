@@ -8,63 +8,103 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.R
-import com.example.sumdays.shop.ThemeShopItem
+import com.example.sumdays.theme.Theme
 import com.google.android.material.card.MaterialCardView
 
 class ThemeAdapter(
-    private val items: List<ThemeShopItem>,
-    private var appliedTheme: String,
-    private val onClick: (ThemeShopItem) -> Unit
+
+    private val items: List<Theme>,
+    private var appliedTheme: Int,
+    private val onClick: (Theme) -> Unit
+
 ) : RecyclerView.Adapter<ThemeAdapter.ViewHolder>() {
 
-    fun setAppliedTheme(themeName: String) {
-        appliedTheme = themeName
+    fun setAppliedTheme(themeId: Int) {
+
+        appliedTheme = themeId
         notifyDataSetChanged()
     }
 
-    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    inner class ViewHolder(view: View) :
+        RecyclerView.ViewHolder(view) {
 
-        val card: MaterialCardView = view.findViewById(R.id.cardTheme)
-        val imgTheme: ImageView = view.findViewById(R.id.imgTheme)
-        val tvThemeName: TextView = view.findViewById(R.id.tvThemeName)
-        val tvApplied: TextView = view.findViewById(R.id.tvApplied)
+        val card: MaterialCardView =
+            view.findViewById(R.id.cardTheme)
+
+        val imgTheme: ImageView =
+            view.findViewById(R.id.imgTheme)
+
+        val tvThemeName: TextView =
+            view.findViewById(R.id.tvThemeName)
+
+        val tvApplied: TextView =
+            view.findViewById(R.id.tvApplied)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): ViewHolder {
 
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_customize, parent, false)
+        val view = LayoutInflater
+            .from(parent.context)
+            .inflate(
+                R.layout.item_customize,
+                parent,
+                false
+            )
 
         return ViewHolder(view)
     }
 
-    override fun getItemCount(): Int = items.size
+    override fun getItemCount(): Int =
+        items.size
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: ViewHolder,
+        position: Int
+    ) {
 
         val item = items[position]
 
         holder.tvThemeName.text = item.name
 
-        // 원하는 이미지로 변경
-        holder.imgTheme.setImageResource(R.drawable.dailyread_fox_face_level_1)
+        holder.imgTheme.setImageResource(
+            item.previewImage
+        )
 
-        val selected = item.name == appliedTheme
+        val selected =
+            item.id == appliedTheme
 
         holder.tvApplied.visibility =
-            if (selected) View.VISIBLE else View.GONE
+            if (selected)
+                View.VISIBLE
+            else
+                View.GONE
 
         if (selected) {
+
             holder.card.strokeColor =
-                ContextCompat.getColor(holder.itemView.context, R.color.foxrange)
+                ContextCompat.getColor(
+                    holder.itemView.context,
+                    R.color.foxrange
+                )
+
             holder.card.strokeWidth = 5
+
         } else {
+
             holder.card.strokeColor =
-                ContextCompat.getColor(holder.itemView.context, android.R.color.darker_gray)
+                ContextCompat.getColor(
+                    holder.itemView.context,
+                    android.R.color.darker_gray
+                )
+
             holder.card.strokeWidth = 2
         }
 
         holder.itemView.setOnClickListener {
+
             onClick(item)
         }
     }

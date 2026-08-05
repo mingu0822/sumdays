@@ -4,10 +4,10 @@ import com.example.sumdays.R
 
 
 object AllFoxMap {
-    val allFoxMap: MutableMap<String, CompleteFox> = mutableMapOf(
-        "angry" to CompleteFox(
+    val allFoxMap: MutableMap<Int, CompleteFox> = mutableMapOf(
+        1 to CompleteFox(
             name = "angry",
-            id = 3,
+            id = 1,
 
             previewImage = R.drawable.dailyread_fox_face_level_1,
             hat = null,
@@ -18,9 +18,9 @@ object AllFoxMap {
             isSelected = true,
         ),
 
-        "happy" to CompleteFox(
+        2 to CompleteFox(
             name = "happy",
-            id = 4,
+            id = 2,
 
             previewImage = R.drawable.dailyread_fox_face_level_5,
             hat = null,

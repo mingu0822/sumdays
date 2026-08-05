@@ -4,8 +4,8 @@ import com.example.sumdays.R
 
 
 object AllItemMap {
-    val allItemMap: MutableMap<String, FoxShopItem> = mutableMapOf(
-        "glasses" to FoxShopItem(
+    val allItemMap: MutableMap<Int, FoxShopItem> = mutableMapOf(
+        1 to FoxShopItem(
             name = "안경",
             id = 1,
             description = "귀여운 안경입니다.",
@@ -15,7 +15,7 @@ object AllItemMap {
             imageRes = R.drawable.foxitem_glasses
         ),
 
-        "sunglasses" to FoxShopItem(
+        3 to FoxShopItem(
             name = "선글라스",
             id = 3,
             description = "선글라스입니다.",
@@ -25,7 +25,7 @@ object AllItemMap {
             imageRes = R.drawable.foxitem_glasses
         ),
 
-        "hat" to FoxShopItem(
+        2 to FoxShopItem(
             name = "모자",
             id = 2,
             description = "귀여운 모자입니다.",

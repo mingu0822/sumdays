@@ -93,10 +93,10 @@ class SocialCalendarActivity : AppCompatActivity() {
     private fun getCurrentThemeOrNull(): Theme? {
         ThemeRepository.updateOwned()
 
-        val themeKey = ThemePrefs.getTheme(this)
+        val themeId = ThemePrefs.getTheme(this)
 
-        return ThemeRepository.ownedThemes[themeKey]
-            ?: ThemeRepository.allThemeMap[themeKey]
+        return ThemeRepository.ownedThemes[themeId]
+            ?: ThemeRepository.allThemeMap[themeId]
     }
 
     fun updateOwned(){

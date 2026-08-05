@@ -66,7 +66,7 @@ class ShopAdapter(
                 is ThemeShopItem -> {
 
                     val isApplied =
-                        ThemePrefs.getTheme(context) == item.name
+                        ThemePrefs.getTheme(context) == item.id
 
                     tvShopItemPrice.text =
                         if (item.isOwned) "보유중"

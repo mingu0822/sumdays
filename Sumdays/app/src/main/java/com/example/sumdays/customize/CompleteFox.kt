@@ -5,7 +5,7 @@ data class CompleteFox(
     val name: String,
 
     // 미리보기 이미지
-    val previewImage: Int,
+    var previewImage: Int,
 
     // 구성 요소
     val glasses: Int?,

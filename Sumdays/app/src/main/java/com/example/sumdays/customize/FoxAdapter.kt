@@ -12,12 +12,12 @@ import com.google.android.material.card.MaterialCardView
 
 class FoxAdapter(
     private val items: List<CompleteFox>,
-    private var appliedFox: String,
+    private var appliedFox: Int,
     private val onClick: (CompleteFox) -> Unit
 ) : RecyclerView.Adapter<FoxAdapter.ViewHolder>() {
 
-    fun setAppliedFox(foxName: String) {
-        appliedFox = foxName
+    fun setAppliedFox(foxId: Int) {
+        appliedFox = foxId
         notifyDataSetChanged()
     }
 
@@ -61,7 +61,7 @@ class FoxAdapter(
         // CompleteFox에 저장된 미리보기 이미지
         holder.image.setImageResource(fox.previewImage)
 
-        val selected = fox.name == appliedFox
+        val selected = fox.id == appliedFox
 
         holder.tvApplied.visibility =
             if (selected) View.VISIBLE else View.GONE

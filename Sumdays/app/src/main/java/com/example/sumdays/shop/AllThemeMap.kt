@@ -5,8 +5,8 @@ import com.example.sumdays.theme.Theme
 
 // Theme과 테마 이름을 연결짓는 오브젝트
 object AllThemeMap {
-    val allThemeMap: MutableMap<String, Theme> = mutableMapOf(
-        "default" to Theme(
+    val allThemeMap: MutableMap<Int, Theme> = mutableMapOf(
+        1 to Theme(
             name = "default",
             id = 1,
             description = "기본 라이트 테마",
@@ -42,7 +42,7 @@ object AllThemeMap {
             isOwned = true
         ),
 
-        "forest" to Theme(
+        2 to Theme(
             name = "forest",
             id = 2,
             description = "숲 테마",
