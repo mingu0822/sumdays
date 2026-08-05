@@ -205,6 +205,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintVertical_bias="0.34"/>
 
+    <ImageView
+        android:id="@+id/imgResultFox"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:visibility="gone"
+        android:scaleType="fitCenter"
+
+        app:layout_constraintStart_toStartOf="@id/alchemyCloud"
+        app:layout_constraintEnd_toEndOf="@id/alchemyCloud"
+        app:layout_constraintTop_toTopOf="@id/alchemyCloud"
+        app:layout_constraintBottom_toBottomOf="@id/alchemyCloud"/>
+
     <!-- ===================== -->
     <!-- 뒤로가기 -->
     <!-- ===================== -->

@@ -59,7 +59,13 @@ class FoxAdapter(
         holder.tvName.text = fox.name
 
         // CompleteFox에 저장된 미리보기 이미지
-        holder.image.setImageResource(fox.previewImage)
+        val bitmap =
+            FoxBitmapRenderer.createPreview(
+                holder.itemView.context,
+                fox
+            )
+
+        holder.image.setImageBitmap(bitmap)
 
         val selected = fox.id == appliedFox
 

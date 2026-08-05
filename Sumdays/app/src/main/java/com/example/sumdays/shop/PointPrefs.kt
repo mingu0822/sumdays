@@ -6,7 +6,7 @@ object PointPrefs {
 
     private const val PREF_NAME = "shop_point_prefs"
     private const val KEY_POINT = "current_point"
-    private const val DEFAULT_POINT = 1240
+    private const val DEFAULT_POINT = 9000
 
     fun savePoint(context: Context, point: Int) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)

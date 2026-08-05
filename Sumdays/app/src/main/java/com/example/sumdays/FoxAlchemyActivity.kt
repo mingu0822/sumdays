@@ -10,10 +10,13 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+
 import com.example.sumdays.alchemy.AlchemyInventoryBottomSheet
 import com.example.sumdays.alchemy.AlchemyRecipeManager
 import com.example.sumdays.alchemy.AlchemySelectionManager
 import com.example.sumdays.customize.AllFoxMap
+import com.example.sumdays.customize.CompleteFox
+import com.example.sumdays.customize.FoxBitmapRenderer
 import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.ItemCategory
 
@@ -27,6 +30,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
     // 구름
     private lateinit var alchemyCloud: ImageView
+    private lateinit var imgResultFox: ImageView
 
     // 슬롯
     private lateinit var slotGlasses: ImageView
@@ -46,6 +50,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
         materialPanel = findViewById(R.id.materialPanel)
         alchemyCloud = findViewById(R.id.alchemyCloud)
+        imgResultFox = findViewById(R.id.imgResultFox)
 
         slotGlasses = findViewById(R.id.slotGlasses)
         slotHat = findViewById(R.id.slotHat)
@@ -54,6 +59,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
         materialPanel.visibility = View.GONE
         alchemyCloud.visibility = View.GONE
+        imgResultFox.visibility = View.GONE
 
         clearSlots()
 
@@ -115,12 +121,14 @@ class FoxAlchemyActivity : AppCompatActivity() {
         animator.duration = 1200L
         animator.repeatCount = ValueAnimator.INFINITE
         animator.repeatMode = ValueAnimator.REVERSE
-        animator.interpolator =
-            AccelerateDecelerateInterpolator()
+        animator.interpolator = AccelerateDecelerateInterpolator()
 
         animator.start()
     }
 
+    /**
+     * 솥 터치 효과
+     */
     private fun setupPotTouchEffect() {
 
         alchemyPot.setOnTouchListener { _, event ->
@@ -155,6 +163,14 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
         clearSlots()
 
+        updatePreviewFox()
+
+        imgResultFox.visibility = View.VISIBLE
+        imgResultFox.alpha = 0f
+        imgResultFox.scaleX = 0.7f
+        imgResultFox.scaleY = 0.7f
+        imgResultFox.translationY = 30f
+
         materialPanel.visibility = View.VISIBLE
         alchemyCloud.visibility = View.VISIBLE
 
@@ -175,6 +191,57 @@ class FoxAlchemyActivity : AppCompatActivity() {
             .translationY(0f)
             .setDuration(300)
             .start()
+
+        imgResultFox.animate()
+            .alpha(1f)
+            .scaleX(1f)
+            .scaleY(1f)
+            .translationY(0f)
+            .setDuration(300)
+            .setStartDelay(80)
+            .start()
+    }
+
+    /**
+     * 현재 선택된 아이템으로 미리보기 여우 갱신
+     */
+    private fun updatePreviewFox() {
+
+        var glasses: Int? = null
+        var hat: Int? = null
+        var scarf: Int? = null
+        var accessory: Int? = null
+
+        selectedItems.forEach { item ->
+
+            when (item.itemCategory) {
+
+                ItemCategory.GLASSES -> glasses = item.id
+
+                ItemCategory.HAT -> hat = item.id
+
+                ItemCategory.SCARF -> scarf = item.id
+
+                ItemCategory.ACCESSORY -> accessory = item.id
+            }
+        }
+
+        val previewFox = CompleteFox(
+            id = -1,
+            name = "Preview",
+            previewImage = 0,   // 사용 안 함
+            glasses = glasses,
+            hat = hat,
+            scarf = scarf,
+            accessory = accessory
+        )
+
+        val bitmap = FoxBitmapRenderer.createPreview(
+            this,
+            previewFox
+        )
+
+        imgResultFox.setImageBitmap(bitmap)
     }
 
     /**
@@ -191,6 +258,17 @@ class FoxAlchemyActivity : AppCompatActivity() {
                 materialPanel.visibility = View.GONE
                 materialPanel.alpha = 1f
                 materialPanel.translationY = 0f
+            }
+            .start()
+
+        imgResultFox.animate()
+            .alpha(0f)
+            .scaleX(0.7f)
+            .scaleY(0.7f)
+            .translationY(30f)
+            .setDuration(60)
+            .withEndAction {
+                imgResultFox.visibility = View.GONE
             }
             .start()
 
@@ -234,23 +312,22 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
             when (item.itemCategory) {
 
-                ItemCategory.GLASSES -> {
+                ItemCategory.GLASSES ->
                     slotGlasses.setImageResource(item.imageRes)
-                }
 
-                ItemCategory.HAT -> {
+                ItemCategory.HAT ->
                     slotHat.setImageResource(item.imageRes)
-                }
 
-                ItemCategory.SCARF -> {
+                ItemCategory.SCARF ->
                     slotScarf.setImageResource(item.imageRes)
-                }
 
-                ItemCategory.ACCESSORY -> {
+                ItemCategory.ACCESSORY ->
                     slotAccessory.setImageResource(item.imageRes)
-                }
             }
         }
+
+        // 선택될 때마다 여우 미리보기 갱신
+        updatePreviewFox()
     }
 
     /**
@@ -271,8 +348,10 @@ class FoxAlchemyActivity : AppCompatActivity() {
             return
         }
 
+        // 아이템 차감 확정
         AlchemySelectionManager.commit()
 
+        // 실제 여우 생성
         val fox = AlchemyRecipeManager.createFox(
 
             id = AllFoxMap.allFoxMap.size + 1,
@@ -281,6 +360,9 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
             items = items
         )
+
+        // 생성된 여우 저장
+        AllFoxMap.allFoxMap[fox.id] = fox
 
         val names = items.joinToString(", ") {
             it.name
@@ -292,25 +374,13 @@ class FoxAlchemyActivity : AppCompatActivity() {
             Toast.LENGTH_SHORT
         ).show()
 
+        // TODO
+        // SharedPreferences / Room 등에 저장
+
         selectedItems.clear()
 
         clearSlots()
 
         hideMaterialPanel()
-
-        // TODO
-        // 1. 선택된 아이템 조합 공식 계산
-        // 2. 새로운 여우 생성
-        // 3. 여우 저장
-        // 4. 결과 팝업 표시
-        // 5. alchemyCloud에 생성된 여우 미리보기 출력
-    }
-
-    override fun onDestroy() {
-
-        // Activity 종료 시 예약 차감 복원
-        AlchemySelectionManager.clear(this)
-
-        super.onDestroy()
     }
 }

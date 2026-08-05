@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.customize.AllFoxMap
 import com.example.sumdays.customize.CompleteFox
 import com.example.sumdays.customize.FoxAdapter
+import com.example.sumdays.customize.FoxBitmapRenderer
 import com.example.sumdays.customize.ThemeAdapter
 import com.example.sumdays.shop.AllThemeMap
 import com.example.sumdays.shop.OwnedPrefs
@@ -176,9 +177,13 @@ class CustomizeActivity : AppCompatActivity() {
                     fox.id
                 )
 
-                imgPreview.setImageResource(
-                    fox.previewImage
-                )
+                val bitmap =
+                    FoxBitmapRenderer.createPreview(
+                        this,
+                        fox
+                    )
+
+                imgPreview.setImageBitmap(bitmap)
 
                 foxAdapter.setAppliedFox(
                     fox.id
