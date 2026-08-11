@@ -3,8 +3,8 @@ package com.example.sumdays.theme
 import com.example.sumdays.shop.AllThemeMap
 
 object ThemeRepository {
-    val ownedThemes: MutableMap<String, Theme> = mutableMapOf()
-    val allThemeMap: MutableMap<String, Theme> = AllThemeMap.allThemeMap
+    val ownedThemes: MutableMap<Int, Theme> = mutableMapOf()
+    val allThemeMap: MutableMap<Int, Theme> = AllThemeMap.allThemeMap
 
     fun updateOwned() {
 

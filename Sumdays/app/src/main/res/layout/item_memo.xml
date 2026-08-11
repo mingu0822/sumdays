@@ -8,37 +8,51 @@
     android:clipChildren="false"
     android:clipToPadding="false">
 
+    <!-- 말풍선 -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bubble_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="20dp"
         android:background="@drawable/memo_bubble_default">
 
         <TextView
             android:id="@+id/memo_text"
             android:layout_width="256dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="16dp"
             android:gravity="center"
             android:includeFontPadding="false"
             android:text="내용"
             android:textColor="@android:color/black"
             android:textSize="@dimen/text_size_S"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <TextView
-        android:id="@+id/memo_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="21:05"
-        android:textSize="@dimen/text_size_XS"
-        android:textColor="@android:color/white"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp" />
+    <!-- 시간 박스 (말풍선 위에 겹침) -->
+    <FrameLayout
+        android:id="@+id/time_box"
+        android:layout_width="72dp"
+        android:layout_height="28dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/memo_time_box"
+        android:elevation="8dp">
+
+        <TextView
+            android:id="@+id/memo_time"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="21:05"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/text_size_XS"/>
+
+    </FrameLayout>
 
 </FrameLayout>

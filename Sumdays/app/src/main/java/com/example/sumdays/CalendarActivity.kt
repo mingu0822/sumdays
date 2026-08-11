@@ -23,12 +23,16 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
 import androidx.lifecycle.LiveData
 import androidx.viewpager2.widget.ViewPager2
+import com.example.sumdays.alchemy.AlchemySelectionManager
 import com.example.sumdays.calendar.CalendarLanguage
 import com.example.sumdays.calendar.MonthAdapter
+import com.example.sumdays.customize.FoxPrefs
 import com.example.sumdays.data.sync.BackupScheduler
 import com.example.sumdays.data.viewModel.CalendarViewModel
-import com.example.sumdays.shop.AllFoxMap
+import com.example.sumdays.shop.AllItemMap
 import com.example.sumdays.shop.AllThemeMap
+import com.example.sumdays.shop.ItemPrefs
+import com.example.sumdays.shop.PointPrefs
 import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.Theme
 import com.example.sumdays.theme.ThemePrefs
@@ -78,6 +82,8 @@ class CalendarActivity : AppCompatActivity() {
         setContentView(R.layout.activity_calendar)
         AndroidThreeTen.init(this)
 
+        FoxPrefs.loadAll(this)
+        AlchemySelectionManager.restorePendingSelection(this)
 
         calendarViewPager = findViewById(R.id.calendarViewPager)
         tvMonthYear = findViewById(R.id.tv_month_year)
@@ -135,10 +141,8 @@ class CalendarActivity : AppCompatActivity() {
     private fun ensureDefaultOwned() {
 
         val themeKey = ThemePrefs.getTheme(this)
-        val foxKey = ThemePrefs.getFox(this)
 
         AllThemeMap.allThemeMap[themeKey]?.isOwned = true
-        AllFoxMap.allFoxMap[foxKey]?.isOwned = true
     }
 
     private fun getCurrentThemeOrNull(): Theme? {

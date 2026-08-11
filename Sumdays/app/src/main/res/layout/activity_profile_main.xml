@@ -7,24 +7,117 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:background="@color/background"
-    tools:context=".CalendarActivity">
+    tools:context=".CalendarActivity"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
+    <!-- 🔥 핵심 수정: bottom padding 추가 -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="20dp">
+        android:padding="20dp"
+        android:paddingBottom="120dp"
+        android:clipToPadding="false">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:orientation="vertical">
+
+            <!-- 사용자 블록 -->
+            <LinearLayout
+                android:id="@+id/userBlock"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/nickname"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_toEndOf="@id/profileImageContainer"
+                        android:text="닉네임"
+                        android:layout_marginTop="24dp"
+                        android:layout_marginLeft="12dp"
+                        android:textSize="@dimen/text_size_M"
+                        android:textStyle="bold" />
+
+                    <FrameLayout
+                        android:id="@+id/profileImageContainer"
+                        android:layout_width="66dp"
+                        android:layout_height="66dp"
+                        android:layout_marginTop="18dp"
+                        android:layout_marginLeft="18dp"
+                        android:layout_centerVertical="true"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="@color/background"
+                        android:foreground="?attr/selectableItemBackground">
+
+                        <ImageView
+                            android:id="@+id/imgPhoto"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone" />
+
+                        <ImageView
+                            android:id="@+id/imgBase"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside" />
+
+                        <ImageView
+                            android:id="@+id/imgMouth"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside" />
+
+                        <ImageView
+                            android:id="@+id/imgEyes"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside" />
+
+                        <ImageView
+                            android:id="@+id/imgAccessory"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside" />
+
+                    </FrameLayout>
+                </RelativeLayout>
+
+                <Button
+                    android:id="@+id/loginButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="0dp"
+                    android:layout_marginBottom="12dp"
+                    android:layout_marginHorizontal="10dp"
+                    android:text="회원가입 / 로그인"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    app:cornerRadius="18dp" />
+            </LinearLayout>
+
+        </LinearLayout>
     </ScrollView>
 
     <include
+        android:clipChildren="false"
         android:id="@+id/navigation_bar"
         layout="@layout/include_navigation_bar"
         android:layout_width="0dp"
-        android:layout_height="80dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

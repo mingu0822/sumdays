@@ -60,5 +60,7 @@ data class Theme(
     // 일기 보기 버튼
     val seeDiary: Int,
     //캘린더 이아콘
-    val calendarIcon: Int
+    val calendarIcon: Int,
+
+    val previewImage: Int
 )

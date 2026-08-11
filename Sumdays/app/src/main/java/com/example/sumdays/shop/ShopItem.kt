@@ -7,4 +7,6 @@ interface ShopItem{
     val description: String
     val price: Int
     var isOwned: Boolean
+
+    val imageRes: Int
 }

@@ -73,6 +73,14 @@
             android:screenOrientation="portrait"
             android:exported="false" />
         <activity
+            android:name=".CustomizeActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"/>
+        <activity
+            android:name=".FoxAlchemyActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"/>
+        <activity
             android:name=".CalendarActivity"
             android:screenOrientation="portrait"
             android:exported="false"
@@ -119,7 +127,8 @@
             android:screenOrientation="portrait"
             android:exported="false" />
         <activity android:name=".social.SocialActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="portrait"/>
 
         <activity
             android:name=".settings.StyleExtractionActivity"

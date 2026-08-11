@@ -9,20 +9,14 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.NumberPicker
 import android.widget.TextView
-import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import com.example.sumdays.R
 import com.example.sumdays.calendar.CalendarLanguage
-import com.example.sumdays.data.DailyEntry
-import com.example.sumdays.data.viewModel.CalendarViewModel
-import com.example.sumdays.network.ApiClient
-import com.example.sumdays.shop.AllFoxMap
+import com.example.sumdays.shop.AllItemMap
 import com.example.sumdays.shop.AllThemeMap
 import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.Theme
@@ -93,19 +87,18 @@ class SocialCalendarActivity : AppCompatActivity() {
     private fun ensureDefaultOwned() {
 
         val themeKey = ThemePrefs.getTheme(this)
-        val foxKey = ThemePrefs.getFox(this)
+//        val foxKey = ThemePrefs.getFox(this)
 
         AllThemeMap.allThemeMap[themeKey]?.isOwned = true
-        AllFoxMap.allFoxMap[foxKey]?.isOwned = true
     }
 
     private fun getCurrentThemeOrNull(): Theme? {
         ThemeRepository.updateOwned()
 
-        val themeKey = ThemePrefs.getTheme(this)
+        val themeId = ThemePrefs.getTheme(this)
 
-        return ThemeRepository.ownedThemes[themeKey]
-            ?: ThemeRepository.allThemeMap[themeKey]
+        return ThemeRepository.ownedThemes[themeId]
+            ?: ThemeRepository.allThemeMap[themeId]
     }
 
     fun updateOwned(){

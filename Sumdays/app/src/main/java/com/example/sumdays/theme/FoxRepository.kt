@@ -1,10 +1,11 @@
 package com.example.sumdays.theme
 
-import com.example.sumdays.shop.AllFoxMap
+import com.example.sumdays.shop.AllItemMap
+import com.example.sumdays.shop.FoxShopItem
 
 object FoxRepository {
-    val ownedFoxes: MutableMap<String, FoxChar> = mutableMapOf()
-    val allFoxMap: MutableMap<String, FoxChar> = AllFoxMap.allFoxMap
+    val ownedFoxes: MutableMap<Int, FoxShopItem> = mutableMapOf()
+    val allFoxMap: MutableMap<Int, FoxShopItem> = AllItemMap.allItemMap
 
     fun updateOwned() {
 

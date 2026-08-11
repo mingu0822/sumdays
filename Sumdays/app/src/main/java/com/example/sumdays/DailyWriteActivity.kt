@@ -181,23 +181,22 @@ class DailyWriteActivity : AppCompatActivity() {
         FoxRepository.updateOwned()
 
         val themeKey = ThemePrefs.getTheme(this)
-        val foxKey = ThemePrefs.getFox(this)
+//        val foxKey = ThemePrefs.getFox(this)
 
         val currentTheme =
             ThemeRepository.ownedThemes[themeKey]
                 ?: ThemeRepository.allThemeMap[themeKey]
 
-        val currentFox =
-            FoxRepository.ownedFoxes[foxKey]
-                ?: FoxRepository.allFoxMap[foxKey]
+//        val currentFox =
+//            FoxRepository.ownedFoxes[foxKey]
+//                ?: FoxRepository.allFoxMap[foxKey]
 
-        if (currentTheme == null || currentFox == null) {
+        if (currentTheme == null) {
             Log.e("ThemeError", "Theme or Fox is null")
             return
         }
 
         val backgroundColor = currentTheme.backgroundColor
-        val foxFaceImage = currentFox.commentFoxIcon
 
         val rootView = findViewById<View>(R.id.write)
 
@@ -228,7 +227,7 @@ class DailyWriteActivity : AppCompatActivity() {
         micIcon.setImageResource(currentTheme.recordIcon)
         imageIcon.setImageResource(currentTheme.addImageIcon)
 
-        dateTextBox.setBackgroundResource(currentTheme.blockStyleFox)
+//        dateTextBox.setBackgroundResource(currentTheme.blockStyleFox)
         memoListView.setBackgroundResource(currentTheme.blockStyleD)
     }
 

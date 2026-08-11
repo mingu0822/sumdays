@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.annotation.RequiresApi
 import com.example.sumdays.CalendarActivity
+import com.example.sumdays.CustomizeActivity
 import com.example.sumdays.DailyWriteActivity
 import com.example.sumdays.ProfileActivity
 import com.example.sumdays.R
@@ -23,7 +24,9 @@ enum class NavSource {
     READ,
     PROFILE,
     SEARCH,
-    SOCIAL
+    SOCIAL,
+    SHOP,
+    CUSTOMIZE,
 }
 
 class NavBarController(
@@ -38,7 +41,6 @@ class NavBarController(
         centerIcon?.setImageResource(drawableRes)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun setNavigationBar(
         from: NavSource,
         sumIntentProvider: (() -> Intent)? = null
@@ -98,7 +100,7 @@ class NavBarController(
         }
 
         btnShop.setOnClickListener {
-            if (from != NavSource.SEARCH) {
+            if (from != NavSource.SHOP) {
                 activity.startActivity(
                     Intent(activity, ShopActivity::class.java)
                 )
@@ -107,9 +109,9 @@ class NavBarController(
         }
 
         btnInfo.setOnClickListener {
-            if (from != NavSource.PROFILE) {
+            if (from != NavSource.CUSTOMIZE) {
                 activity.startActivity(
-                    Intent(activity, ProfileActivity::class.java)
+                    Intent(activity, CustomizeActivity::class.java)
                 )
                 activity.overridePendingTransition(0, 0)
             }
