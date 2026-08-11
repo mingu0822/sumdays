@@ -12,6 +12,7 @@ import com.example.sumdays.customize.AllFoxMap
 import com.example.sumdays.customize.CompleteFox
 import com.example.sumdays.customize.FoxAdapter
 import com.example.sumdays.customize.FoxBitmapRenderer
+import com.example.sumdays.customize.FoxPrefs
 import com.example.sumdays.customize.ThemeAdapter
 import com.example.sumdays.shop.AllThemeMap
 import com.example.sumdays.shop.OwnedPrefs
@@ -20,6 +21,11 @@ import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
+import android.app.AlertDialog
+import android.widget.EditText
+import android.widget.Toast
+import com.example.sumdays.alchemy.AlchemyRecipeManager
+import com.example.sumdays.shop.FoxShopItem
 
 class CustomizeActivity : AppCompatActivity() {
 
@@ -121,6 +127,37 @@ class CustomizeActivity : AppCompatActivity() {
     }
 
     /**
+     * 저장된 여우 미리보기 표시
+     */
+    private fun showFoxPreview(
+        fox: CompleteFox
+    ) {
+
+        // 1. 저장된 PNG가 있으면 사용
+        val bitmap = FoxBitmapRenderer.loadPreview(
+            fox.previewPath
+        )
+
+        if (bitmap != null) {
+
+            imgPreview.setImageBitmap(bitmap)
+
+            return
+        }
+
+        // 2. PNG가 없으면 기존 방식으로 생성
+        val generatedBitmap =
+            FoxBitmapRenderer.createPreview(
+                this,
+                fox
+            )
+
+        imgPreview.setImageBitmap(
+            generatedBitmap
+        )
+    }
+
+    /**
      * RecyclerView 설정
      */
     private fun setupRecycler() {
@@ -183,31 +220,130 @@ class CustomizeActivity : AppCompatActivity() {
                         fox
                     )
 
-                imgPreview.setImageBitmap(bitmap)
+                if (bitmap != null) {
+                    imgPreview.setImageBitmap(bitmap)
+                } else {
+                    imgPreview.setImageResource(
+                        fox.previewImage
+                    )
+                }
 
                 foxAdapter.setAppliedFox(
                     fox.id
                 )
+            },
+
+            onDelete = { fox ->
+                showDeleteFoxDialog(fox)
             }
         )
 
         rvFox.adapter = foxAdapter
     }
 
-    /**
-     * 테마 미리보기 갱신
-     */
-    private fun updatePreviewTheme(theme: Theme) {
+    private fun showDeleteFoxDialog(
+        fox: CompleteFox
+    ) {
 
-        // 현재 선택된 여우 유지
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("여우 삭제")
+            .setMessage(
+                "\"${fox.name}\"을(를) 정말 삭제하시겠습니까?"
+            )
+            .setNegativeButton(
+                "취소",
+                null
+            )
+            .setPositiveButton(
+                "삭제"
+            ) { _, _ ->
+
+                deleteFox(fox)
+            }
+            .show()
+    }
+
+    private fun deleteFox(
+        fox: CompleteFox
+    ) {
+
+        // 현재 적용 중인 여우라면 기본 여우로 변경
+        if (ThemePrefs.getFoxItem(this) == fox.id) {
+
+            // 기본 여우 ID가 1이라는 현재 구조 기준
+            ThemePrefs.saveFoxItem(
+                this,
+                1
+            )
+        }
+
+        // 저장 데이터에서 삭제
+        FoxPrefs.delete(
+            this,
+            fox.id
+        )
+
+        // 현재 리스트에서도 삭제
+        foxList.removeAll {
+            it.id == fox.id
+        }
+
+        // RecyclerView 갱신
+        foxAdapter.notifyDataSetChanged()
+
+        // 삭제된 여우가 현재 미리보기였다면 기본 여우 표시
         val currentFox = foxList.firstOrNull {
             it.id == ThemePrefs.getFoxItem(this)
         }
 
         if (currentFox != null) {
-            imgPreview.setImageResource(currentFox.previewImage)
+
+            val bitmap =
+                FoxBitmapRenderer.createPreview(
+                    this,
+                    currentFox
+                )
+
+            if (bitmap != null) {
+                imgPreview.setImageBitmap(bitmap)
+            } else {
+                imgPreview.setImageResource(
+                    currentFox.previewImage
+                )
+            }
+
         } else {
-            imgPreview.setImageResource(theme.previewImage)
+
+            imgPreview.setImageResource(
+                R.drawable.dailyread_fox_face_level_3
+            )
+        }
+    }
+
+    /**
+     * 테마 미리보기 갱신
+     */
+    private fun updatePreviewTheme(
+        theme: Theme
+    ) {
+
+        // 현재 선택된 여우 유지
+        val currentFox =
+            foxList.firstOrNull {
+                it.id == ThemePrefs.getFoxItem(this)
+            }
+
+        if (currentFox != null) {
+
+            // 여우가 있으면 저장된 미리보기 사용
+            showFoxPreview(currentFox)
+
+        } else {
+
+            // 여우가 없으면 테마 미리보기
+            imgPreview.setImageResource(
+                theme.previewImage
+            )
         }
     }
 
@@ -222,10 +358,28 @@ class CustomizeActivity : AppCompatActivity() {
         foxAdapter.notifyDataSetChanged()
 
         // 적용된 여우 미리보기 표시
-        foxList.firstOrNull {
-            it.id == ThemePrefs.getFoxItem(this)
-        }?.let {
-            imgPreview.setImageResource(it.previewImage)
+        val appliedFox =
+            foxList.firstOrNull {
+                it.id == ThemePrefs.getFoxItem(this)
+            }
+
+        if (appliedFox != null) {
+
+            showFoxPreview(appliedFox)
+
+        } else {
+
+            // 적용된 여우가 없으면 테마 미리보기
+            val currentTheme =
+                themeList.firstOrNull {
+                    it.id == ThemePrefs.getTheme(this)
+                }
+
+            currentTheme?.let {
+                imgPreview.setImageResource(
+                    it.previewImage
+                )
+            }
         }
 
         // 선택 상태 동기화

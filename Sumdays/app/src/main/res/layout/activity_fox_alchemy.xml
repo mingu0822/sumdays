@@ -208,7 +208,7 @@
     <ImageView
         android:id="@+id/imgResultFox"
         android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_height="1200dp"
         android:visibility="gone"
         android:scaleType="fitCenter"
 

@@ -7,6 +7,9 @@ import com.example.sumdays.shop.ItemPrefs
 
 object AlchemySelectionManager {
 
+    private const val PREF_NAME = "alchemy_selection"
+    private const val KEY_SELECTED_IDS = "selected_item_ids"
+
     // 카테고리별 선택된 아이템
     private val selectedMap =
         mutableMapOf<ItemCategory, FoxShopItem>()
@@ -14,56 +17,72 @@ object AlchemySelectionManager {
     /**
      * 아이템 선택 / 해제
      *
-     * - 같은 아이템 다시 클릭 → 선택 해제
-     * - 같은 카테고리 다른 아이템 클릭 → 기존 복원 후 교체
-     * - 선택 즉시 인벤토리 수량 1 감소
+     * 선택하는 순간 인벤토리에서 1개를 예약 차감한다.
      */
     fun toggle(
         context: Context,
         item: FoxShopItem
     ): List<FoxShopItem> {
 
-        val current = selectedMap[item.itemCategory]
+        val current =
+            selectedMap[item.itemCategory]
 
-        // 같은 아이템 다시 누름 → 선택 취소
+        // 같은 아이템을 다시 클릭 → 선택 취소
         if (current?.id == item.id) {
 
-            ItemPrefs.setCount(
+            restoreItem(
                 context,
-                item.id,
-                ItemPrefs.getCount(context, item.id) + 1
+                item.id
             )
 
-            selectedMap.remove(item.itemCategory)
+            selectedMap.remove(
+                item.itemCategory
+            )
+
+            saveSelection(
+                context
+            )
 
             return getSelectedItems()
         }
 
-        // 기존 같은 카테고리 아이템 복원
+        // 같은 카테고리에 기존 아이템이 있다면 복원
         if (current != null) {
 
-            ItemPrefs.setCount(
+            restoreItem(
                 context,
-                current.id,
-                ItemPrefs.getCount(context, current.id) + 1
+                current.id
+            )
+
+            selectedMap.remove(
+                item.itemCategory
             )
         }
 
-        // 재고 없으면 선택 불가
-        val count = ItemPrefs.getCount(context, item.id)
+        // 현재 재고 확인
+        val count =
+            ItemPrefs.getCount(
+                context,
+                item.id
+            )
 
         if (count <= 0) {
+            saveSelection(context)
             return getSelectedItems()
         }
 
-        // 새 아이템 예약(미리 차감)
+        // 새 아이템 1개 예약 차감
         ItemPrefs.setCount(
             context,
             item.id,
             count - 1
         )
 
-        selectedMap[item.itemCategory] = item
+        selectedMap[
+            item.itemCategory
+        ] = item
+
+        saveSelection(context)
 
         return getSelectedItems()
     }
@@ -78,13 +97,17 @@ object AlchemySelectionManager {
     /**
      * 선택 여부
      */
-    fun isSelected(item: FoxShopItem): Boolean {
+    fun isSelected(
+        item: FoxShopItem
+    ): Boolean {
 
-        return selectedMap[item.itemCategory]?.id == item.id
+        return selectedMap[
+            item.itemCategory
+        ]?.id == item.id
     }
 
     /**
-     * 특정 카테고리에 선택된 아이템
+     * 특정 카테고리 선택 아이템
      */
     fun getSelected(
         category: ItemCategory
@@ -94,20 +117,26 @@ object AlchemySelectionManager {
     }
 
     /**
-     * 조합 완료
+     * 조합 성공
      *
-     * 이미 선택하면서 차감했으므로
-     * 선택 정보만 제거
+     * 이미 선택할 때 차감했으므로
+     * 여기서는 예약 정보만 삭제한다.
      */
-    fun commit() {
+    fun commit(
+        context: Context
+    ) {
 
         selectedMap.clear()
+
+        clearSavedSelection(
+            context
+        )
     }
 
     /**
-     * 조합 취소
+     * 조합 취소 / BottomSheet 닫기
      *
-     * 미리 차감했던 개수를 모두 복원
+     * 예약 차감했던 아이템을 전부 복구한다.
      */
     fun clear(
         context: Context
@@ -115,13 +144,123 @@ object AlchemySelectionManager {
 
         selectedMap.values.forEach { item ->
 
-            ItemPrefs.setCount(
+            restoreItem(
                 context,
-                item.id,
-                ItemPrefs.getCount(context, item.id) + 1
+                item.id
             )
         }
 
         selectedMap.clear()
+
+        clearSavedSelection(
+            context
+        )
+    }
+
+    /**
+     * 앱이 다시 시작됐을 때
+     *
+     * 이전에 예약 차감된 아이템을 복구한다.
+     *
+     * 강제 종료 대비용.
+     */
+    fun restorePendingSelection(
+        context: Context
+    ) {
+
+        val prefs =
+            context.getSharedPreferences(
+                PREF_NAME,
+                Context.MODE_PRIVATE
+            )
+
+        val ids =
+            prefs.getStringSet(
+                KEY_SELECTED_IDS,
+                emptySet()
+            ) ?: emptySet()
+
+        ids.forEach { idString ->
+
+            val id =
+                idString.toIntOrNull()
+                    ?: return@forEach
+
+            restoreItem(
+                context,
+                id
+            )
+        }
+
+        clearSavedSelection(
+            context
+        )
+
+        selectedMap.clear()
+    }
+
+    /**
+     * 현재 예약 상태 저장
+     */
+    private fun saveSelection(
+        context: Context
+    ) {
+
+        val ids =
+            selectedMap.values
+                .map { it.id.toString() }
+                .toSet()
+
+        context
+            .getSharedPreferences(
+                PREF_NAME,
+                Context.MODE_PRIVATE
+            )
+            .edit()
+            .putStringSet(
+                KEY_SELECTED_IDS,
+                ids
+            )
+            .apply()
+    }
+
+    /**
+     * 저장된 예약 상태 삭제
+     */
+    private fun clearSavedSelection(
+        context: Context
+    ) {
+
+        context
+            .getSharedPreferences(
+                PREF_NAME,
+                Context.MODE_PRIVATE
+            )
+            .edit()
+            .remove(
+                KEY_SELECTED_IDS
+            )
+            .apply()
+    }
+
+    /**
+     * 아이템 1개 복구
+     */
+    private fun restoreItem(
+        context: Context,
+        itemId: Int
+    ) {
+
+        val count =
+            ItemPrefs.getCount(
+                context,
+                itemId
+            )
+
+        ItemPrefs.setCount(
+            context,
+            itemId,
+            count + 1
+        )
     }
 }

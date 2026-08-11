@@ -6,6 +6,8 @@ data class CompleteFox(
 
     // 미리보기 이미지
     var previewImage: Int,
+    // 실제 조합된 이미지
+    val previewPath: String?,
 
     // 구성 요소
     val glasses: Int?,

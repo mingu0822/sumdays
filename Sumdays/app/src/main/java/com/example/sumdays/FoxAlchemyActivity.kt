@@ -10,6 +10,8 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import android.app.AlertDialog
+import android.widget.EditText
 
 import com.example.sumdays.alchemy.AlchemyInventoryBottomSheet
 import com.example.sumdays.alchemy.AlchemyRecipeManager
@@ -17,6 +19,7 @@ import com.example.sumdays.alchemy.AlchemySelectionManager
 import com.example.sumdays.customize.AllFoxMap
 import com.example.sumdays.customize.CompleteFox
 import com.example.sumdays.customize.FoxBitmapRenderer
+import com.example.sumdays.customize.FoxPrefs
 import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.ItemCategory
 
@@ -39,11 +42,12 @@ class FoxAlchemyActivity : AppCompatActivity() {
     private lateinit var slotAccessory: ImageView
 
     // 현재 선택된 아이템
-    private val selectedItems = mutableListOf<FoxShopItem>()
+    private var selectedItems: List<FoxShopItem> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fox_alchemy)
+        FoxPrefs.loadAll(this)
 
         alchemyPot = findViewById(R.id.alchemy_pot)
         btnBack = findViewById(R.id.btnBack)
@@ -77,33 +81,119 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
                 onSelectionChanged = { items ->
 
-                    selectedItems.clear()
-                    selectedItems.addAll(items)
-
-                    updateSlots(selectedItems)
+                    selectedItems = items
+                    updatePreviewFox()
                 },
 
                 onCombine = { items ->
 
-                    selectedItems.clear()
-                    selectedItems.addAll(items)
-
-                    createFox(selectedItems)
+                    showFoxNameDialog(items)
                 },
 
                 onSheetClosed = {
-
                     hideMaterialPanel()
                 }
 
             ).show(
                 supportFragmentManager,
-                "alchemy"
+                "AlchemyInventory"
             )
         }
 
         startPotAnimation()
         setupPotTouchEffect()
+    }
+
+    private fun getNextFoxId(): Int {
+
+        return (
+                AllFoxMap.allFoxMap.keys.maxOrNull() ?: 0
+                ) + 1
+    }
+
+    private fun completeFox(
+        name: String,
+        items: List<FoxShopItem>
+    ) {
+
+        // -----------------------------------------
+        // 1. 새로운 여우 ID 생성
+        // -----------------------------------------
+
+        val foxId = getNextFoxId()
+
+
+        // -----------------------------------------
+        // 2. 선택한 아이템으로 CompleteFox 생성
+        // -----------------------------------------
+
+        val fox =
+            AlchemyRecipeManager.createFox(
+                id = foxId,
+                name = name,
+                items = items
+            )
+
+
+        // -----------------------------------------
+        // 3. 선택한 아이템까지 합성된 Bitmap 생성
+        // -----------------------------------------
+
+        val bitmap =
+            FoxBitmapRenderer.createPreview(
+                context = this,
+                fox = fox
+            )
+
+
+        // -----------------------------------------
+        // 4. 합성된 Bitmap을 PNG로 저장
+        // -----------------------------------------
+
+        val previewPath =
+            FoxBitmapRenderer.savePreview(
+                context = this,
+                foxId = foxId,
+                bitmap = bitmap
+            )
+
+
+        // -----------------------------------------
+        // 5. previewPath를 포함한 최종 여우 생성
+        // -----------------------------------------
+
+        val savedFox =
+            fox.copy(
+                previewPath = previewPath
+            )
+
+
+        // -----------------------------------------
+        // 6. AllFoxMap + SharedPreferences 저장
+        // -----------------------------------------
+
+        FoxPrefs.save(
+            context = this,
+            fox = savedFox
+        )
+
+
+        // -----------------------------------------
+        // 7. 제작 완료 처리
+        // -----------------------------------------
+
+        Toast.makeText(
+            this,
+            "\"$name\" 여우가 완성되었습니다!",
+            Toast.LENGTH_SHORT
+        ).show()
+
+
+        // -----------------------------------------
+        // 8. 제작 화면 종료
+        // -----------------------------------------
+
+        finish()
     }
 
     /**
@@ -151,6 +241,57 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
             false
         }
+    }
+
+    private fun showFoxNameDialog(
+        items: List<FoxShopItem>
+    ) {
+
+        val editText = EditText(this)
+
+        editText.hint = "여우 이름을 입력하세요"
+        editText.setSingleLine(true)
+        editText.setPadding(
+            48,
+            0,
+            48,
+            0
+        )
+
+        AlertDialog.Builder(this)
+            .setTitle("새로운 여우")
+            .setMessage("여우의 이름을 지어주세요.")
+            .setView(editText)
+            .setNegativeButton(
+                "취소",
+                null
+            )
+            .setPositiveButton(
+                "완성"
+            ) { _, _ ->
+
+                val name =
+                    editText.text
+                        .toString()
+                        .trim()
+
+                if (name.isEmpty()) {
+
+                    Toast.makeText(
+                        this,
+                        "여우 이름을 입력해주세요.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    return@setPositiveButton
+                }
+
+                completeFox(
+                    name = name,
+                    items = items
+                )
+            }
+            .show()
     }
 
     /**
@@ -230,6 +371,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
             id = -1,
             name = "Preview",
             previewImage = 0,   // 사용 안 함
+            previewPath = null,
             glasses = glasses,
             hat = hat,
             scarf = scarf,
@@ -283,7 +425,6 @@ class FoxAlchemyActivity : AppCompatActivity() {
                 alchemyCloud.translationY = 0f
 
                 clearSlots()
-                selectedItems.clear()
             }
             .start()
     }
@@ -348,39 +489,117 @@ class FoxAlchemyActivity : AppCompatActivity() {
             return
         }
 
-        // 아이템 차감 확정
-        AlchemySelectionManager.commit()
-
-        // 실제 여우 생성
-        val fox = AlchemyRecipeManager.createFox(
-
-            id = AllFoxMap.allFoxMap.size + 1,
-
-            name = "여우 ${AllFoxMap.allFoxMap.size + 1}",
-
-            items = items
-        )
-
-        // 생성된 여우 저장
-        AllFoxMap.allFoxMap[fox.id] = fox
-
-        val names = items.joinToString(", ") {
-            it.name
+        // 이름 입력창
+        val editText = EditText(this).apply {
+            hint = "여우 이름을 입력하세요"
+            setSingleLine(true)
+            setPadding(40, 0, 40, 0)
         }
 
-        Toast.makeText(
-            this,
-            "$names 조합 완료!",
-            Toast.LENGTH_SHORT
-        ).show()
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("새로운 여우")
+            .setMessage("여우의 이름을 지어주세요.")
+            .setView(editText)
+            .setNegativeButton("취소", null)
+            .setPositiveButton("확인", null)
+            .create()
 
-        // TODO
-        // SharedPreferences / Room 등에 저장
+        dialog.setOnShowListener {
 
-        selectedItems.clear()
+            val confirmButton =
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE)
 
-        clearSlots()
+            confirmButton.setOnClickListener {
 
-        hideMaterialPanel()
+                val foxName =
+                    editText.text.toString().trim()
+
+                if (foxName.isEmpty()) {
+
+                    editText.error = "이름을 입력해주세요."
+                    return@setOnClickListener
+                }
+
+                // -----------------------------
+                // 여우 ID
+                // -----------------------------
+
+                val foxId =
+                    (AllFoxMap.allFoxMap.keys.maxOrNull() ?: 0) + 1
+
+                // -----------------------------
+                // 여우 생성
+                // -----------------------------
+
+                val fox = AlchemyRecipeManager.createFox(
+                    id = foxId,
+                    name = foxName,
+                    items = items
+                )
+
+                // -----------------------------
+                // 실제 미리보기 Bitmap 생성
+                // -----------------------------
+
+                val bitmap =
+                    FoxBitmapRenderer.createPreview(
+                        this,
+                        fox
+                    )
+
+                // -----------------------------
+                // Bitmap 파일 저장
+                // -----------------------------
+
+                val previewPath =
+                    FoxBitmapRenderer.savePreview(
+                        context = this,
+                        foxId = foxId,
+                        bitmap = bitmap
+                    )
+
+                // -----------------------------
+                // previewPath를 포함한 최종 여우
+                // -----------------------------
+
+                val savedFox =
+                    fox.copy(
+                        previewPath = previewPath
+                    )
+
+                // -----------------------------
+                // 메모리에 저장
+                // -----------------------------
+
+                AllFoxMap.allFoxMap[foxId] =
+                    savedFox
+
+                // -----------------------------
+                // 영구 저장
+                // -----------------------------
+
+                FoxPrefs.save(
+                    this,
+                    savedFox
+                )
+
+                // 아이템 차감 확정
+                AlchemySelectionManager.commit(this)
+
+                Toast.makeText(
+                    this,
+                    "\"$foxName\"이(가) 만들어졌습니다!",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                dialog.dismiss()
+
+                clearSlots()
+
+                hideMaterialPanel()
+            }
+        }
+
+        dialog.show()
     }
 }

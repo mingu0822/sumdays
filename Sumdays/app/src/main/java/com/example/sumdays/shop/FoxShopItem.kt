@@ -13,6 +13,10 @@ data class FoxShopItem(
     var count: Int = 0,
     val itemCategory: ItemCategory,
 
+    // 여우 이미지 위에 합성할 위치
+    val offsetX: Float = 0f,
+    val offsetY: Float = 0f,
+
 ) : ShopItem {
 
     override val category: String = "item"

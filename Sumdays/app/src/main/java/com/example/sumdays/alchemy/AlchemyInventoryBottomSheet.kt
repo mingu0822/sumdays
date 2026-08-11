@@ -18,18 +18,22 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class AlchemyInventoryBottomSheet(
 
-    private val onSelectionChanged: (List<FoxShopItem>) -> Unit,
+    private val onSelectionChanged:
+        (List<FoxShopItem>) -> Unit,
 
-    private val onCombine: (List<FoxShopItem>) -> Unit,
+    private val onCombine:
+        (List<FoxShopItem>) -> Unit,
 
-    private val onSheetClosed: () -> Unit
+    private val onSheetClosed:
+        () -> Unit
 
 ) : BottomSheetDialogFragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: AlchemyItemAdapter
 
-    private var currentCategory = ItemCategory.GLASSES
+    private var currentCategory =
+        ItemCategory.GLASSES
 
     private var combined = false
 
@@ -38,18 +42,23 @@ class AlchemyInventoryBottomSheet(
 
         dialog?.window?.setDimAmount(0f)
 
-        val bottomSheet = dialog?.findViewById<View>(
-            com.google.android.material.R.id.design_bottom_sheet
-        ) ?: return
+        val bottomSheet =
+            dialog?.findViewById<View>(
+                com.google.android.material.R.id.design_bottom_sheet
+            ) ?: return
 
-        val behavior = BottomSheetBehavior.from(bottomSheet)
+        val behavior =
+            BottomSheetBehavior.from(bottomSheet)
 
-        val screenHeight = resources.displayMetrics.heightPixels
+        val screenHeight =
+            resources.displayMetrics.heightPixels
 
         bottomSheet.layoutParams.height =
             (screenHeight * 0.45f).toInt()
 
-        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        behavior.state =
+            BottomSheetBehavior.STATE_EXPANDED
+
         behavior.skipCollapsed = true
     }
 
@@ -71,10 +80,14 @@ class AlchemyInventoryBottomSheet(
         savedInstanceState: Bundle?
     ) {
 
-        recyclerView = view.findViewById(R.id.rvItems)
+        recyclerView =
+            view.findViewById(R.id.rvItems)
 
         recyclerView.layoutManager =
-            GridLayoutManager(requireContext(), 4)
+            GridLayoutManager(
+                requireContext(),
+                4
+            )
 
         adapter = AlchemyItemAdapter(
 
@@ -86,52 +99,69 @@ class AlchemyInventoryBottomSheet(
                         item
                     )
 
-                // 현재 카테고리 다시 불러오기
+                // 현재 카테고리 갱신
                 loadCategory(currentCategory)
 
-                // 위 슬롯 갱신
-                onSelectionChanged(selectedItems)
+                // 상단 슬롯 + 여우 미리보기 갱신
+                onSelectionChanged(
+                    selectedItems
+                )
             }
-
         )
 
         recyclerView.adapter = adapter
 
-        loadCategory(ItemCategory.GLASSES)
+        loadCategory(
+            ItemCategory.GLASSES
+        )
 
-        view.findViewById<View>(R.id.btnGlasses)
-            .setOnClickListener {
+        view.findViewById<View>(
+            R.id.btnGlasses
+        ).setOnClickListener {
 
-                loadCategory(ItemCategory.GLASSES)
-            }
+            loadCategory(
+                ItemCategory.GLASSES
+            )
+        }
 
-        view.findViewById<View>(R.id.btnHat)
-            .setOnClickListener {
+        view.findViewById<View>(
+            R.id.btnHat
+        ).setOnClickListener {
 
-                loadCategory(ItemCategory.HAT)
-            }
+            loadCategory(
+                ItemCategory.HAT
+            )
+        }
 
-        view.findViewById<View>(R.id.btnScarf)
-            .setOnClickListener {
+        view.findViewById<View>(
+            R.id.btnScarf
+        ).setOnClickListener {
 
-                loadCategory(ItemCategory.SCARF)
-            }
+            loadCategory(
+                ItemCategory.SCARF
+            )
+        }
 
-        view.findViewById<View>(R.id.btnAccessory)
-            .setOnClickListener {
+        view.findViewById<View>(
+            R.id.btnAccessory
+        ).setOnClickListener {
 
-                loadCategory(ItemCategory.ACCESSORY)
-            }
+            loadCategory(
+                ItemCategory.ACCESSORY
+            )
+        }
 
         view.findViewById<Button>(R.id.btnCombine)
             .setOnClickListener {
 
-                combined = true
-
                 val items =
                     AlchemySelectionManager.getSelectedItems()
 
-                AlchemySelectionManager.commit()
+                if (items.isEmpty()) {
+                    return@setOnClickListener
+                }
+
+                combined = true
 
                 onCombine(items)
 
@@ -139,16 +169,23 @@ class AlchemyInventoryBottomSheet(
             }
     }
 
-    override fun onDismiss(dialog: DialogInterface) {
+    override fun onDismiss(
+        dialog: DialogInterface
+    ) {
+
         super.onDismiss(dialog)
 
         if (!combined) {
 
-            // 선택 취소 → 예약했던 아이템 복원
-            AlchemySelectionManager.clear(requireContext())
+            // 선택 상태만 초기화
+            // 실제 재고는 애초에 차감하지 않았음
+            AlchemySelectionManager.clear(
+                requireContext()
+            )
 
-            // 위 슬롯도 초기화
-            onSelectionChanged(emptyList())
+            onSelectionChanged(
+                emptyList()
+            )
         }
 
         onSheetClosed()
@@ -164,7 +201,6 @@ class AlchemyInventoryBottomSheet(
             AllItemMap.allItemMap.values
                 .filter {
 
-                    // 선택중인 아이템은 count가 0이어도 보여준다.
                     it.itemCategory == category
                 }
                 .onEach {
@@ -176,6 +212,8 @@ class AlchemyInventoryBottomSheet(
                         )
                 }
 
-        adapter.submitList(ownedItems)
+        adapter.submitList(
+            ownedItems
+        )
     }
 }

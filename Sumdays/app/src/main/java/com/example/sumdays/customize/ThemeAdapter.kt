@@ -32,7 +32,7 @@ class ThemeAdapter(
             view.findViewById(R.id.cardTheme)
 
         val imgTheme: ImageView =
-            view.findViewById(R.id.imgTheme)
+            view.findViewById(R.id.imgPreview)
 
         val tvThemeName: TextView =
             view.findViewById(R.id.tvThemeName)
@@ -49,7 +49,7 @@ class ThemeAdapter(
         val view = LayoutInflater
             .from(parent.context)
             .inflate(
-                R.layout.item_customize,
+                R.layout.item_customize_theme,
                 parent,
                 false
             )

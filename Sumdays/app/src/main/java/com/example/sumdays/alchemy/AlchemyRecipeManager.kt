@@ -19,7 +19,10 @@ object AlchemyRecipeManager {
 
             name = name,
 
-            previewImage = R.drawable.dailyread_fox_face_level_3,
+            previewImage =
+                R.drawable.dailyread_fox_face_level_3,
+
+            previewPath = null,
 
             glasses = items.find {
                 it.itemCategory == ItemCategory.GLASSES
