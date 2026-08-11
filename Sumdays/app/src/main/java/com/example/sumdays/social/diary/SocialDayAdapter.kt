@@ -11,12 +11,15 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.R
 import com.example.sumdays.calendar.DateCell
+import kotlinx.coroutines.launch
 import org.threeten.bp.DayOfWeek
 import org.threeten.bp.LocalDate
 import org.threeten.bp.YearMonth
+import kotlin.collections.set
 
 class SocialDayAdapter(
     private val days: List<DateCell>,
@@ -65,6 +68,7 @@ class SocialDayAdapter(
             val date = LocalDate.parse(cell.dateString)
             val isToday = date.isEqual(today)
             val isFutureDay = date.isAfter(today)
+            val yearMonth = cell.dateString.substring(0, 7)
 
             val dayOfWeek = date.dayOfWeek
             val textColor = when {
@@ -74,10 +78,8 @@ class SocialDayAdapter(
             }
             tvDayNumber.setTextColor(textColor)
 
-            // 🌟 [변경] 액티비티가 연-월 최적화로 갈아끼워 준 currentMonthStatusMap을 직접 참조!
-            val statusPair = activity.currentMonthStatusMap[cell.dateString]
-            val hasDiary = statusPair?.first ?: false   // 친구가 일기를 작성했는가?
-            val isAllowed = statusPair?.second ?: false // 나에게 열람 권한이 있는가?
+            val isAllowed = activity.currentMonthStatusMap[cell.dateString] ?: false
+            val hasDiary = activity.currentMonthStatusMap.containsKey(cell.dateString)
 
             // 🌟 [변경] 형의 기획대로 완료 스킨(completed)은 빼버리고 오직 '오늘'만 특수 배경 처리!
             when {
@@ -159,11 +161,29 @@ class SocialDayAdapter(
                         when {
                             // 🟢 Case 1: 일기도 있고 나한테 권한도 준 날 -> 친구 전용 읽기창 빌드
                             hasDiary && isAllowed -> {
-                                val intent = Intent(activity, SocialDailyReadActivity::class.java).apply {
-                                    putExtra("date", cell.dateString)
-                                    putExtra("friendId", activity.friendId) // 친구 모드 플래그 주입
+                                activity.lifecycleScope.launch {
+                                    activity.getMonthlyDiariesFromServer(yearMonth)
+
+                                    val dailyEntry = activity.friendDiaryList[yearMonth]?.get(cell.dateString)
+
+                                    if (dailyEntry == null) {
+                                        Toast.makeText(
+                                            activity,
+                                            "일기를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        return@launch
+                                    }
+
+                                    val intent =
+                                        Intent(
+                                            activity,
+                                            SocialDailyReadActivity::class.java
+                                        ).apply {
+                                            putExtra("dailyEntry", dailyEntry)
+                                        }
+                                    activity.startActivity(intent)
                                 }
-                                activity.startActivity(intent)
                             }
 
                             // 🔒 Case 2: 일기는 썼는데 나한테는 잠가둔 날 -> 토스트 디펜스
@@ -171,15 +191,6 @@ class SocialDayAdapter(
                                 Toast.makeText(
                                     activity,
                                     "친구가 비공개로 설정한 일기입니다. 🔒",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-
-                            // ❌ Case 3: 친구가 아예 일기를 생략한 날
-                            else -> {
-                                Toast.makeText(
-                                    activity,
-                                    "친구가 일기를 작성하지 않은 날입니다.",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }

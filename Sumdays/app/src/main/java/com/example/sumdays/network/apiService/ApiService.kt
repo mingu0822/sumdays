@@ -51,6 +51,14 @@ interface ApiService {
     @PUT("api/auth/password")
     fun changePassword(@Header("Authorization") token: String, @Body request: ChangePasswordRequest): Call<ChangePasswordResponse>
 
+    // 프로필 사진
+    @Multipart
+    @POST("/api/auth/profile-image")
+    suspend fun updateProfileImage(
+        @Header("Authorization") token: String,
+        @Part profileImage: MultipartBody.Part
+    ): Response<UpdateProfileImageResponse>
+
     // 백업 
     @POST("/api/db/sync")
     suspend fun syncData(
@@ -105,3 +113,9 @@ data class MergeResponse(
     val count: Int?,
     val end_flag: Boolean?
 )
+
+data class UpdateProfileImageResponse(
+    val success: Boolean,
+    val profileImageUrl: String?
+)
+

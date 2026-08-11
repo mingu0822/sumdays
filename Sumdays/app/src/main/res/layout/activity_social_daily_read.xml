@@ -21,8 +21,11 @@
         <ImageButton
             android:id="@+id/read_back_button"
             android:src="@drawable/ic_arrow_back_grey"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="back"
+            android:padding="8dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             />
@@ -91,7 +94,7 @@
         android:layout_marginStart="12dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="12dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="28dp"
         android:fillViewport="true"
         android:clipToPadding="false"
         android:paddingBottom="0dp"
@@ -113,7 +116,7 @@
                 android:lineSpacingExtra="8sp"
                 android:textSize="@dimen/text_size_S"
                 android:visibility="visible"
-                android:layout_marginVertical="8dp"
+                android:layout_margin="16dp"
 
                 tools:text="오늘은 산책하면서 생각이 많았던 하루였다. (일기 내용...)" />
         </FrameLayout>

@@ -56,6 +56,9 @@ class DailyReadActivity : AppCompatActivity() {
     // Uri 문자열 저장 리스트
     private val currentPhotoList = mutableListOf<String>()
 
+    // 현재 일기의 소셜 공개 여부 (자물쇠 토글용)
+    private var currentIsAllowed = false
+
     private val userStatsPrefs: UserStatsPrefs by lazy { UserStatsPrefs(this) }
     private val userStyleDao by lazy { AppDatabase.getDatabase(this).userStyleDao() }
 
@@ -207,6 +210,17 @@ class DailyReadActivity : AppCompatActivity() {
         binding.diaryContentEditText.setText(diaryText)
         binding.diaryContentTextView.text = diaryText
 
+        // 자물쇠 버튼: 일기가 있는 날에만 노출, 공개 여부에 따라 아이콘 교체
+        currentIsAllowed = entry?.isAllowed == true
+        if (diaryText.isNotEmpty()) {
+            binding.lockToggleButton.visibility = View.VISIBLE
+            binding.lockToggleButton.setImageResource(
+                if (currentIsAllowed) R.drawable.ic_lock_open else R.drawable.ic_lock_closed
+            )
+        } else {
+            binding.lockToggleButton.visibility = View.GONE
+        }
+
         // TODO: 소셜 페이지로 이동해야함
         // val mood = entry?.aiComment
         // if (!mood.isNullOrBlank()) {
@@ -240,6 +254,7 @@ class DailyReadActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
+        binding.readBackButton.setOnClickListener { finish() }
         binding.dateText.setOnClickListener { showDatePickerDialog() }
         binding.prevDayButton.setOnClickListener { changeDate(-1) }
         binding.nextDayButton.setOnClickListener { changeDate(1) }
@@ -249,6 +264,16 @@ class DailyReadActivity : AppCompatActivity() {
         binding.saveButton.setOnClickListener {
             val updatedContent = binding.diaryContentEditText.text.toString()
             showReanalysisDialog(updatedContent)
+        }
+
+        binding.lockToggleButton.setOnClickListener {
+            val newValue = !currentIsAllowed
+            viewModel.updatePermission(repoKeyFormatter.format(currentDate.time), newValue)
+            Toast.makeText(
+                this,
+                if (newValue) "일기가 소셜 친구에게 공개됩니다." else "일기가 비공개로 설정되었습니다.",
+                Toast.LENGTH_SHORT
+            ).show()
         }
 
         binding.editMemosButton.setOnClickListener {

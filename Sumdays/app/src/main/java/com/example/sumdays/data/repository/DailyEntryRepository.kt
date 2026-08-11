@@ -39,6 +39,11 @@ class DailyEntryRepository (
         dao.deleteEntry(date)
     }
 
+    // 권한 여부 관련
+    suspend fun updatePermission(date: String, isAllowed: Boolean) {
+        dao.updateEntry(date = date, isAllowed = isAllowed)
+    }
+
     // 6. AI 분석 결과 등 전체 필드 업데이트가 필요할 때 사용
     suspend fun updateEntryFull(
         date: String,
@@ -47,7 +52,8 @@ class DailyEntryRepository (
         aiComment: String? = null,
         emotionScore: Double? = null,
         emotionIcon: String? = null,
-        themeIcon: String? = null
+        themeIcon: String? = null,
+        isAllowed: Boolean? = null,
     ) {
         dao.updateEntry(
             date = date,
@@ -56,7 +62,8 @@ class DailyEntryRepository (
             aiComment = aiComment,
             emotionScore = emotionScore,
             emotionIcon = emotionIcon,
-            themeIcon = themeIcon
+            themeIcon = themeIcon,
+            isAllowed = isAllowed
         )
     }
 

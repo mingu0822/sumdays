@@ -2,6 +2,40 @@ const { pool } = require('../db/db');
 const moment = require('moment-timezone');
 const { success, fail } = require('../utils/response');
 
+async function getFriendInfo(friendId) {
+  const [friendRows] = await pool.query(`
+    SELECT u.id, u.nickname, u.profile_image_url, ui.streak, ui.count_weekly_summaries,
+           ui.count_diaries, u.created_at, ui.last_diary_update_date
+    FROM users u
+    JOIN user_info ui ON u.id = ui.user_id
+    WHERE u.id = ?
+  `, [friendId]);
+
+  if (friendRows.length === 0) return null;
+
+  const friend = friendRows[0];
+
+  const today = moment().tz('Asia/Seoul').format('YYYY-MM-DD');
+  const yesterday = moment().tz('Asia/Seoul').subtract(1, 'days').format('YYYY-MM-DD');
+
+  const lastUpdate = friend.last_diary_update_date
+    ? moment(friend.last_diary_update_date).format('YYYY-MM-DD')
+    : null;
+
+  const isStreakValid = lastUpdate === today || lastUpdate === yesterday;
+  const finalStreak = isStreakValid ? friend.streak : 0;
+
+  return {
+    id: friend.id,
+    nickname: friend.nickname,
+    profileImageUrl: friend.profile_image_url,
+    createdAt: moment(friend.created_at).format('YYYY-MM-DD'),
+    countDiaries: friend.count_diaries,
+    streak: finalStreak,
+    countWeeklySummaries: friend.count_weekly_summaries,
+    lastDiaryUpdateDate: friend.last_diary_update_date
+  };
+}
 async function getFriendship(u1, u2, isDirected = false) {
   console.log(`[getFriendship] u1=${u1}, u2=${u2}`);
 
@@ -41,7 +75,7 @@ const friendController = {
 
     try {
       const [users] = await pool.query(
-        'SELECT id FROM users WHERE email = ?', 
+        'SELECT id, nickname, profile_image_url FROM users WHERE email = ?', 
         [receiverEmail]
       );
 
@@ -82,37 +116,9 @@ const friendController = {
               [existing.id]
             );
 
-            const [friendRows] = await pool.query(`
-              SELECT u.id, u.nickname, u.profile_image_url, u.created_at,
-                    ui.count_diaries, ui.streak, ui.count_weekly_summaries, ui.last_diary_update_date
-              FROM users u
-              JOIN user_info ui ON u.id = ui.user_id
-              WHERE u.id = ?
-            `, [receiverId]);
-
-            const friend = friendRows[0];
-
-            const today = moment().tz('Asia/Seoul').format('YYYY-MM-DD');
-            const yesterday = moment().tz('Asia/Seoul').subtract(1, 'days').format('YYYY-MM-DD');
-
-            const lastUpdate = friend.last_diary_update_date
-              ? moment(friend.last_diary_update_date).format('YYYY-MM-DD')
-              : null;
-
-            const isStreakValid = lastUpdate === today || lastUpdate === yesterday;
-            const finalStreak = isStreakValid ? friend.streak : 0;
-
-            const friendInfo = {
-              id: friend.id,
-              nickname: friend.nickname,
-              profileImageUrl: friend.profile_image_url,
-              createdAt: moment(friend.created_at).format('YYYY-MM-DD'),
-              countDiaries: friend.count_diaries,
-              streak: finalStreak,
-              countWeeklySummaries: friend.count_weekly_summaries,
-              lastDiaryUpdateDate: friend.last_diary_update_date
-            };
+            const friendInfo = await getFriendInfo(receiverId);
             return success(res, "AUTO_ACCEPTED", "상대방의 요청이 있어 즉시 친구가 되었습니다!", friendInfo);
+            
           }
         }
 
@@ -127,8 +133,16 @@ const friendController = {
         'INSERT INTO friendship (requester_id, receiver_id, status) VALUES (?, ?, "PENDING")',
         [requesterId, receiverId]
       );
-
-      return success(res, "REQUEST_SENT", "친구 요청 완료", null, 201);
+      
+      // 🌟 [수정] 일반 요청이지만 클라의 편의를 위해 FriendInfo 규격으로 데이터를 조립합니다.
+      console.log(`[requestFriend success0]`);
+      const friendInfo = {
+        id: users[0].id,                
+        nickname: users[0].nickname,     
+        profileImageUrl: users[0].profile_image_url, 
+      };
+      console.log(`[requestFriend success]`, friendInfo);
+      return success(res, "REQUEST_SENT", "친구 요청 완료", friendInfo, 201);
 
     } catch (error) {
       console.error(`[requestFriend ERROR]`, error);
@@ -191,7 +205,8 @@ const friendController = {
           [requesterId, myId]
         );
 
-        return success(res, "REQUEST_ACCEPTED", "친구 수락 완료");
+        const friendInfo = await getFriendInfo(requesterId);
+        return success(res, "REQUEST_ACCEPTED", "친구 수락 완료", friendInfo);
       }
 
       if (action === 'REJECT') {
@@ -288,10 +303,10 @@ const friendController = {
           id: friend.id,
           nickname: friend.nickname,
           profileImageUrl: friend.profile_image_url,
-          createdAt: moment(friend.created_at).format('YYYY-MM-DD'),
-          countDiaries: friend.count_diaries,
           streak: finalStreak,
           countWeeklySummaries: friend.count_weekly_summaries,
+          createdAt: moment(friend.created_at).format('YYYY-MM-DD'),
+          countDiaries: friend.count_diaries,
           lastDiaryUpdateDate: friend.last_diary_update_date
         };
       });
@@ -331,7 +346,95 @@ const friendController = {
       console.error(`[deleteFriend ERROR]`, error);
       return fail(res, "INTERNAL_SERVER_ERROR", "Database delete failed", 500);
     }
-  }
+  },
+
+  // 7. 친구 일기 날짜 목록 및 열람 권한 조회 (전체 날짜 대상)
+  getFriendDiaryDates: async (req, res) => {
+    const myId = req.user.userId;
+    const { friendId } = req.params;
+
+    console.log(`[getFriendDiaryDates] myId=${myId}, friendId=${friendId}`);
+
+    try {
+      // 1. 실제 친구 관계 검증
+      const friendship = await getFriendship(myId, friendId);
+      if (!friendship || friendship.status !== 'ACCEPTED') {
+        return fail(res, "FORBIDDEN", "친구 관계가 아닙니다.", 403);
+      }
+
+      // 2. 해당 친구의 모든 일기 날짜 및 공개 여부 조회
+      const [diaries] = await pool.query(
+        `SELECT date, is_allowed 
+         FROM daily_entry 
+         WHERE user_id = ?`,
+        [friendId]
+      );
+
+      // 3. 클라이언트 대응 객체 생성: {"YYYY-MM-DD": true/false}
+      // 해당 일에 일기를 작성했고, 나에게 열람 권한(is_public)이 있다면 true, 아니면 false
+      const dateMap = {};
+      diaries.forEach(diary => {
+        const dateStr = moment(diary.date).format('YYYY-MM-DD');
+        dateMap[dateStr] = Boolean(diary.is_allowed);
+      });
+
+      return success(res, "FRIEND_DIARY_DATES_FETCHED", "친구 일기 날짜 목록 조회 성공", { dateMap });
+
+    } catch (error) {
+      console.error(`[getFriendDiaryDates ERROR]`, error);
+      return fail(res, "INTERNAL_SERVER_ERROR", "친구 일기 날짜 조회 실패", 500);
+    }
+  },
+
+  // 8. 친구 특정 달(한 달 기준) 상세 일기 가져오기
+  getFriendMonthlyDiaries: async (req, res) => {
+    const myId = req.user.userId;
+    const { friendId } = req.params;
+    const { yearMonth } = req.query; // 예: "2026-07"
+
+    console.log(`[getFriendMonthlyDiaries] myId=${myId}, friendId=${friendId}, yearMonth=${yearMonth}`);
+
+    if (!yearMonth) {
+      return fail(res, "INVALID_PARAM", "yearMonth 쿼리 파라미터가 필요합니다.", 400);
+    }
+
+    try {
+      // 1. 친구 관계 검증
+      const friendship = await getFriendship(myId, friendId);
+      if (!friendship || friendship.status !== 'ACCEPTED') {
+        return fail(res, "FORBIDDEN", "친구 관계가 아닙니다.", 403);
+      }
+
+      // 2. 해당 달("YYYY-MM")의 일기 중 '열람 허용(is_allowed = 1)'된 일기만 조회
+      // 🌟 [수정] 테이블명(daily_entry), 공개여부(is_allowed = 1), 별칭 매핑 적용
+      const startDate = `${yearMonth}-01`;
+      const endDate = moment(startDate).endOf('month').format('YYYY-MM-DD');
+
+      const [diaries] = await pool.query(
+        `SELECT date, diary, keywords, aiComment, 
+                emotionScore, emotionIcon, 
+                themeIcon, photoUrls, is_allowed
+         FROM daily_entry 
+         WHERE user_id = ? 
+           AND date BETWEEN ? AND ? 
+           AND is_allowed = 1
+         ORDER BY date ASC`,
+        [friendId, startDate, endDate]
+      );
+
+      // 3. 날짜 포맷팅 정돈 ("YYYY-MM-DD")
+      const formattedDiaries = diaries.map(item => ({
+        ...item,
+        date: moment(item.date).format('YYYY-MM-DD')
+      }));
+
+      return success(res, "FRIEND_MONTHLY_DIARIES_FETCHED", "친구 월별 일기 조회 성공", { diaries: formattedDiaries });
+
+    } catch (error) {
+      console.error(`[getFriendMonthlyDiaries ERROR]`, error);
+      return fail(res, "INTERNAL_SERVER_ERROR", "친구 월별 일기 조회 실패", 500);
+    }
+  },
 };
 
 module.exports = friendController;

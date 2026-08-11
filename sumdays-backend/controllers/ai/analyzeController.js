@@ -43,19 +43,7 @@ const analyzeController = {
             response.data.emotion_analysis.emotion_score = average_score
             response.data.emotion_analysis.distribution = distribution
             const result = response.data;
-                
-            if (userId) {
-                await weekSummaryModel.upsertWeekSummary({
-                    userId,
-                    startDate,
-                    endDate,
-                    diaryCount: diaries.length,
-                    emotionAnalysis: result.emotion_analysis,
-                    highlights: result.highlights,
-                    insights: result.insights,
-                    summary: result.summary
-                });
-            }
+            
 
             return res.status(200).json({
                 success: true,

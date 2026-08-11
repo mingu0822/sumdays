@@ -40,14 +40,13 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import androidx.core.content.IntentCompat
 
 class SocialDailyReadActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySocialDailyReadBinding
     private lateinit var btnBack: ImageButton
-
-    private var friendId: Int = -1
-    private var targetDate: String? = null
+    private var dailyEntry: DailyEntry? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,17 +54,19 @@ class SocialDailyReadActivity : AppCompatActivity() {
         binding = ActivitySocialDailyReadBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        friendId = intent.getIntExtra("friendId", -1)
-        targetDate = intent.getStringExtra("date")
-        Log.d("SocialDailyRead", "전달된 데이터 -> friendId: $friendId, targetDate: $targetDate")
-        if (friendId == -1 || targetDate.isNullOrEmpty()) {
-            Toast.makeText(this, "친구 일기 정보가 올바르지 않습니다.", Toast.LENGTH_SHORT).show()
+        dailyEntry = IntentCompat.getParcelableExtra(
+            intent,
+            "dailyEntry",
+            DailyEntry::class.java
+        )
+
+        if (dailyEntry == null) {
+            Toast.makeText(this, "일기 정보를 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
-        fetchFriendDiaryFromServer(friendId, targetDate!!)
 
-
+        initUi()
         applyThemeModeSettings()
 
         val rootView = findViewById<View>(R.id.main)
@@ -75,6 +76,11 @@ class SocialDailyReadActivity : AppCompatActivity() {
         btnBack.setOnClickListener {
             finish()
         }
+    }
+
+    private fun initUi(){
+        binding.dateText.text = dailyEntry?.date
+        binding.diaryContentTextView.text = dailyEntry?.diary
     }
 
     private fun applyThemeModeSettings() {
@@ -107,21 +113,6 @@ class SocialDailyReadActivity : AppCompatActivity() {
 
         binding.root.setBackgroundResource(backgroundColor)
 
-    }
-
-    // ──────────────────────────────────
-    // DB 관찰 & UI 갱신
-    // ──────────────────────────────────
-    private fun fetchFriendDiaryFromServer(id: Int, date: String) {
-        // 상단 날짜 텍스트 렌더링
-        binding.dateText.text = date
-        binding.dateText.isClickable = false
-
-        // 더미 데이터 (나중에 Retrofit 통신으로 교체될 라인)
-        var diaryContent = "더미 일기입니다"
-
-        // 텍스트뷰와 에디트텍스트에 꽂아넣기
-        binding.diaryContentTextView.text = diaryContent
     }
 
     fun updateOwned(){

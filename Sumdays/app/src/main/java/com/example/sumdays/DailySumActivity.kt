@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -28,6 +29,7 @@ import com.example.sumdays.daily.memo.MemoMergeAdapter
 import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.dao.UserStyleDao
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
+import com.example.sumdays.settings.prefs.DiaryPermissionPrefs
 import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.statistics.StreakPrefs
 import com.example.sumdays.theme.ThemePrefs
@@ -112,7 +114,7 @@ class DailySumActivity : AppCompatActivity() {
                 try {
                     val result = memoMergeAdapter.mergeAllMemo()
                     saveDiary(result, memoMergeAdapter.lastMood)
-                    moveToReadActivity()
+                    resolvePermissionAndFinish()
                 } catch (e: CancellationException) {
                     showLoading(false)
                     Toast.makeText(
@@ -184,6 +186,40 @@ class DailySumActivity : AppCompatActivity() {
         }
     }
 
+    // 생성된 일기의 소셜 공개 여부 결정: 설정이 '매번 물어보기'면 팝업, 아니면 기본값을 바로 저장
+    private fun resolvePermissionAndFinish() {
+        when (DiaryPermissionPrefs.getMode(this)) {
+            DiaryPermissionPrefs.MODE_DEFAULT_TRUE -> {
+                viewModel.updatePermission(date, true)
+                moveToReadActivity()
+            }
+
+            DiaryPermissionPrefs.MODE_DEFAULT_FALSE -> {
+                viewModel.updatePermission(date, false)
+                moveToReadActivity()
+            }
+
+            else -> showPermissionDialog()
+        }
+    }
+
+    private fun showPermissionDialog() {
+        showLoading(false)
+        AlertDialog.Builder(this)
+            .setTitle("일기 공개 설정")
+            .setMessage("이 일기를 소셜 친구에게 공개할까요?\n(일기 화면의 자물쇠 버튼으로 언제든 바꿀 수 있어요)")
+            .setPositiveButton("공개") { _, _ ->
+                viewModel.updatePermission(date, true)
+                moveToReadActivity()
+            }
+            .setNegativeButton("비공개") { _, _ ->
+                viewModel.updatePermission(date, false)
+                moveToReadActivity()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
     private fun moveToReadActivity() {
         val intent = Intent(this, DailyReadActivity::class.java).putExtra("date", date)
         startActivity(intent)
@@ -245,7 +281,7 @@ class DailySumActivity : AppCompatActivity() {
                 } finally {
                     sheet.dismiss()
                 }
-                moveToReadActivity()
+                resolvePermissionAndFinish()
             }
         }
 

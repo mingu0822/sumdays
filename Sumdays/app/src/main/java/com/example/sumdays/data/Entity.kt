@@ -24,6 +24,7 @@ data class Memo(
     @ColumnInfo(name = "isDeleted", defaultValue = "0") val isDeleted: Boolean = false
 ) : Parcelable
 
+@Parcelize
 @Entity(tableName = "daily_entry")
 data class DailyEntry(
     @PrimaryKey val date: String,          // 날짜 (yyyy-MM-dd)
@@ -34,9 +35,10 @@ data class DailyEntry(
     val emotionIcon: String?,              // 감정 이모지
     val themeIcon: String?,                // 테마 이모지
     val photoUrls: String? = null,
+    val isAllowed: Boolean? = false, // 외부 권한 허용 여부
     val isEdited: Boolean = false,
     val isDeleted: Boolean = false,
-)
+): Parcelable
 
 @Entity(tableName = "weekly_summary")
 data class WeekSummaryEntity(
