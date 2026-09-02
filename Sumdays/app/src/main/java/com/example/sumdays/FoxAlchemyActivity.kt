@@ -8,6 +8,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
@@ -43,6 +44,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
     // 현재 선택된 아이템
     private var selectedItems: List<FoxShopItem> = emptyList()
+    private var isCombining = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -151,12 +153,13 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
                 onCombine = { items ->
 
-                    /*
-                     * 여기서는 바로 저장하지 않는다.
-                     *
-                     * 먼저 이름을 입력받는다.
-                     */
-                    showFoxNameDialog(items)
+                    if (!isCombining) {
+                        isCombining = true
+
+                        playIngredientDropAnimation(items) {
+                            showFoxNameDialog(items)
+                        }
+                    }
                 },
 
                 // ---------------------------------
@@ -437,7 +440,115 @@ class FoxAlchemyActivity : AppCompatActivity() {
             }
         }
 
+        dialog.setOnDismissListener {
+            isCombining = false
+        }
+
         dialog.show()
+    }
+
+    // =========================================================
+    // 재료가 솥으로 들어가는 연금술 애니메이션
+    // =========================================================
+
+    private fun playIngredientDropAnimation(
+        items: List<FoxShopItem>,
+        onComplete: () -> Unit
+    ) {
+        if (items.isEmpty()) {
+            onComplete()
+            return
+        }
+
+        playNextIngredient(
+            items = items,
+            index = 0,
+            onComplete = onComplete
+        )
+    }
+
+    private fun playNextIngredient(
+        items: List<FoxShopItem>,
+        index: Int,
+        onComplete: () -> Unit
+    ) {
+        if (index >= items.size) {
+            alchemyPot.animate()
+                .scaleX(1.06f)
+                .scaleY(1.06f)
+                .setDuration(120L)
+                .withEndAction {
+                    alchemyPot.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(120L)
+                        .withEndAction(onComplete)
+                        .start()
+                }
+                .start()
+            return
+        }
+
+        val root = findViewById<FrameLayout>(android.R.id.content)
+        val item = items[index]
+        val size = (180 * resources.displayMetrics.density).toInt()
+        val fallingItem = ImageView(this).apply {
+            setImageResource(item.imageRes)
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            alpha = 0f
+            scaleX = 1f
+            scaleY = 1f
+            rotation = if (index % 2 == 0) -12f else 12f
+        }
+
+        root.addView(
+            fallingItem,
+            FrameLayout.LayoutParams(size, size)
+        )
+
+        val rootLocation = IntArray(2)
+        val potLocation = IntArray(2)
+        root.getLocationOnScreen(rootLocation)
+        alchemyPot.getLocationOnScreen(potLocation)
+
+        val targetX =
+            potLocation[0] - rootLocation[0] + alchemyPot.width / 2f - size / 2f
+        val targetY =
+            potLocation[1] - rootLocation[1] + alchemyPot.height * 0.48f - size / 2f
+        val startY =
+            materialPanel.bottom.toFloat().coerceAtLeast(0f) +
+                    index * 10f * resources.displayMetrics.density
+
+        fallingItem.x = targetX
+        fallingItem.y = startY
+
+        // 크게 등장한 상태를 잠시 보여준 뒤 솥으로 떨어뜨린다.
+        fallingItem.animate()
+            .alpha(1f)
+            .setDuration(220L)
+            .withEndAction {
+                fallingItem.postDelayed({
+                    fallingItem.animate()
+                        .y(targetY)
+                        .rotationBy(if (index % 2 == 0) 24f else -24f)
+                        .scaleX(0.18f)
+                        .scaleY(0.18f)
+                        .alpha(0.15f)
+                        .setDuration(1_100L)
+                        .setInterpolator(android.view.animation.AccelerateInterpolator())
+                        .withEndAction {
+                            root.removeView(fallingItem)
+
+                            playNextIngredient(
+                                items = items,
+                                index = index + 1,
+                                onComplete = onComplete
+                            )
+                        }
+                        .start()
+                }, 800L)
+            }
+            .start()
     }
 
     // =========================================================

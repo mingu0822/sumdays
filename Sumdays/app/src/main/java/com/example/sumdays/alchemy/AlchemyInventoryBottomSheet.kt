@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,6 +15,7 @@ import com.example.sumdays.shop.ItemCategory
 import com.example.sumdays.shop.ItemPrefs
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.button.MaterialButton
 
 class AlchemyInventoryBottomSheet(
 
@@ -48,6 +48,7 @@ class AlchemyInventoryBottomSheet(
      * 선택 상태만 초기화
      */
     private var combined = false
+    private var pendingCombineItems: List<FoxShopItem> = emptyList()
 
 
     // --------------------------------------------------
@@ -75,13 +76,17 @@ class AlchemyInventoryBottomSheet(
         val screenHeight =
             resources.displayMetrics.heightPixels
 
-        bottomSheet.layoutParams.height =
-            (screenHeight * 0.45f).toInt()
+        val sheetHeight =
+            (screenHeight * 0.55f).toInt()
+
+        bottomSheet.layoutParams.height = sheetHeight
+        behavior.peekHeight = sheetHeight
 
         behavior.state =
             BottomSheetBehavior.STATE_EXPANDED
 
         behavior.skipCollapsed = true
+        bottomSheet.requestLayout()
     }
 
 
@@ -249,9 +254,19 @@ class AlchemyInventoryBottomSheet(
         // 조합 버튼
         // --------------------------------------------------
 
-        view.findViewById<Button>(
+        val combineButton = view.findViewById<MaterialButton>(
             R.id.btnCombine
-        ).setOnClickListener {
+        )
+
+        combineButton.backgroundTintList =
+            android.content.res.ColorStateList.valueOf(
+                requireContext().getColor(R.color.foxrange)
+            )
+        combineButton.setTextColor(
+            requireContext().getColor(android.R.color.white)
+        )
+
+        combineButton.setOnClickListener {
 
             val items =
                 AlchemySelectionManager
@@ -270,6 +285,7 @@ class AlchemyInventoryBottomSheet(
             // --------------------------------------------------
 
             combined = true
+            pendingCombineItems = items.toList()
 
 
             // --------------------------------------------------
@@ -283,9 +299,8 @@ class AlchemyInventoryBottomSheet(
             // 아이템 commit
             // --------------------------------------------------
 
-            onCombine(
-                items
-            )
+            // 팝업이 완전히 닫힌 뒤 Activity에서 투입 애니메이션을 시작한다.
+            dismiss()
 
 
             // 중요
@@ -331,6 +346,8 @@ class AlchemyInventoryBottomSheet(
             onSelectionChanged(
                 emptyList()
             )
+        } else {
+            onCombine(pendingCombineItems)
         }
 
 
