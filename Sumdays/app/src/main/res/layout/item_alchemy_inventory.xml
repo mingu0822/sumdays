@@ -1,36 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="80dp"
+    android:layout_width="88dp"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_margin="6dp"
     android:gravity="center"
     android:orientation="vertical">
 
+    <FrameLayout
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:background="@drawable/bg_alchemy_inventory_item"
+        android:padding="10dp">
+        <ImageView
+            android:id="@+id/imgItem"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter" />
+        <TextView
+            android:id="@+id/tvCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:background="@color/foxrange"
+            android:paddingStart="5dp"
+            android:paddingTop="1dp"
+            android:paddingEnd="5dp"
+            android:paddingBottom="1dp"
+            android:textColor="@android:color/white"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+    </FrameLayout>
+
     <TextView
         android:id="@+id/tvItemName"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        android:text="동그란 안경"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        android:maxLines="1"
+        android:layout_marginTop="5dp"
         android:ellipsize="end"
-        android:gravity="center" />
-
-    <ImageView
-        android:id="@+id/imgItem"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:src="@drawable/dailyread_fox_face_level_3" />
-
-    <TextView
-        android:id="@+id/tvCount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="x3"
-        android:textStyle="bold" />
-
+        android:gravity="center"
+        android:maxLines="1"
+        android:textColor="#202020"
+        android:textSize="14sp" />
 </LinearLayout>

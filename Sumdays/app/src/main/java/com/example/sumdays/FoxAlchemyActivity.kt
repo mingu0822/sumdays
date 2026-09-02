@@ -306,7 +306,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
         // 10. 화면에 새로 만들어진 여우 표시
         // -----------------------------------------
 
-        imgResultFox.setImageBitmap(bitmap)
+        FoxBitmapRenderer.displayPreview(imgResultFox, bitmap, savedFox)
 
         imgResultFox.visibility =
             View.VISIBLE
@@ -679,9 +679,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
         // 화면 표시
         // -----------------------------------------
 
-        imgResultFox.setImageBitmap(
-            bitmap
-        )
+        FoxBitmapRenderer.displayPreview(imgResultFox, bitmap, previewFox)
     }
 
     // =========================================================
@@ -700,6 +698,9 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
                 ItemCategory.GLASSES -> {
 
+                    slotGlasses.setBackgroundResource(
+                        R.drawable.bg_alchemy_inventory_item
+                    )
                     slotGlasses.setImageResource(
                         item.imageRes
                     )
@@ -707,6 +708,9 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
                 ItemCategory.HAT -> {
 
+                    slotHat.setBackgroundResource(
+                        R.drawable.bg_alchemy_inventory_item
+                    )
                     slotHat.setImageResource(
                         item.imageRes
                     )
@@ -714,6 +718,9 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
                 ItemCategory.SCARF -> {
 
+                    slotScarf.setBackgroundResource(
+                        R.drawable.bg_alchemy_inventory_item
+                    )
                     slotScarf.setImageResource(
                         item.imageRes
                     )
@@ -721,6 +728,9 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
                 ItemCategory.ACCESSORY -> {
 
+                    slotAccessory.setBackgroundResource(
+                        R.drawable.bg_alchemy_inventory_item
+                    )
                     slotAccessory.setImageResource(
                         item.imageRes
                     )
@@ -734,6 +744,11 @@ class FoxAlchemyActivity : AppCompatActivity() {
     // =========================================================
 
     private fun clearSlots() {
+
+        slotGlasses.setBackgroundResource(R.drawable.bg_alchemy_slot_empty)
+        slotHat.setBackgroundResource(R.drawable.bg_alchemy_slot_empty)
+        slotScarf.setBackgroundResource(R.drawable.bg_alchemy_slot_empty)
+        slotAccessory.setBackgroundResource(R.drawable.bg_alchemy_slot_empty)
 
         slotGlasses.setImageResource(
             R.drawable.ic_add_white_24

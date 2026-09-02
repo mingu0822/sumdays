@@ -140,7 +140,7 @@ class CustomizeActivity : AppCompatActivity() {
 
         if (bitmap != null) {
 
-            imgPreview.setImageBitmap(bitmap)
+            FoxBitmapRenderer.displayPreview(imgPreview, bitmap, fox)
 
             return
         }
@@ -152,9 +152,7 @@ class CustomizeActivity : AppCompatActivity() {
                 fox
             )
 
-        imgPreview.setImageBitmap(
-            generatedBitmap
-        )
+        FoxBitmapRenderer.displayPreview(imgPreview, generatedBitmap, fox)
     }
 
     /**
@@ -221,7 +219,7 @@ class CustomizeActivity : AppCompatActivity() {
                     )
 
                 if (bitmap != null) {
-                    imgPreview.setImageBitmap(bitmap)
+                    FoxBitmapRenderer.displayPreview(imgPreview, bitmap, fox)
                 } else {
                     imgPreview.setImageResource(
                         fox.previewImage
@@ -305,7 +303,7 @@ class CustomizeActivity : AppCompatActivity() {
                 )
 
             if (bitmap != null) {
-                imgPreview.setImageBitmap(bitmap)
+                FoxBitmapRenderer.displayPreview(imgPreview, bitmap, currentFox)
             } else {
                 imgPreview.setImageResource(
                     currentFox.previewImage

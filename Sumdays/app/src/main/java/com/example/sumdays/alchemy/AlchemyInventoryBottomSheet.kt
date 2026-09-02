@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.TextView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.R
@@ -66,6 +67,10 @@ class AlchemyInventoryBottomSheet(
 
         val behavior =
             BottomSheetBehavior.from(bottomSheet)
+
+        bottomSheet.setBackgroundColor(
+            android.graphics.Color.TRANSPARENT
+        )
 
         val screenHeight =
             resources.displayMetrics.heightPixels
@@ -345,6 +350,8 @@ class AlchemyInventoryBottomSheet(
         currentCategory =
             category
 
+        updateCategoryTabs(category)
+
 
         // 현재 카테고리의 아이템만 가져오기
         val ownedItems =
@@ -369,5 +376,28 @@ class AlchemyInventoryBottomSheet(
         adapter.submitList(
             ownedItems
         )
+    }
+
+    private fun updateCategoryTabs(category: ItemCategory) {
+
+        val tabs = listOf(
+            Triple(R.id.btnGlasses, R.id.indicatorGlasses, ItemCategory.GLASSES),
+            Triple(R.id.btnHat, R.id.indicatorHat, ItemCategory.HAT),
+            Triple(R.id.btnScarf, R.id.indicatorScarf, ItemCategory.SCARF),
+            Triple(R.id.btnAccessory, R.id.indicatorAccessory, ItemCategory.ACCESSORY)
+        )
+
+        tabs.forEach { (textId, indicatorId, tabCategory) ->
+            val selected = tabCategory == category
+
+            view?.findViewById<TextView>(textId)?.setTextColor(
+                requireContext().getColor(
+                    if (selected) R.color.foxrange else android.R.color.black
+                )
+            )
+
+            view?.findViewById<View>(indicatorId)?.visibility =
+                if (selected) View.VISIBLE else View.INVISIBLE
+        }
     }
 }

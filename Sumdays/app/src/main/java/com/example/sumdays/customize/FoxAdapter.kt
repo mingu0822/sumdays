@@ -97,7 +97,11 @@ class FoxAdapter(
                 fox
             )
 
-        holder.image.setImageBitmap(bitmap)
+        FoxBitmapRenderer.displayPreview(
+            holder.image,
+            bitmap,
+            fox
+        )
 
 
         // -------------------------
