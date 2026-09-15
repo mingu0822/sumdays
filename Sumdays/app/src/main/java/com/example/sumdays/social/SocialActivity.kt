@@ -25,6 +25,7 @@ import androidx.core.graphics.toColorInt
 import com.example.sumdays.LoginActivity
 import com.example.sumdays.R
 import com.example.sumdays.ShopActivity
+import com.example.sumdays.CalendarActivity
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.settings.EditProfileActivity
@@ -35,6 +36,7 @@ import com.example.sumdays.settings.profileimage.ProfileImageItemType
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import android.widget.EditText
+import androidx.activity.addCallback
 import android.text.TextWatcher
 import android.util.Log
 import android.view.View
@@ -55,6 +57,7 @@ import androidx.core.content.ContextCompat
 import com.example.sumdays.theme.Theme
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
+import com.example.sumdays.ui.component.setupBackToCalendar
 
 class SocialActivity : AppCompatActivity() {
     private lateinit var navBarController: NavBarController
@@ -105,6 +108,7 @@ class SocialActivity : AppCompatActivity() {
         observeViewModel()
         viewModel.loadSocialList()
         applyThemeModeSettings()
+        setupBackToCalendar()
     }
     private fun initViewModel() {
         val repository = SocialRepository()

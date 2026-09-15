@@ -26,6 +26,7 @@ import android.widget.EditText
 import android.widget.Toast
 import com.example.sumdays.alchemy.AlchemyRecipeManager
 import com.example.sumdays.shop.FoxShopItem
+import com.example.sumdays.ui.component.setupBackToCalendar
 
 class CustomizeActivity : AppCompatActivity() {
 
@@ -72,6 +73,7 @@ class CustomizeActivity : AppCompatActivity() {
 
             overridePendingTransition(0, 0)
         }
+        setupBackToCalendar()
     }
 
     private fun initViews() {

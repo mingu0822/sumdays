@@ -18,6 +18,8 @@ import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
 import com.google.android.material.button.MaterialButton
+import com.example.sumdays.ui.component.setupBackToCalendar
+
 
 class ShopActivity : AppCompatActivity() {
 
@@ -65,6 +67,7 @@ class ShopActivity : AppCompatActivity() {
 
         updatePointUI()
         filterItems("theme")
+        setupBackToCalendar()
     }
 
     private fun initViews() {

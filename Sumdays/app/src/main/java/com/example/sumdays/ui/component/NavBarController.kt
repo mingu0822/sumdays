@@ -17,7 +17,8 @@ import com.example.sumdays.R
 import com.example.sumdays.ShopActivity
 import com.example.sumdays.social.SocialActivity
 import org.threeten.bp.LocalDate
-
+import androidx.activity.ComponentActivity
+import androidx.activity.addCallback
 enum class NavSource {
     CALENDAR,
     WRITE,
@@ -68,16 +69,43 @@ class NavBarController(
         btnCalendar.setOnClickListener {
             if (from != NavSource.CALENDAR) {
                 activity.startActivity(
-                    Intent(activity, CalendarActivity::class.java)
+                    Intent(activity, CalendarActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    }
                 )
                 activity.overridePendingTransition(0, 0)
+                activity.finish() // 현재 탭 종료하여 스택 정리
             }
         }
 
         btnSocial.setOnClickListener {
             if (from != NavSource.SOCIAL) {
                 activity.startActivity(
-                    Intent(activity, SocialActivity::class.java)
+                    Intent(activity, SocialActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    }
+                )
+                activity.overridePendingTransition(0, 0)
+            }
+        }
+
+        btnShop.setOnClickListener {
+            if (from != NavSource.SHOP) {
+                activity.startActivity(
+                    Intent(activity, ShopActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    }
+                )
+                activity.overridePendingTransition(0, 0)
+            }
+        }
+
+        btnInfo.setOnClickListener {
+            if (from != NavSource.CUSTOMIZE) {
+                activity.startActivity(
+                    Intent(activity, CustomizeActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    }
                 )
                 activity.overridePendingTransition(0, 0)
             }
@@ -98,23 +126,21 @@ class NavBarController(
 
             activity.overridePendingTransition(0, 0)
         }
-
-        btnShop.setOnClickListener {
-            if (from != NavSource.SHOP) {
-                activity.startActivity(
-                    Intent(activity, ShopActivity::class.java)
-                )
-                activity.overridePendingTransition(0, 0)
-            }
+    }
+}
+fun ComponentActivity.setupBackToCalendar() {
+    onBackPressedDispatcher.addCallback(this) {
+        val intent = Intent(this@setupBackToCalendar, CalendarActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
+        startActivity(intent)
+        finish()
 
-        btnInfo.setOnClickListener {
-            if (from != NavSource.CUSTOMIZE) {
-                activity.startActivity(
-                    Intent(activity, CustomizeActivity::class.java)
-                )
-                activity.overridePendingTransition(0, 0)
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(Activity.OVERRIDE_TRANSITION_CLOSE, 0, 0)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, 0)
         }
     }
 }
