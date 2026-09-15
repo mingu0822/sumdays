@@ -69,7 +69,6 @@ class ShopActivity : AppCompatActivity() {
 
     private fun initViews() {
 
-        backButton = findViewById(R.id.backButton)
 
         btnEarnPoint = findViewById(R.id.btnEarnPoint)
         tvCurrencyValue = findViewById(R.id.tvCurrencyValue)
@@ -229,9 +228,6 @@ class ShopActivity : AppCompatActivity() {
     }
 
     private fun bindBasicActions() {
-
-        backButton.setOnClickListener { finish() }
-
         btnEarnPoint.setOnClickListener {
 
             Toast.makeText(

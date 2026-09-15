@@ -99,17 +99,6 @@
     </LinearLayout>
 
     <Button
-        android:id="@+id/btnShop"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_marginTop="14dp"
-        android:elevation="0dp"
-        android:stateListAnimator="@null"
-        android:text="상점으로 가기"
-        android:textSize="16sp"
-        app:cornerRadius="18dp" />
-
-    <Button
         android:id="@+id/btnCustomize"
         android:layout_width="match_parent"
         android:layout_height="60dp"

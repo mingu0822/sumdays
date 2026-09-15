@@ -29,7 +29,6 @@ import com.example.sumdays.shop.FoxShopItem
 
 class CustomizeActivity : AppCompatActivity() {
 
-    private lateinit var btnBack: ImageButton
     private lateinit var btnShop: ImageButton
     private lateinit var btnAlchemy: ImageButton
 
@@ -65,10 +64,6 @@ class CustomizeActivity : AppCompatActivity() {
         rootLayout = findViewById(R.id.customRoot)
         setupEdgeToEdge(rootLayout)
 
-        btnBack.setOnClickListener {
-            finish()
-        }
-
         btnAlchemy.setOnClickListener {
 
             startActivity(
@@ -81,7 +76,6 @@ class CustomizeActivity : AppCompatActivity() {
 
     private fun initViews() {
 
-        btnBack = findViewById(R.id.btnBack)
         btnShop = findViewById(R.id.btnShop)
         btnAlchemy = findViewById(R.id.btnAlchemy)
 

@@ -67,7 +67,6 @@ class SocialActivity : AppCompatActivity() {
     private lateinit var tvAllSocialSection: TextView
     private lateinit var tvSocialRequests: TextView
     private lateinit var btnAddSocial: ImageButton
-    private lateinit var btnUpdate: ImageButton
     private lateinit var myProfileCard: View
     private lateinit var myProfileImageContainer: FrameLayout
     private lateinit var imgMyPhoto: ImageView
@@ -120,7 +119,6 @@ class SocialActivity : AppCompatActivity() {
         tvAllSocialSection = findViewById(R.id.tvAllSocialSection)
         tvSocialRequests = findViewById(R.id.tvSocialRequests)
         btnAddSocial = findViewById(R.id.btnAddSocial)
-        btnUpdate = findViewById(R.id.btnUpdate)
         myProfileCard = findViewById(R.id.myProfileCard)
         myProfileImageContainer = findViewById(R.id.myProfileImageContainer)
         imgMyPhoto = findViewById(R.id.imgMyPhoto)
@@ -143,9 +141,6 @@ class SocialActivity : AppCompatActivity() {
         btnAddSocial.setOnClickListener {
             val dialog = AddFriendDialog()
             dialog.show(supportFragmentManager, "AddFriendDialog")
-        }
-        btnUpdate.setOnClickListener{
-            viewModel.loadSocialList()
         }
         myProfileCard.setOnClickListener {
             showMyProfileDialog()
@@ -197,7 +192,6 @@ class SocialActivity : AppCompatActivity() {
         tvEmpty.setTextColor(pointColor)
         tvError.setTextColor(pointColor)
         btnAddSocial.imageTintList = ColorStateList.valueOf(iconColor)
-        btnUpdate.imageTintList = ColorStateList.valueOf(iconColor)
         myProfileImageContainer.setBackgroundResource(currentTheme.blockStyleA)
         updateProfileImagePreview(
             imgMyPhoto,
