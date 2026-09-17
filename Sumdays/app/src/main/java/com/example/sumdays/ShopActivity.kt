@@ -18,6 +18,8 @@ import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
 import com.google.android.material.button.MaterialButton
+import com.example.sumdays.ui.component.setupBackToCalendar
+
 
 class ShopActivity : AppCompatActivity() {
 
@@ -65,11 +67,11 @@ class ShopActivity : AppCompatActivity() {
 
         updatePointUI()
         filterItems("theme")
+        setupBackToCalendar()
     }
 
     private fun initViews() {
 
-        backButton = findViewById(R.id.backButton)
 
         btnEarnPoint = findViewById(R.id.btnEarnPoint)
         tvCurrencyValue = findViewById(R.id.tvCurrencyValue)
@@ -229,9 +231,6 @@ class ShopActivity : AppCompatActivity() {
     }
 
     private fun bindBasicActions() {
-
-        backButton.setOnClickListener { finish() }
-
         btnEarnPoint.setOnClickListener {
 
             Toast.makeText(

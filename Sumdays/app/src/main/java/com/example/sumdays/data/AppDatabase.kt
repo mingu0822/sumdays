@@ -21,7 +21,7 @@ import com.example.sumdays.data.UserStyle
         UserStyle::class,
         Memo::class
     ],
-    version = 13,
+    version = 14,
     exportSchema = false
 )
 @TypeConverters(

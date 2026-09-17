@@ -83,8 +83,6 @@ class DailyWriteActivity : AppCompatActivity() {
     private lateinit var waveBar2: View
     private lateinit var waveBar3: View
     private lateinit var micStopContainer: View
-    private lateinit var readBackButton: ImageButton
-    private lateinit var readCalendarButton : ImageButton
     private lateinit var readDiaryButton: Button
     private lateinit var audioRecorderHelper: AudioRecorderHelper
     private lateinit var sumBtn: ImageButton
@@ -115,9 +113,20 @@ class DailyWriteActivity : AppCompatActivity() {
 
     private lateinit var pickImagesLauncher: ActivityResultLauncher<Array<String>>
 
+    // DailyReadActivity, DailyWriteActivity 어디에서든 undo를 누르면 둘다 종료되게 할 장치
+    companion object {
+        var instance: DailyWriteActivity? = null
+
+        fun finishIfRunning() {
+            instance?.finish()
+            instance = null
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        instance = this
         enableEdgeToEdge()
         setContentView(R.layout.activity_daily_write)
 
@@ -137,12 +146,14 @@ class DailyWriteActivity : AppCompatActivity() {
             if (drawerLayout.isDrawerOpen(GravityCompat.END)) {
                 drawerLayout.closeDrawer(GravityCompat.END)
             } else {
+                DailyReadActivity.finishIfRunning()
                 finish()
             }
         }
 
         setupKeyboardAnimation() // 키보드와 메모 입력창 위치 동기화
     }
+
 
     override fun onResume() {
         super.onResume()
@@ -345,8 +356,6 @@ class DailyWriteActivity : AppCompatActivity() {
         micIcon = findViewById(R.id.mic_icon)
         stopIcon = findViewById(R.id.stop_icon)
         imageIcon = findViewById(R.id.image_icon)
-        readBackButton = findViewById(R.id.read_back_button)
-        readCalendarButton = findViewById(R.id.read_calendar_button)
         readDiaryButton = findViewById(R.id.read_diary_button)
         readDiaryButton.text = "일기 보기"
         sumBtn = findViewById(R.id.sum_btn)
@@ -455,6 +464,7 @@ class DailyWriteActivity : AppCompatActivity() {
         currentEntryLiveData?.removeObservers(this)
         currentEntryLiveData = dailyEntryViewModel.getEntry(date)
         currentEntryLiveData?.observe(this) { entry ->
+            /* 메모가 없을 떄 일기보기를 막는다면 일기 하나씩 보는 리스트에 다시 돌아 갈 수 업승ㅁ
             val diaryExists = !entry?.diary.isNullOrEmpty()
 
             if (diaryExists) {
@@ -468,6 +478,13 @@ class DailyWriteActivity : AppCompatActivity() {
                 readDiaryButton.backgroundTintList =
                     ContextCompat.getColorStateList(this, R.color.gray)
             }
+            */
+
+            readDiaryButton.isEnabled = true
+            readDiaryButton.backgroundTintList =
+                ColorStateList.valueOf(
+                    ContextCompat.getColor(this, R.color.foxrange)
+                )
 
             currentPhotoList.clear()
             entry?.photoUrls?.let { photoString ->
@@ -511,22 +528,14 @@ class DailyWriteActivity : AppCompatActivity() {
     }
     private fun setupClickListeners() {
         readDiaryButton.setOnClickListener {
-            val intent = Intent(this, DailyReadActivity::class.java)
-            intent.putExtra("date", date)
+            val intent = Intent(this, DailyReadActivity::class.java).apply {
+                putExtra("date", date)
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            }
             startActivity(intent)
             overridePendingTransition(0, 0)
         }
 
-        readBackButton.setOnClickListener {
-            onBackPressedDispatcher.onBackPressed()
-        }
-
-        readCalendarButton.setOnClickListener {
-            val intent = Intent(this, CalendarActivity::class.java)
-//            intent.putExtra("date", date)
-            startActivity(intent)
-
-        }
 
         sendIcon.setOnClickListener {
             val memoContent = memoInputEditText.text.toString().trim()
@@ -678,6 +687,9 @@ class DailyWriteActivity : AppCompatActivity() {
         super.onDestroy()
         audioRecorderHelper.release()
         waveAnimatorSet?.cancel()
+        if (instance == this) {
+            instance = null
+        }
     }
 
     private fun startWaveAnimation() {

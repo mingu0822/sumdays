@@ -110,13 +110,11 @@ class CalendarActivity : AppCompatActivity() {
         btnSetting.setOnClickListener {
             val intent = Intent(this@CalendarActivity, SettingActivity::class.java)
             startActivity(intent)
-            overridePendingTransition(0, 0)
         }
 
         btnSearch.setOnClickListener {
             val intent = Intent(this@CalendarActivity, SearchActivity::class.java)
             startActivity(intent)
-            overridePendingTransition(0, 0)
         }
 
         btnTemp.setOnClickListener {

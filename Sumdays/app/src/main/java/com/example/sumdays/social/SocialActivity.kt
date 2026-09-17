@@ -25,6 +25,7 @@ import androidx.core.graphics.toColorInt
 import com.example.sumdays.LoginActivity
 import com.example.sumdays.R
 import com.example.sumdays.ShopActivity
+import com.example.sumdays.CalendarActivity
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.settings.EditProfileActivity
@@ -35,6 +36,7 @@ import com.example.sumdays.settings.profileimage.ProfileImageItemType
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import android.widget.EditText
+import androidx.activity.addCallback
 import android.text.TextWatcher
 import android.util.Log
 import android.view.View
@@ -55,6 +57,7 @@ import androidx.core.content.ContextCompat
 import com.example.sumdays.theme.Theme
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
+import com.example.sumdays.ui.component.setupBackToCalendar
 
 class SocialActivity : AppCompatActivity() {
     private lateinit var navBarController: NavBarController
@@ -67,7 +70,6 @@ class SocialActivity : AppCompatActivity() {
     private lateinit var tvAllSocialSection: TextView
     private lateinit var tvSocialRequests: TextView
     private lateinit var btnAddSocial: ImageButton
-    private lateinit var btnUpdate: ImageButton
     private lateinit var myProfileCard: View
     private lateinit var myProfileImageContainer: FrameLayout
     private lateinit var imgMyPhoto: ImageView
@@ -106,6 +108,7 @@ class SocialActivity : AppCompatActivity() {
         observeViewModel()
         viewModel.loadSocialList()
         applyThemeModeSettings()
+        setupBackToCalendar()
     }
     private fun initViewModel() {
         val repository = SocialRepository()
@@ -120,7 +123,6 @@ class SocialActivity : AppCompatActivity() {
         tvAllSocialSection = findViewById(R.id.tvAllSocialSection)
         tvSocialRequests = findViewById(R.id.tvSocialRequests)
         btnAddSocial = findViewById(R.id.btnAddSocial)
-        btnUpdate = findViewById(R.id.btnUpdate)
         myProfileCard = findViewById(R.id.myProfileCard)
         myProfileImageContainer = findViewById(R.id.myProfileImageContainer)
         imgMyPhoto = findViewById(R.id.imgMyPhoto)
@@ -143,9 +145,6 @@ class SocialActivity : AppCompatActivity() {
         btnAddSocial.setOnClickListener {
             val dialog = AddFriendDialog()
             dialog.show(supportFragmentManager, "AddFriendDialog")
-        }
-        btnUpdate.setOnClickListener{
-            viewModel.loadSocialList()
         }
         myProfileCard.setOnClickListener {
             showMyProfileDialog()
@@ -197,7 +196,6 @@ class SocialActivity : AppCompatActivity() {
         tvEmpty.setTextColor(pointColor)
         tvError.setTextColor(pointColor)
         btnAddSocial.imageTintList = ColorStateList.valueOf(iconColor)
-        btnUpdate.imageTintList = ColorStateList.valueOf(iconColor)
         myProfileImageContainer.setBackgroundResource(currentTheme.blockStyleA)
         updateProfileImagePreview(
             imgMyPhoto,
@@ -233,7 +231,7 @@ class SocialActivity : AppCompatActivity() {
         val nickname = view.findViewById<TextView>(R.id.nickname)
         val profileImageContainer = view.findViewById<FrameLayout>(R.id.profileImageContainer)
         val btnLogout = view.findViewById<Button>(R.id.btnLogout)
-        val btnShop = view.findViewById<Button>(R.id.btnShop)
+        // val btnShop = view.findViewById<Button>(R.id.btnShop)
         val btnCustomize = view.findViewById<Button>(R.id.btnCustomize)
 
         currentTheme?.let { theme ->
@@ -249,11 +247,9 @@ class SocialActivity : AppCompatActivity() {
             val buttonTextColor = ContextCompat.getColor(this, theme.themeColorC)
             btnLogout.backgroundTintList = ColorStateList.valueOf(logoutColor)
             btnLogout.setTextColor(buttonTextColor)
-            listOf(btnShop, btnCustomize).forEach { button ->
-                button.backgroundTintList = null
-                button.setBackgroundResource(theme.blockStyleA)
-                button.setTextColor(ContextCompat.getColor(this, theme.themeTextColorBasic))
-            }
+            btnCustomize.backgroundTintList = null
+            btnCustomize.setBackgroundResource(theme.blockStyleA)
+            btnCustomize.setTextColor(ContextCompat.getColor(this, theme.themeTextColorBasic))
         }
 
         nickname.text = userStatsPrefs.getNickname()
@@ -272,10 +268,6 @@ class SocialActivity : AppCompatActivity() {
         btnLogout.setOnClickListener {
             dialog.dismiss()
             logout()
-        }
-        btnShop.setOnClickListener {
-            dialog.dismiss()
-            startActivity(Intent(this, ShopActivity::class.java))
         }
         btnCustomize.setOnClickListener {
             dialog.dismiss()

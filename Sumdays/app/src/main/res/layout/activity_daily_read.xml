@@ -21,17 +21,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageButton
-            android:id="@+id/read_back_button"
-            android:src="@drawable/ic_left"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="@android:color/transparent"
-            android:contentDescription="back"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            />
 
         <ImageButton
             android:id="@+id/lock_toggle_button"
@@ -112,35 +101,10 @@
 
 
 
-    <!-- 하단 네비게이션 바 -->
-    <include
-        android:id="@+id/bottom_buttons_layout"
-        layout="@layout/include_navigation_bar"
-        android:clipChildren="false"
-        android:layout_width="0dp"
-        android:layout_marginHorizontal="16dp"
-        android:layout_height="64dp"
-        android:layout_marginBottom="12dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- 사진 갤러리 -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/photo_gallery_recycler_view"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="12dp"
-        android:minHeight="80dp"
-        android:orientation="horizontal"
-        android:visibility="visible"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_buttons_layout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:listitem="@layout/item_photo_gallery" />
+
+
+
 
     <!-- 일기 내용 영역 (보기 / 수정 모드 전환) -->
     <ScrollView
@@ -220,5 +184,24 @@
         app:layout_constraintBottom_toBottomOf="@+id/diary_scroll_view"
         app:layout_constraintEnd_toEndOf="@+id/diary_scroll_view"
         app:tint="@android:color/black" />
+
+    <!-- 사진 갤러리 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/photo_gallery_recycler_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="12dp"
+        android:minHeight="80dp"
+        android:orientation="horizontal"
+        android:visibility="visible"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:listitem="@layout/item_photo_gallery" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
