@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.util.Base64
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -35,21 +36,18 @@ import com.example.sumdays.image.PhotoGalleryAdapter
 import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
-import com.example.sumdays.ui.component.NavBarController
-import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import androidx.activity.addCallback
 
 class DailyReadActivity : AppCompatActivity() {
-
     private lateinit var binding: ActivityDailyReadBinding
     private lateinit var currentDate: Calendar
     private val viewModel: DailyEntryViewModel by viewModels()
     private var currentLiveData: LiveData<DailyEntry?>? = null
-    private lateinit var navBarController: NavBarController
 
     private lateinit var photoGalleryAdapter: PhotoGalleryAdapter
 
@@ -67,14 +65,23 @@ class DailyReadActivity : AppCompatActivity() {
 
     private lateinit var pickImageLauncher: ActivityResultLauncher<PickVisualMediaRequest>
 
+    // DailyReadActivity, DailyWriteActivity 어디에서든 undo를 누르면 둘다 종료되게 할 장치
+    companion object {
+        var instance: DailyReadActivity? = null
+
+        fun finishIfRunning() {
+            instance?.finish()
+            instance = null
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDailyReadBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        instance = this
 
-        navBarController = NavBarController(this)
-        navBarController.setNavigationBar(NavSource.READ)
 
         initializeImagePicker()
         initializeDate()
@@ -85,7 +92,25 @@ class DailyReadActivity : AppCompatActivity() {
 
         val rootView = findViewById<View>(R.id.main)
         setupEdgeToEdge(rootView)
+
+        onBackPressedDispatcher.addCallback(this) {
+            DailyWriteActivity.finishIfRunning() // 1. 밑에 깔려 있을지 모를 Write 종료
+            finish()                             // 2. 현재 Read 종료
+        }
     }
+    override fun onDestroy() {
+        super.onDestroy()
+        if (instance == this) {
+            instance = null
+        }
+    }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        initializeDate()
+        observeEntry()
+    }
+
 
     private fun applyThemeModeSettings() {
 
@@ -102,10 +127,6 @@ class DailyReadActivity : AppCompatActivity() {
         val currentTheme =
             themeRepo.ownedThemes[themeKey]
                 ?: themeRepo.allThemeMap[themeKey]
-
-//        val currentFox =
-//            foxRepo.ownedFoxes[foxKey]
-//                ?: foxRepo.allFoxMap[foxKey]
 
         // ⭐ null 방어
         if (currentTheme == null) {
@@ -254,7 +275,6 @@ class DailyReadActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
-        binding.readBackButton.setOnClickListener { finish() }
         binding.dateText.setOnClickListener { showDatePickerDialog() }
         binding.prevDayButton.setOnClickListener { changeDate(-1) }
         binding.nextDayButton.setOnClickListener { changeDate(1) }
@@ -277,10 +297,12 @@ class DailyReadActivity : AppCompatActivity() {
         }
 
         binding.editMemosButton.setOnClickListener {
-            val intent = Intent(this, DailyWriteActivity::class.java)
-            intent.putExtra("date", repoKeyFormatter.format(currentDate.time))
+            val intent = Intent(this, DailyWriteActivity::class.java).apply {
+                putExtra("date", repoKeyFormatter.format(currentDate.time))
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            }
             startActivity(intent)
-            finish()
+            overridePendingTransition(0, 0)
         }
 
     }

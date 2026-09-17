@@ -70,8 +70,6 @@ class CustomizeActivity : AppCompatActivity() {
             startActivity(
                 Intent(this, FoxAlchemyActivity::class.java)
             )
-
-            overridePendingTransition(0, 0)
         }
         setupBackToCalendar()
     }

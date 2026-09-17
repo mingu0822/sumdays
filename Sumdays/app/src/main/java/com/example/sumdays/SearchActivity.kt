@@ -24,9 +24,6 @@ import com.example.sumdays.search.DailyEntrySearchAdapter
 import com.example.sumdays.search.DailySearchViewModelFactory
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
-import com.example.sumdays.ui.component.NavBarController
-import com.example.sumdays.ui.component.NavSource
-
 class SearchActivity : AppCompatActivity() {
 
     private lateinit var etQuery: EditText
@@ -39,8 +36,6 @@ class SearchActivity : AppCompatActivity() {
 
     private lateinit var adapter: DailyEntrySearchAdapter
     private lateinit var viewModel: DailySearchViewModel
-    private lateinit var navBarController: NavBarController
-
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,8 +49,6 @@ class SearchActivity : AppCompatActivity() {
         searchBox = findViewById(R.id.searchBox)
         searchRoot = findViewById(R.id.searchRoot)
 
-        navBarController = NavBarController(this)
-        navBarController.setNavigationBar(NavSource.SEARCH)
 
         applyThemeModeSettings()
 

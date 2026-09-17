@@ -124,7 +124,6 @@ class NavBarController(
                 )
             }
 
-            activity.overridePendingTransition(0, 0)
         }
     }
 }

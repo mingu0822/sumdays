@@ -222,18 +222,21 @@ class SettingActivity : AppCompatActivity() {
     }
 
     private fun applyThemeModeSettings() {
-        val themeRepo = ThemeRepository
+        ThemeRepository.updateOwned()
         val themeKey = ThemePrefs.getTheme(this)
-        val currentTheme = themeRepo.ownedThemes.get(themeKey)
+        val currentTheme = ThemeRepository.ownedThemes[themeKey]
+            ?: ThemeRepository.allThemeMap[themeKey]
+            ?: ThemeRepository.allThemeMap.values.firstOrNull()
+            ?: return
 
-        val themePreviewImage = currentTheme!!.themePreviewImage
-        val primaryColor = currentTheme!!.themeTextColorSpecialA
-        val buttonColor = currentTheme!!.themeColorA
-        val backgroundColor = currentTheme!!.backgroundColor
-        val blockShape = currentTheme!!.blockStyleA
-        val basicColor = currentTheme!!.themeTextColorBasic
-        val calendarBackgroundImage = currentTheme!!.calendarBackgroundImage
-        val memoImage = currentTheme!!.memoImage
+        val themePreviewImage = currentTheme.themePreviewImage
+        val primaryColor = currentTheme.themeTextColorSpecialA
+        val buttonColor = currentTheme.themeColorA
+        val backgroundColor = currentTheme.backgroundColor
+        val blockShape = currentTheme.blockStyleA
+        val basicColor = currentTheme.themeTextColorBasic
+        val calendarBackgroundImage = currentTheme.calendarBackgroundImage
+        val memoImage = currentTheme.memoImage
 //        val foxIcon = currentTheme!!.foxIcon
         binding.root.setBackgroundResource(backgroundColor)
 

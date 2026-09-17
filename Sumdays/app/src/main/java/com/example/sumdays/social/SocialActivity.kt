@@ -231,7 +231,7 @@ class SocialActivity : AppCompatActivity() {
         val nickname = view.findViewById<TextView>(R.id.nickname)
         val profileImageContainer = view.findViewById<FrameLayout>(R.id.profileImageContainer)
         val btnLogout = view.findViewById<Button>(R.id.btnLogout)
-        val btnShop = view.findViewById<Button>(R.id.btnShop)
+        // val btnShop = view.findViewById<Button>(R.id.btnShop)
         val btnCustomize = view.findViewById<Button>(R.id.btnCustomize)
 
         currentTheme?.let { theme ->
@@ -247,11 +247,9 @@ class SocialActivity : AppCompatActivity() {
             val buttonTextColor = ContextCompat.getColor(this, theme.themeColorC)
             btnLogout.backgroundTintList = ColorStateList.valueOf(logoutColor)
             btnLogout.setTextColor(buttonTextColor)
-            listOf(btnShop, btnCustomize).forEach { button ->
-                button.backgroundTintList = null
-                button.setBackgroundResource(theme.blockStyleA)
-                button.setTextColor(ContextCompat.getColor(this, theme.themeTextColorBasic))
-            }
+            btnCustomize.backgroundTintList = null
+            btnCustomize.setBackgroundResource(theme.blockStyleA)
+            btnCustomize.setTextColor(ContextCompat.getColor(this, theme.themeTextColorBasic))
         }
 
         nickname.text = userStatsPrefs.getNickname()
@@ -270,10 +268,6 @@ class SocialActivity : AppCompatActivity() {
         btnLogout.setOnClickListener {
             dialog.dismiss()
             logout()
-        }
-        btnShop.setOnClickListener {
-            dialog.dismiss()
-            startActivity(Intent(this, ShopActivity::class.java))
         }
         btnCustomize.setOnClickListener {
             dialog.dismiss()
