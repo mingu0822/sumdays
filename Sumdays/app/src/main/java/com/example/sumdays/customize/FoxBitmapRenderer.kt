@@ -20,7 +20,8 @@ object FoxBitmapRenderer {
     fun displayPreview(
         imageView: ImageView,
         bitmap: Bitmap,
-        fox: CompleteFox
+        fox: CompleteFox,
+        baseScaleMultiplier: Float = 1f
     ) {
         imageView.setImageBitmap(bitmap)
 
@@ -38,10 +39,17 @@ object FoxBitmapRenderer {
                 baseResId
             ) ?: return@post
 
+            val contentWidth =
+                imageView.width - imageView.paddingLeft - imageView.paddingRight
+            val contentHeight =
+                imageView.height - imageView.paddingTop - imageView.paddingBottom
+
+            if (contentWidth <= 0 || contentHeight <= 0) return@post
+
             val baseScale = minOf(
-                imageView.width.toFloat() / baseBitmap.width,
-                imageView.height.toFloat() / baseBitmap.height
-            )
+                contentWidth.toFloat() / baseBitmap.width,
+                contentHeight.toFloat() / baseBitmap.height
+            ) * baseScaleMultiplier
 
             val selectedItems = listOf(
                 fox.glasses,
@@ -58,10 +66,10 @@ object FoxBitmapRenderer {
                 .minOfOrNull { minOf(0f, it.offsetY) } ?: 0f)
 
             val translateX =
-                (imageView.width - baseBitmap.width * baseScale) / 2f -
+                (contentWidth - baseBitmap.width * baseScale) / 2f -
                         baseLeft * baseScale
             val translateY =
-                (imageView.height - baseBitmap.height * baseScale) / 2f -
+                (contentHeight - baseBitmap.height * baseScale) / 2f -
                         baseTop * baseScale
 
             imageView.scaleType = ImageView.ScaleType.MATRIX

@@ -2,7 +2,9 @@ package com.example.sumdays
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
-import android.app.AlertDialog
+import android.app.Dialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
@@ -23,6 +25,7 @@ import com.example.sumdays.customize.FoxBitmapRenderer
 import com.example.sumdays.customize.FoxPrefs
 import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.ItemCategory
+import com.google.android.material.button.MaterialButton
 
 class FoxAlchemyActivity : AppCompatActivity() {
 
@@ -357,94 +360,86 @@ class FoxAlchemyActivity : AppCompatActivity() {
             return
         }
 
-        val editText =
-            EditText(this).apply {
+        val contentView = layoutInflater.inflate(
+            R.layout.dialog_fox_name,
+            null
+        )
+        val dialog = Dialog(this)
+        var foxSaved = false
 
-                hint = "여우 이름을 입력하세요"
-
-                setSingleLine(true)
-
-                setPadding(
-                    48,
-                    0,
-                    48,
-                    0
-                )
-            }
-
-        val dialog =
-            AlertDialog.Builder(this)
-                .setTitle("새로운 여우")
-                .setMessage(
-                    "여우의 이름을 지어주세요."
-                )
-                .setView(editText)
-                .setNegativeButton(
-                    "취소",
-                    null
-                )
-                .setPositiveButton(
-                    "완성",
-                    null
-                )
-                .create()
-
-        /*
-         * 기본 setPositiveButton을 사용하면
-         * 이름이 비어 있어도 Dialog가 닫혀버린다.
-         *
-         * 따라서 직접 클릭 이벤트를 제어한다.
-         */
-        dialog.setOnShowListener {
-
-            val positiveButton =
-                dialog.getButton(
-                    AlertDialog.BUTTON_POSITIVE
-                )
-
-            positiveButton.setOnClickListener {
-
-                val name =
-                    editText.text
-                        .toString()
-                        .trim()
-
-                if (name.isEmpty()) {
-
-                    editText.error =
-                        "여우 이름을 입력해주세요."
-
-                    return@setOnClickListener
-                }
-
-                // -----------------------------
-                // 여우 완성
-                // -----------------------------
-
-                completeFox(
-                    name = name,
-                    items = items
-                )
-
-                // -----------------------------
-                // 이름 입력창 닫기
-                // -----------------------------
-
-                dialog.dismiss()
-
-                /*
-                 * BottomSheet는 이미 조합 과정에서
-                 * 닫혔거나 dismiss될 수 있으므로
-                 * 여기서는 Activity를 종료하지 않는다.
-                 */
+        dialog.setContentView(contentView)
+        dialog.setCanceledOnTouchOutside(false)
+        dialog.window?.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            attributes = attributes.apply {
+                dimAmount = 0.68f
             }
         }
 
+        val editText = contentView.findViewById<EditText>(R.id.editFoxName)
+        val preview = contentView.findViewById<ImageView>(R.id.imgFoxNamePreview)
+        val closeButton = contentView.findViewById<ImageButton>(R.id.btnCloseFoxName)
+        val closetButton = contentView.findViewById<MaterialButton>(R.id.btnGoCloset)
+        val stayButton = contentView.findViewById<MaterialButton>(R.id.btnCloseAfterNaming)
+
+        val previewFox = AlchemyRecipeManager.createFox(
+            id = -1,
+            name = "Preview",
+            items = items
+        )
+        val previewBitmap = FoxBitmapRenderer.createPreview(this, previewFox)
+
+        fun saveFox(returnToCloset: Boolean) {
+            val name = editText.text.toString().trim()
+
+            if (name.isEmpty()) {
+                editText.error = "여우 이름을 입력해주세요."
+                editText.requestFocus()
+                return
+            }
+
+            foxSaved = true
+            completeFox(name = name, items = items)
+            dialog.dismiss()
+
+            if (returnToCloset) {
+                finish()
+            }
+        }
+
+        closetButton.setOnClickListener {
+            saveFox(returnToCloset = true)
+        }
+        stayButton.setOnClickListener {
+            saveFox(returnToCloset = false)
+        }
+        closeButton.setOnClickListener {
+            dialog.cancel()
+        }
+
+        dialog.setOnCancelListener {
+            if (!foxSaved) {
+                AlchemySelectionManager.clear(this)
+                selectedItems = emptyList()
+                clearSlots()
+            }
+        }
         dialog.setOnDismissListener {
             isCombining = false
         }
 
         dialog.show()
+        dialog.window?.setLayout(
+            (resources.displayMetrics.widthPixels * 0.88f).toInt(),
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        FoxBitmapRenderer.displayPreview(
+            imageView = preview,
+            bitmap = previewBitmap,
+            fox = previewFox,
+            baseScaleMultiplier = 0.56f
+        )
     }
 
     // =========================================================
