@@ -9,9 +9,12 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sumdays.R
 import com.example.sumdays.databinding.ActivityProfileEditBinding
+import com.example.sumdays.image.prepareTempFile
+import com.example.sumdays.image.uploadProfileImageToServer
 import com.example.sumdays.settings.prefs.ProfileImagePrefs
 import com.example.sumdays.settings.profileimage.CategoryAdapter
 import com.example.sumdays.settings.profileimage.ProfileImageCategory
@@ -19,6 +22,7 @@ import com.example.sumdays.settings.profileimage.ProfileImageItem
 import com.example.sumdays.settings.profileimage.ProfileImageItemType
 import com.example.sumdays.settings.profileimage.ProfileMode
 import com.yalantis.ucrop.UCrop
+import kotlinx.coroutines.launch
 import java.io.File
 
 class EditProfileActivity : AppCompatActivity() {
@@ -227,6 +231,7 @@ class EditProfileActivity : AppCompatActivity() {
 
     // ── 저장 ─────────────────────────────────────────────
 
+    // 현재는 사진만 서버에 저장 (나중에 아바타도 사진 포맷으로 바꾸어 서버에 저장해야함)
     private fun save() {
         when (currentMode) {
             ProfileMode.PHOTO -> {
@@ -235,11 +240,37 @@ class EditProfileActivity : AppCompatActivity() {
                     Toast.makeText(this, "사진을 먼저 선택해 주세요.", Toast.LENGTH_SHORT).show()
                     return
                 }
-                val dest = File(filesDir, "profile_photo.jpg")
-                File(path).copyTo(dest, overwrite = true)
 
-                ProfileImagePrefs.setPhotoUri(this, dest.absolutePath)
-                ProfileImagePrefs.setMode(this, "PHOTO")
+                lifecycleScope.launch {
+                    // 1. 임시 파일 준비
+                    val tempFile = prepareTempFile(this@EditProfileActivity, path)
+                    if (tempFile == null) {
+                        Toast.makeText(this@EditProfileActivity, "파일을 읽을 수 없습니다.", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
+
+                    // 2. ⭐️ 사진(File)을 인자로 넘겨 서버 저장 함수 호출
+                    val isSuccess = uploadProfileImageToServer(tempFile)
+
+                    if (isSuccess) {
+                        // 3. 서버 성공 시에만 로컬 영구 파일로 저장
+                        val dest = File(filesDir, "profile_photo.jpg")
+                        tempFile.copyTo(dest, overwrite = true)
+                        tempFile.delete()
+
+                        // 4. 로컬 상태 갱신 및 화면 종료
+                        ProfileImagePrefs.setPhotoUri(this@EditProfileActivity, dest.absolutePath)
+                        ProfileImagePrefs.setMode(this@EditProfileActivity, "PHOTO")
+
+                        Toast.makeText(this@EditProfileActivity, "프로필이 저장되었습니다.", Toast.LENGTH_SHORT).show()
+                        finish()
+                    } else {
+                        tempFile.delete()
+                        Toast.makeText(this@EditProfileActivity, "서버 저장 실패. 다시 시도해 주세요.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+
             }
             ProfileMode.AVATAR -> {
                 ProfileImagePrefs.setProfileIds(
