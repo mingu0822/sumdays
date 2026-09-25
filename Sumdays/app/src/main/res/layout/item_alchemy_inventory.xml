@@ -38,7 +38,8 @@
         android:layout_marginTop="5dp"
         android:ellipsize="end"
         android:gravity="center"
-        android:maxLines="1"
+        android:minLines="2"
+        android:maxLines="2"
         android:textColor="#202020"
         android:textSize="14sp" />
 </LinearLayout>

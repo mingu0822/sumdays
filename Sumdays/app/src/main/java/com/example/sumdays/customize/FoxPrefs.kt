@@ -27,7 +27,9 @@ object FoxPrefs {
 
             json.put("id", fox.id)
             json.put("name", fox.name)
-            json.put("previewImage", fox.previewImage)
+            json.put("previewImageName", FoxBaseImage.name(fox))
+            json.put("placements", FoxItemPlacement.toJson(fox.placements))
+            json.put("foxFace", fox.foxFace ?: JSONObject.NULL)
 
             // 실제 조합된 PNG 파일 경로
             if (fox.previewPath != null) {
@@ -94,7 +96,8 @@ object FoxPrefs {
 
             val jsonArray = JSONArray(saved)
 
-            AllFoxMap.allFoxMap.clear()
+            val loadedFoxes = mutableMapOf<Int, CompleteFox>()
+            var needsMigration = false
 
             for (i in 0 until jsonArray.length()) {
 
@@ -107,8 +110,7 @@ object FoxPrefs {
 
                     name = json.getString("name"),
 
-                    previewImage =
-                        json.getInt("previewImage"),
+                    previewImage = 0,
 
                     // 저장된 PNG 경로
                     previewPath =
@@ -131,16 +133,26 @@ object FoxPrefs {
                             "scarf"
                         ),
 
+                    placements = FoxItemPlacement.fromJson(json.optJSONArray("placements")),
+                    foxFace = json.getNullableInt("foxFace"),
+
                     accessory =
                         json.getNullableInt(
                             "accessory"
                         )
-                )
+                ).let { fox ->
+                    fox.copy(previewImage = FoxBaseImage.restore(json.optString("previewImageName"), fox))
+                }
 
-                AllFoxMap.allFoxMap[
+                needsMigration = needsMigration || json.optString("previewImageName") != FoxBaseImage.name(fox)
+                loadedFoxes[
                     fox.id
                 ] = fox
             }
+
+            AllFoxMap.allFoxMap.clear()
+            AllFoxMap.allFoxMap.putAll(loadedFoxes)
+            if (needsMigration) saveAll(context)
 
         } catch (e: Exception) {
 

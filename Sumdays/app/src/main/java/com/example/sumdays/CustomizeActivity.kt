@@ -113,6 +113,8 @@ class CustomizeActivity : AppCompatActivity() {
      */
     private fun loadFoxItems() {
 
+        FoxPrefs.loadAll(this)
+
         foxList.clear()
 
         AllFoxMap.allFoxMap.values.forEach { fox ->

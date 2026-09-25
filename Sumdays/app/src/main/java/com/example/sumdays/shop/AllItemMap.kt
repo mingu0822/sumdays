@@ -5,6 +5,38 @@ import com.example.sumdays.R
 
 object AllItemMap {
     val allItemMap: MutableMap<Int, FoxShopItem> = mutableMapOf(
+        401 to FoxShopItem(
+            id = 401,
+            name = "화난 표정",
+            description = "합성 시 1개 사용해요.",
+            price = 200,
+            itemCategory = ItemCategory.FOXFACE,
+            imageRes = R.drawable.dailyread_fox_face_level_1
+        ),
+        402 to FoxShopItem(
+            id = 402,
+            name = "걱정 표정",
+            description = "합성 시 1개 사용해요.",
+            price = 200,
+            itemCategory = ItemCategory.FOXFACE,
+            imageRes = R.drawable.dailyread_fox_face_level_2
+        ),
+        404 to FoxShopItem(
+            id = 404,
+            name = "미소 표정",
+            description = "합성 시 1개 사용해요.",
+            price = 200,
+            itemCategory = ItemCategory.FOXFACE,
+            imageRes = R.drawable.dailyread_fox_face_level_4
+        ),
+        405 to FoxShopItem(
+            id = 405,
+            name = "활짝 웃는 표정",
+            description = "합성 시 1개 사용해요.",
+            price = 200,
+            itemCategory = ItemCategory.FOXFACE,
+            imageRes = R.drawable.dailyread_fox_face_level_5
+        ),
         1 to FoxShopItem(
             name = "안경",
             id = 1,

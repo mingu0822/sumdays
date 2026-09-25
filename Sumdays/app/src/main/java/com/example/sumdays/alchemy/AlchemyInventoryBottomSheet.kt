@@ -17,38 +17,28 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 
-class AlchemyInventoryBottomSheet(
+class AlchemyInventoryBottomSheet : BottomSheetDialogFragment() {
 
-    private val onSelectionChanged:
-        (List<FoxShopItem>) -> Unit,
+    companion object {
+        const val TAG = "AlchemyInventory"
+        const val SELECTION_CHANGED = "alchemy_selection_changed"
+        const val CLOSED = "alchemy_inventory_closed"
+        const val EDIT = "edit"
+    }
 
-    private val onCombine:
-        (List<FoxShopItem>) -> Unit,
-
-    private val onSheetClosed:
-        () -> Unit
-
-) : BottomSheetDialogFragment() {
+    private fun onSelectionChanged(items: List<FoxShopItem>) {
+        parentFragmentManager.setFragmentResult(SELECTION_CHANGED, Bundle())
+        view?.findViewById<View>(R.id.btnCombine)?.isEnabled = items.isNotEmpty()
+    }
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: AlchemyItemAdapter
 
     private var currentCategory =
-        ItemCategory.GLASSES
+        ItemCategory.FOXFACE
 
-    /**
-     * 조합이 완료되었는지 여부
-     *
-     * true:
-     * 실제 여우 생성까지 완료되었으므로
-     * onDismiss에서 선택 상태를 다시 clear하지 않음
-     *
-     * false:
-     * 사용자가 그냥 닫은 것이므로
-     * 선택 상태만 초기화
-     */
-    private var combined = false
-    private var pendingCombineItems: List<FoxShopItem> = emptyList()
+    // Keep the reservation while moving to the placement editor; refund on cancellation.
+    private var openingEditor = false
 
 
     // --------------------------------------------------
@@ -135,7 +125,7 @@ class AlchemyInventoryBottomSheet(
         recyclerView.layoutManager =
             GridLayoutManager(
                 requireContext(),
-                4
+                maxOf(1, (resources.configuration.screenWidthDp - 40) / 100)
             )
 
 
@@ -190,8 +180,13 @@ class AlchemyInventoryBottomSheet(
         // --------------------------------------------------
 
         loadCategory(
-            ItemCategory.GLASSES
+            ItemCategory.values().find { it.name == savedInstanceState?.getString("category") }
+                ?: currentCategory
         )
+
+        view.findViewById<View>(R.id.btnFoxFace).setOnClickListener {
+            loadCategory(ItemCategory.FOXFACE)
+        }
 
 
         // --------------------------------------------------
@@ -257,6 +252,7 @@ class AlchemyInventoryBottomSheet(
         val combineButton = view.findViewById<MaterialButton>(
             R.id.btnCombine
         )
+        combineButton.isEnabled = AlchemySelectionManager.getSelectedItems().isNotEmpty()
 
         combineButton.backgroundTintList =
             android.content.res.ColorStateList.valueOf(
@@ -284,8 +280,7 @@ class AlchemyInventoryBottomSheet(
             // 조합 시작
             // --------------------------------------------------
 
-            combined = true
-            pendingCombineItems = items.toList()
+            openingEditor = true
 
 
             // --------------------------------------------------
@@ -299,7 +294,7 @@ class AlchemyInventoryBottomSheet(
             // 아이템 commit
             // --------------------------------------------------
 
-            // 팝업이 완전히 닫힌 뒤 Activity에서 투입 애니메이션을 시작한다.
+            // 팝업이 완전히 닫힌 뒤 Activity에서 배치 편집 화면을 연다.
             dismiss()
 
 
@@ -318,6 +313,11 @@ class AlchemyInventoryBottomSheet(
     // BottomSheet 닫힘
     // --------------------------------------------------
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("category", currentCategory.name)
+    }
+
     override fun onDismiss(
         dialog: DialogInterface
     ) {
@@ -326,8 +326,10 @@ class AlchemyInventoryBottomSheet(
             dialog
         )
 
+        if (activity?.isChangingConfigurations == true || activity?.isFinishing == true) return
 
-        if (!combined) {
+
+        if (!openingEditor) {
 
             // --------------------------------------------------
             // 사용자가 조합하지 않고 닫음
@@ -346,13 +348,13 @@ class AlchemyInventoryBottomSheet(
             onSelectionChanged(
                 emptyList()
             )
-        } else {
-            onCombine(pendingCombineItems)
         }
 
 
         // Activity에 BottomSheet가 닫혔다고 알림
-        onSheetClosed()
+        parentFragmentManager.setFragmentResult(CLOSED, Bundle().apply {
+            putBoolean(EDIT, openingEditor)
+        })
     }
 
 
@@ -368,6 +370,8 @@ class AlchemyInventoryBottomSheet(
             category
 
         updateCategoryTabs(category)
+        view?.findViewById<View>(R.id.foxFaceHint)?.visibility =
+            if (category == ItemCategory.FOXFACE) View.VISIBLE else View.GONE
 
 
         // 현재 카테고리의 아이템만 가져오기
@@ -398,6 +402,7 @@ class AlchemyInventoryBottomSheet(
     private fun updateCategoryTabs(category: ItemCategory) {
 
         val tabs = listOf(
+            Triple(R.id.btnFoxFace, R.id.indicatorFoxFace, ItemCategory.FOXFACE),
             Triple(R.id.btnGlasses, R.id.indicatorGlasses, ItemCategory.GLASSES),
             Triple(R.id.btnHat, R.id.indicatorHat, ItemCategory.HAT),
             Triple(R.id.btnScarf, R.id.indicatorScarf, ItemCategory.SCARF),
