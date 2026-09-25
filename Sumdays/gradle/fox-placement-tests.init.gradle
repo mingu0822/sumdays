@@ -1,0 +1,7 @@
+// Run the editor's regressions independently of older tests that no longer compile.
+// gradlew -I gradle/fox-placement-tests.init.gradle :app:testDebugUnitTest --tests '*FoxPlacementTest'
+gradle.beforeProject { project ->
+    project.plugins.withId('com.android.application') {
+        project.android.sourceSets.test.java.setSrcDirs(['src/test/java/com/example/sumdays/alchemy'])
+    }
+}

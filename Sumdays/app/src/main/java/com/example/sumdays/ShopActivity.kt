@@ -18,6 +18,8 @@ import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.example.sumdays.ui.component.setupBackToCalendar
 
 
@@ -46,6 +48,7 @@ class ShopActivity : AppCompatActivity() {
     private var selectedItem: ShopItem? = null
     private var currentPoint = 0
     private var selectedCategory = "theme"
+    private var selectedItemCategory: ItemCategory? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +59,10 @@ class ShopActivity : AppCompatActivity() {
         initViews()
         setupRecyclerView()
         loadItems()
+        selectedCategory = savedInstanceState?.getString("shop_category") ?: "theme"
+        selectedItemCategory = ItemCategory.values().find {
+            it.name == savedInstanceState?.getString("item_category")
+        }
         setupCategoryChips()
         bindBasicActions()
 
@@ -66,8 +73,14 @@ class ShopActivity : AppCompatActivity() {
         navBarController.setNavigationBar(NavSource.SHOP)
 
         updatePointUI()
-        filterItems("theme")
+        filterItems(selectedCategory)
         setupBackToCalendar()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("shop_category", selectedCategory)
+        outState.putString("item_category", selectedItemCategory?.name)
     }
 
     private fun initViews() {
@@ -169,6 +182,25 @@ class ShopActivity : AppCompatActivity() {
         chipItem.setOnClickListener {
             filterItems("item")
         }
+
+        val group = findViewById<ChipGroup>(R.id.shopItemCategories)
+        listOf(
+            null to "전체", ItemCategory.FOXFACE to "표정",
+            ItemCategory.GLASSES to "안경", ItemCategory.HAT to "모자",
+            ItemCategory.SCARF to "목도리", ItemCategory.ACCESSORY to "악세서리"
+        ).forEach { (category, label) ->
+            group.addView(Chip(this).apply {
+                id = View.generateViewId()
+                tag = category
+                text = label
+                isCheckable = true
+                isChecked = category == selectedItemCategory
+                setOnClickListener {
+                    selectedItemCategory = category
+                    filterItems("item")
+                }
+            })
+        }
     }
 
     private fun filterItems(category: String) {
@@ -183,13 +215,21 @@ class ShopActivity : AppCompatActivity() {
                 filteredItems.addAll(allItems.filterIsInstance<ThemeShopItem>())
 
             "item" ->
-                filteredItems.addAll(allItems.filterIsInstance<FoxShopItem>())
+                filteredItems.addAll(allItems.filterIsInstance<FoxShopItem>().filter {
+                    selectedItemCategory == null || it.itemCategory == selectedItemCategory
+                })
 
             else ->
                 filteredItems.addAll(allItems)
         }
 
         updateChipStyle()
+        findViewById<View>(R.id.shopItemCategoryScroll).visibility =
+            if (category == "item") View.VISIBLE else View.GONE
+        val group = findViewById<ChipGroup>(R.id.shopItemCategories)
+        for (index in 0 until group.childCount) {
+            (group.getChildAt(index) as Chip).apply { isChecked = tag == selectedItemCategory }
+        }
 
         if (selectedItem !in filteredItems)
             selectedItem = filteredItems.firstOrNull()

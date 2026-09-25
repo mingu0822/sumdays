@@ -7,7 +7,6 @@ import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.widget.ImageView
-import com.example.sumdays.R
 import com.example.sumdays.shop.AllItemMap
 import java.io.File
 
@@ -25,14 +24,19 @@ object FoxBitmapRenderer {
     ) {
         imageView.setImageBitmap(bitmap)
 
+        // Free layouts can extend on every side: show the entire composition.
+        if (fox.placements.isNotEmpty()) {
+            imageView.scaleType = ImageView.ScaleType.FIT_CENTER
+            imageView.scaleX = 1f
+            imageView.scaleY = 1f
+            return
+        }
+
         imageView.post {
+            if ((imageView.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap !== bitmap) return@post
             if (imageView.width == 0 || imageView.height == 0) return@post
 
-            val baseResId = if (fox.previewImage != 0) {
-                fox.previewImage
-            } else {
-                R.drawable.dailyread_fox_face_level_3
-            }
+            val baseResId = FoxBaseImage.resource(fox)
 
             val baseBitmap = BitmapFactory.decodeResource(
                 imageView.resources,
@@ -93,11 +97,25 @@ object FoxBitmapRenderer {
         fox: CompleteFox
     ): Bitmap {
 
-        val baseResId = if (fox.previewImage != 0) {
-            fox.previewImage
-        } else {
-            R.drawable.dailyread_fox_face_level_3
+        if (fox.placements.isNotEmpty()) {
+            val composition = FoxComposition(context, fox)
+            val bounds = composition.bounds(composition.placements)
+            // Bound export memory when large accessories are enlarged and moved apart.
+            val scale = minOf(1f, 2048f / maxOf(bounds.width(), bounds.height()))
+            val result = Bitmap.createBitmap(
+                kotlin.math.ceil(bounds.width() * scale).toInt().coerceAtLeast(1),
+                kotlin.math.ceil(bounds.height() * scale).toInt().coerceAtLeast(1),
+                Bitmap.Config.ARGB_8888
+            )
+            Canvas(result).apply {
+                scale(scale, scale)
+                translate(-bounds.left, -bounds.top)
+                composition.draw(this, composition.placements)
+            }
+            return result
         }
+
+        val baseResId = FoxBaseImage.resource(fox)
 
         val baseBitmap = BitmapFactory.decodeResource(
             context.resources,

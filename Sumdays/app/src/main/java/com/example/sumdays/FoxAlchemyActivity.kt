@@ -19,10 +19,12 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.sumdays.alchemy.AlchemyInventoryBottomSheet
 import com.example.sumdays.alchemy.AlchemyRecipeManager
 import com.example.sumdays.alchemy.AlchemySelectionManager
+import com.example.sumdays.alchemy.FoxPlacementDialog
 import com.example.sumdays.customize.AllFoxMap
 import com.example.sumdays.customize.CompleteFox
 import com.example.sumdays.customize.FoxBitmapRenderer
 import com.example.sumdays.customize.FoxPrefs
+import com.example.sumdays.customize.FoxItemPlacement
 import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.ItemCategory
 import com.google.android.material.button.MaterialButton
@@ -40,6 +42,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
     private lateinit var imgResultFox: ImageView
 
     // 슬롯
+    private lateinit var slotFoxFace: ImageView
     private lateinit var slotGlasses: ImageView
     private lateinit var slotHat: ImageView
     private lateinit var slotScarf: ImageView
@@ -47,7 +50,10 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
     // 현재 선택된 아이템
     private var selectedItems: List<FoxShopItem> = emptyList()
+    private var selectedPlacements: List<FoxItemPlacement> = emptyList()
     private var isCombining = false
+    private var potAnimator: ObjectAnimator? = null
+    private var nameDialog: Dialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +61,13 @@ class FoxAlchemyActivity : AppCompatActivity() {
         setContentView(R.layout.activity_fox_alchemy)
 
         FoxPrefs.loadAll(this)
+
+        if (savedInstanceState != null) {
+            AlchemySelectionManager.resumePendingSelection(this)
+            selectedPlacements = savedInstanceState.getParcelableArrayList<FoxItemPlacement>("draft_placements").orEmpty()
+        } else {
+            AlchemySelectionManager.restorePendingSelection(this)
+        }
 
         // -----------------------------------------
         // View 연결
@@ -74,6 +87,8 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
         imgResultFox =
             findViewById(R.id.imgResultFox)
+
+        slotFoxFace = findViewById(R.id.slotFoxFace)
 
         slotGlasses =
             findViewById(R.id.slotGlasses)
@@ -95,9 +110,39 @@ class FoxAlchemyActivity : AppCompatActivity() {
         alchemyCloud.visibility = View.GONE
         imgResultFox.visibility = View.GONE
 
-        selectedItems = emptyList()
+        selectedItems = AlchemySelectionManager.getSelectedItems()
 
         clearSlots()
+
+        supportFragmentManager.setFragmentResultListener(AlchemyInventoryBottomSheet.SELECTION_CHANGED, this) { _, _ ->
+            selectedItems = AlchemySelectionManager.getSelectedItems()
+            selectedPlacements = selectedPlacements.filter { placement -> selectedItems.any { it.id == placement.itemId } }
+            updateSlots(selectedItems)
+            updatePreviewFox()
+        }
+        supportFragmentManager.setFragmentResultListener(AlchemyInventoryBottomSheet.CLOSED, this) { _, result ->
+            hideMaterialPanel()
+            if (result.getBoolean(AlchemyInventoryBottomSheet.EDIT)) {
+                selectedItems = AlchemySelectionManager.getSelectedItems()
+                showPlacementEditor()
+            } else {
+                selectedItems = emptyList()
+                selectedPlacements = emptyList()
+            }
+        }
+        supportFragmentManager.setFragmentResultListener(FoxPlacementDialog.RESULT, this) { _, result ->
+            selectedItems = AlchemySelectionManager.getSelectedItems()
+            selectedPlacements = result.getParcelableArrayList<FoxItemPlacement>(FoxPlacementDialog.PLACEMENTS).orEmpty()
+            if (result.getBoolean(FoxPlacementDialog.ACCEPTED) && selectedItems.isNotEmpty()) {
+                isCombining = true
+                alchemyPot.isEnabled = false
+                playIngredientDropAnimation(selectedItems) {
+                    if (!isFinishing && !isDestroyed) showFoxNameDialog(selectedItems)
+                }
+            } else {
+                openInventory()
+            }
+        }
 
         // -----------------------------------------
         // 뒤로가기
@@ -117,72 +162,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
         // -----------------------------------------
 
         alchemyPot.setOnClickListener {
-
-            showMaterialPanel()
-
-            /*
-             * 이미 BottomSheet가 열려 있다면
-             * 중복으로 띄우지 않는다.
-             */
-            val existingSheet =
-                supportFragmentManager.findFragmentByTag(
-                    "AlchemyInventory"
-                )
-
-            if (existingSheet != null) {
-                return@setOnClickListener
-            }
-
-            AlchemyInventoryBottomSheet(
-
-                // ---------------------------------
-                // 아이템 선택 변경
-                // ---------------------------------
-
-                onSelectionChanged = { items ->
-
-                    selectedItems = items
-
-                    // 슬롯 갱신
-                    updateSlots(items)
-
-                    // 여우 미리보기 갱신
-                    updatePreviewFox()
-                },
-
-                // ---------------------------------
-                // 조합 버튼
-                // ---------------------------------
-
-                onCombine = { items ->
-
-                    if (!isCombining) {
-                        isCombining = true
-
-                        playIngredientDropAnimation(items) {
-                            showFoxNameDialog(items)
-                        }
-                    }
-                },
-
-                // ---------------------------------
-                // BottomSheet 닫힘
-                // ---------------------------------
-
-                onSheetClosed = {
-
-                    /*
-                     * 이름 입력 후 조합이 성공하면
-                     * BottomSheet가 닫히더라도
-                     * 연금술 화면 자체는 유지한다.
-                     */
-                    hideMaterialPanel()
-                }
-
-            ).show(
-                supportFragmentManager,
-                "AlchemyInventory"
-            )
+            openInventory()
         }
 
         // -----------------------------------------
@@ -192,6 +172,43 @@ class FoxAlchemyActivity : AppCompatActivity() {
         startPotAnimation()
 
         setupPotTouchEffect()
+
+        if (savedInstanceState != null) {
+            if (supportFragmentManager.findFragmentByTag(AlchemyInventoryBottomSheet.TAG) != null) {
+                showMaterialPanel()
+            } else if (savedInstanceState.getBoolean("combining")) {
+                // Resume interrupted animation/naming in the editor; never spend an item again.
+                alchemyPot.post { showPlacementEditor() }
+            }
+        }
+    }
+
+    private fun openInventory() {
+        if (isCombining || isFinishing || supportFragmentManager.isStateSaved) return
+        if (supportFragmentManager.findFragmentByTag(AlchemyInventoryBottomSheet.TAG) != null) return
+        showMaterialPanel()
+        AlchemyInventoryBottomSheet().show(supportFragmentManager, AlchemyInventoryBottomSheet.TAG)
+    }
+
+    private fun showPlacementEditor() {
+        if (selectedItems.isEmpty() || isFinishing || supportFragmentManager.isStateSaved) return
+        if (supportFragmentManager.findFragmentByTag(FoxPlacementDialog.TAG) != null) return
+        FoxPlacementDialog.newInstance(selectedItems.map { it.id }, selectedPlacements)
+            .show(supportFragmentManager, FoxPlacementDialog.TAG)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putParcelableArrayList("draft_placements", ArrayList(selectedPlacements))
+        outState.putBoolean("combining", isCombining)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroy() {
+        potAnimator?.cancel()
+        nameDialog?.setOnDismissListener(null)
+        nameDialog?.dismiss()
+        if (isFinishing) AlchemySelectionManager.clear(this)
+        super.onDestroy()
     }
 
     // =========================================================
@@ -240,7 +257,8 @@ class FoxAlchemyActivity : AppCompatActivity() {
             AlchemyRecipeManager.createFox(
                 id = foxId,
                 name = name,
-                items = items
+                items = items,
+                placements = selectedPlacements
             )
 
         // -----------------------------------------
@@ -306,6 +324,8 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
         selectedItems = emptyList()
 
+        selectedPlacements = emptyList()
+
         clearSlots()
 
         // -----------------------------------------
@@ -365,6 +385,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
             null
         )
         val dialog = Dialog(this)
+        nameDialog = dialog
         var foxSaved = false
 
         dialog.setContentView(contentView)
@@ -386,7 +407,8 @@ class FoxAlchemyActivity : AppCompatActivity() {
         val previewFox = AlchemyRecipeManager.createFox(
             id = -1,
             name = "Preview",
-            items = items
+            items = items,
+            placements = selectedPlacements
         )
         val previewBitmap = FoxBitmapRenderer.createPreview(this, previewFox)
 
@@ -418,15 +440,11 @@ class FoxAlchemyActivity : AppCompatActivity() {
             dialog.cancel()
         }
 
-        dialog.setOnCancelListener {
-            if (!foxSaved) {
-                AlchemySelectionManager.clear(this)
-                selectedItems = emptyList()
-                clearSlots()
-            }
-        }
         dialog.setOnDismissListener {
+            nameDialog = null
             isCombining = false
+            alchemyPot.isEnabled = true
+            if (!foxSaved) showPlacementEditor()
         }
 
         dialog.show()
@@ -467,6 +485,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
         index: Int,
         onComplete: () -> Unit
     ) {
+        if (isFinishing || isDestroyed) return
         if (index >= items.size) {
             alchemyPot.animate()
                 .scaleX(1.06f)
@@ -572,6 +591,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
         animator.interpolator =
             AccelerateDecelerateInterpolator()
 
+        potAnimator = animator
         animator.start()
     }
 
@@ -618,12 +638,10 @@ class FoxAlchemyActivity : AppCompatActivity() {
             return
         }
 
-        /*
-         * 새 조합을 시작할 때만 초기화한다.
-         */
-        selectedItems = emptyList()
+        // 배치 편집에서 돌아왔을 때도 선택한 재료를 유지한다.
+        selectedItems = AlchemySelectionManager.getSelectedItems()
 
-        clearSlots()
+        updateSlots(selectedItems)
 
         updatePreviewFox()
 
@@ -707,69 +725,12 @@ class FoxAlchemyActivity : AppCompatActivity() {
     // =========================================================
 
     private fun updatePreviewFox() {
-
-        var glasses: Int? =
-            null
-
-        var hat: Int? =
-            null
-
-        var scarf: Int? =
-            null
-
-        var accessory: Int? =
-            null
-
-        // -----------------------------------------
-        // 선택된 아이템 분류
-        // -----------------------------------------
-
-        selectedItems.forEach { item ->
-
-            when (item.itemCategory) {
-
-                ItemCategory.GLASSES -> {
-                    glasses = item.id
-                }
-
-                ItemCategory.HAT -> {
-                    hat = item.id
-                }
-
-                ItemCategory.SCARF -> {
-                    scarf = item.id
-                }
-
-                ItemCategory.ACCESSORY -> {
-                    accessory = item.id
-                }
-            }
-        }
-
-        // -----------------------------------------
-        // 미리보기용 여우
-        // -----------------------------------------
-
-        val previewFox =
-            CompleteFox(
-                id = -1,
-                name = "Preview",
-
-                /*
-                 * createPreview()에서
-                 * previewImage == 0이면
-                 * 기본 여우 이미지를 사용하도록
-                 * 만들어둔 상태여야 한다.
-                 */
-                previewImage = 0,
-
-                previewPath = null,
-
-                glasses = glasses,
-                hat = hat,
-                scarf = scarf,
-                accessory = accessory
-            )
+        val previewFox = AlchemyRecipeManager.createFox(
+            id = -1,
+            name = "Preview",
+            items = selectedItems,
+            placements = selectedPlacements
+        )
 
         // -----------------------------------------
         // Bitmap 생성
@@ -801,6 +762,12 @@ class FoxAlchemyActivity : AppCompatActivity() {
         items.forEach { item ->
 
             when (item.itemCategory) {
+
+                ItemCategory.FOXFACE -> {
+                    slotFoxFace.setBackgroundResource(R.drawable.bg_alchemy_inventory_item)
+                    slotFoxFace.setImageResource(item.imageRes)
+                    slotFoxFace.contentDescription = item.name
+                }
 
                 ItemCategory.GLASSES -> {
 
@@ -850,6 +817,10 @@ class FoxAlchemyActivity : AppCompatActivity() {
     // =========================================================
 
     private fun clearSlots() {
+
+        slotFoxFace.setBackgroundResource(R.drawable.bg_alchemy_slot_empty)
+        slotFoxFace.setImageResource(R.drawable.dailyread_fox_face_level_3)
+        slotFoxFace.contentDescription = "기본 표정"
 
         slotGlasses.setBackgroundResource(R.drawable.bg_alchemy_slot_empty)
         slotHat.setBackgroundResource(R.drawable.bg_alchemy_slot_empty)

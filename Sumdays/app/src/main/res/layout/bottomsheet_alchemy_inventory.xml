@@ -22,24 +22,34 @@
         android:paddingEnd="20dp">
 
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="bottom|center_horizontal" android:orientation="vertical">
-            <TextView android:id="@+id/btnGlasses" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="안경" android:textColor="#222222" android:textSize="18sp" />
+            <TextView android:id="@+id/btnFoxFace" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="표정" android:textColor="#222222" android:textSize="16sp" />
+            <View android:id="@+id/indicatorFoxFace" android:layout_width="match_parent" android:layout_height="4dp" android:background="@color/foxrange" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="bottom|center_horizontal" android:orientation="vertical">
+            <TextView android:id="@+id/btnGlasses" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="안경" android:textColor="#222222" android:textSize="16sp" />
             <View android:id="@+id/indicatorGlasses" android:layout_width="match_parent" android:layout_height="4dp" android:background="@color/foxrange" />
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="bottom|center_horizontal" android:orientation="vertical">
-            <TextView android:id="@+id/btnHat" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="모자" android:textColor="#222222" android:textSize="18sp" />
+            <TextView android:id="@+id/btnHat" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="모자" android:textColor="#222222" android:textSize="16sp" />
             <View android:id="@+id/indicatorHat" android:layout_width="match_parent" android:layout_height="4dp" android:background="@color/foxrange" android:visibility="invisible" />
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="bottom|center_horizontal" android:orientation="vertical">
-            <TextView android:id="@+id/btnScarf" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="목도리" android:textColor="#222222" android:textSize="18sp" />
+            <TextView android:id="@+id/btnScarf" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="목도리" android:textColor="#222222" android:textSize="16sp" />
             <View android:id="@+id/indicatorScarf" android:layout_width="match_parent" android:layout_height="4dp" android:background="@color/foxrange" android:visibility="invisible" />
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="bottom|center_horizontal" android:orientation="vertical">
-            <TextView android:id="@+id/btnAccessory" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="악세서리" android:textColor="#222222" android:textSize="18sp" />
+            <TextView android:id="@+id/btnAccessory" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="악세서리" android:textColor="#222222" android:textSize="14sp" />
             <View android:id="@+id/indicatorAccessory" android:layout_width="match_parent" android:layout_height="4dp" android:background="@color/foxrange" android:visibility="invisible" />
         </LinearLayout>
     </LinearLayout>
 
     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/foxrange" />
+
+    <TextView android:id="@+id/foxFaceHint"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingHorizontal="20dp" android:paddingTop="12dp"
+        android:text="선택하지 않으면 기본 표정이에요.\n상점에서 구매한 표정은 합성할 때 1개 사용해요."
+        android:textColor="#685C56" android:textSize="13sp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvItems"
@@ -60,7 +70,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="28dp"
         android:layout_marginBottom="12dp"
-        android:text="조합하기"
+        android:text="합성하기"
         android:textAllCaps="false"
         android:textColor="@android:color/white"
         android:textSize="24sp"

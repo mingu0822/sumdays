@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFDFC">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+        android:paddingHorizontal="12dp" android:gravity="center_vertical">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="아이템 배치" android:textColor="#28201D"
+            android:textSize="22sp" android:textStyle="bold" />
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnPlacementUndo"
+            android:layout_width="48dp" android:layout_height="48dp"
+            android:padding="4dp" android:scaleType="fitCenter"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_alchemy_back"
+            android:contentDescription="실행 취소" android:tooltipText="실행 취소" />
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnPlacementRedo"
+            android:layout_width="48dp" android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:padding="4dp" android:scaleType="fitCenter"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_alchemy_front"
+            android:contentDescription="다시 실행" android:tooltipText="다시 실행" />
+    </LinearLayout>
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp" android:paddingBottom="8dp"
+        android:text="끌어서 이동 · 두 손가락으로 크기와 회전 조절\n겹친 아이템은 아래 목록에서 선택하세요."
+        android:textSize="13sp" android:textColor="#685C56" />
+
+    <TextView android:id="@+id/placementFaceLabel"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp" android:paddingBottom="8dp"
+        android:text="표정: 기본 표정" android:textColor="@color/foxrange"
+        android:textSize="14sp" android:textStyle="bold" />
+
+    <com.example.sumdays.alchemy.FoxPlacementView
+        android:id="@+id/foxPlacementCanvas" android:layout_width="match_parent"
+        android:layout_height="0dp" android:layout_weight="1" android:minHeight="120dp" />
+
+    <HorizontalScrollView android:layout_width="match_parent" android:layout_height="52dp"
+        android:fillViewport="true" android:scrollbars="none">
+        <com.google.android.material.chip.ChipGroup android:id="@+id/placementLayers"
+            android:layout_width="wrap_content" android:layout_height="match_parent"
+            android:paddingHorizontal="12dp" app:singleLine="true" app:singleSelection="true" />
+    </HorizontalScrollView>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="48dp"
+        android:paddingHorizontal="12dp" android:gravity="center_vertical">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLayerBackward" style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+            android:text="뒤로" android:contentDescription="선택한 아이템을 한 단계 뒤로"
+            android:textColor="@color/foxrange" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLayerForward" style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+            android:text="앞으로" android:contentDescription="선택한 아이템을 한 단계 앞으로"
+            android:textColor="@color/foxrange" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnResetPlacement" style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+            android:text="원래대로" android:contentDescription="선택한 아이템의 위치 크기 회전 초기화"
+            android:textColor="@color/foxrange" />
+    </LinearLayout>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="48dp"
+        android:paddingHorizontal="16dp" android:gravity="center_vertical">
+        <TextView android:id="@+id/placementScaleLabel" android:layout_width="96dp"
+            android:layout_height="wrap_content" android:text="크기 100%" android:textColor="#28201D" />
+        <SeekBar android:id="@+id/placementScale" android:layout_width="0dp"
+            android:layout_height="48dp" android:layout_weight="1" android:max="175"
+            android:progress="75" android:contentDescription="아이템 크기"
+            android:progressTint="@color/foxrange" android:thumbTint="@color/foxrange" />
+    </LinearLayout>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="48dp"
+        android:paddingHorizontal="16dp" android:gravity="center_vertical">
+        <TextView android:id="@+id/placementRotationLabel" android:layout_width="96dp"
+            android:layout_height="wrap_content" android:text="회전 0°" android:textColor="#28201D" />
+        <SeekBar android:id="@+id/placementRotation" android:layout_width="0dp"
+            android:layout_height="48dp" android:layout_weight="1" android:max="360"
+            android:progress="180" android:contentDescription="아이템 회전"
+            android:progressTint="@color/foxrange" android:thumbTint="@color/foxrange" />
+    </LinearLayout>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="64dp"
+        android:paddingHorizontal="16dp" android:paddingBottom="8dp" android:gravity="center_vertical">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPlacementBack" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
+            android:text="아이템 선택" android:textColor="@color/foxrange"
+            app:strokeColor="@color/foxrange" app:cornerRadius="14dp" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPlacementDone" android:layout_width="0dp"
+            android:layout_height="56dp" android:layout_weight="1" android:layout_marginStart="12dp"
+            android:text="이 배치로 조합" android:textColor="@android:color/white"
+            app:backgroundTint="@color/foxrange" app:cornerRadius="14dp" />
+    </LinearLayout>
+</LinearLayout>

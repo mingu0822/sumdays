@@ -165,6 +165,22 @@
                 android:background="@color/foxrange"/>
         </FrameLayout>
 
+        <HorizontalScrollView
+            android:id="@+id/shopItemCategoryScroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:scrollbars="none"
+            android:visibility="gone">
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/shopItemCategories"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true"
+                app:singleSelection="true"
+                app:selectionRequired="true" />
+        </HorizontalScrollView>
+
     </LinearLayout>
 
     <!-- 상품 리스트 -->

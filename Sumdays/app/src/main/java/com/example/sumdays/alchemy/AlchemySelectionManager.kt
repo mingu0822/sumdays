@@ -2,6 +2,7 @@ package com.example.sumdays.alchemy
 
 import android.content.Context
 import com.example.sumdays.shop.FoxShopItem
+import com.example.sumdays.shop.AllItemMap
 import com.example.sumdays.shop.ItemCategory
 import com.example.sumdays.shop.ItemPrefs
 
@@ -46,6 +47,10 @@ object AlchemySelectionManager {
             return getSelectedItems()
         }
 
+        // 재고가 없는 아이템을 누르면 기존 선택을 유지한다.
+        val count = ItemPrefs.getCount(context, item.id)
+        if (count <= 0) return getSelectedItems()
+
         // 같은 카테고리에 기존 아이템이 있다면 복원
         if (current != null) {
 
@@ -57,18 +62,6 @@ object AlchemySelectionManager {
             selectedMap.remove(
                 item.itemCategory
             )
-        }
-
-        // 현재 재고 확인
-        val count =
-            ItemPrefs.getCount(
-                context,
-                item.id
-            )
-
-        if (count <= 0) {
-            saveSelection(context)
-            return getSelectedItems()
         }
 
         // 새 아이템 1개 예약 차감
@@ -92,6 +85,16 @@ object AlchemySelectionManager {
      */
     fun getSelectedItems(): List<FoxShopItem> {
         return selectedMap.values.toList()
+    }
+
+    /** Resume the editor after process recreation without reserving the items twice. */
+    fun resumePendingSelection(context: Context) {
+        val ids = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getStringSet(KEY_SELECTED_IDS, emptySet()).orEmpty()
+        selectedMap.clear()
+        ids.mapNotNull { it.toIntOrNull()?.let(AllItemMap.allItemMap::get) }.forEach {
+            selectedMap[it.itemCategory] = it
+        }
     }
 
     /**
