@@ -1,4 +1,4 @@
-package com.example.sumdays.shop
+package com.example.sumdays.data.prefs.userPrefs.shop
 
 import android.content.Context
 

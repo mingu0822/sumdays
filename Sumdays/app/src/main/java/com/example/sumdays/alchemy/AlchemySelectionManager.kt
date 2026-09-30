@@ -1,9 +1,9 @@
 package com.example.sumdays.alchemy
 
 import android.content.Context
-import com.example.sumdays.shop.FoxShopItem
-import com.example.sumdays.shop.ItemCategory
-import com.example.sumdays.shop.ItemPrefs
+import com.example.sumdays.data.prefs.userPrefs.shop.FoxShopItem
+import com.example.sumdays.data.prefs.userPrefs.shop.ItemCategory
+import com.example.sumdays.data.prefs.userPrefs.shop.ItemPrefs
 
 object AlchemySelectionManager {
 

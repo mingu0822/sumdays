@@ -7,7 +7,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.sumdays.customize.ThemeAdapter
 import com.example.sumdays.databinding.ActivityThemeSettingsBinding
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 
 class ThemeSettingsActivity : AppCompatActivity() {

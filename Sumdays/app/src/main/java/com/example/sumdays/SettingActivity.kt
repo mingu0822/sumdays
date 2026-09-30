@@ -24,12 +24,12 @@ import com.example.sumdays.settings.DiaryStyleSettingsActivity
 import com.example.sumdays.settings.EditProfileActivity
 import com.example.sumdays.settings.LabsSettingsActivity
 import com.example.sumdays.settings.NotificationSettingsActivity
-import com.example.sumdays.settings.prefs.DiaryPermissionPrefs
-import com.example.sumdays.settings.prefs.ProfileImagePrefs
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.data.prefs.devicePrefs.DiaryPermissionPrefs
+import com.example.sumdays.data.prefs.userPrefs.ProfileImagePrefs
+import com.example.sumdays.data.prefs.userPrefs.UserStatsPrefs
 import com.example.sumdays.settings.profileimage.ProfileImageItem
 import com.example.sumdays.settings.profileimage.ProfileImageItemType
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
 import kotlinx.coroutines.Dispatchers
@@ -132,6 +132,23 @@ class SettingActivity : AppCompatActivity() {
         }
     }
 
+    private fun clearUserData() {
+        // 1. room 초기화
+        lifecycleScope.launch(Dispatchers.IO) {
+            val db = AppDatabase.getDatabase(applicationContext)
+
+            db.memoDao().clearAll()
+            db.dailyEntryDao().clearAll()
+            db.userStyleDao().clearAll()
+            db.weekSummaryDao().clearAll()
+        }
+
+        // 2. pref 초기화
+        userStatsPrefs = UserStatsPrefs(this)
+        diaryPermission
+
+        SessionManager.clearSession()
+    }
     private fun updateAuthUI() {
         if (SessionManager.isLoggedIn()) {
             binding.nickname.text = userStatsPrefs.getNickname()

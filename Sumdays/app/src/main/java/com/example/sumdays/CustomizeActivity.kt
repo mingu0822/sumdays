@@ -12,20 +12,15 @@ import com.example.sumdays.customize.AllFoxMap
 import com.example.sumdays.customize.CompleteFox
 import com.example.sumdays.customize.FoxAdapter
 import com.example.sumdays.customize.FoxBitmapRenderer
-import com.example.sumdays.customize.FoxPrefs
+import com.example.sumdays.data.prefs.userPrefs.FoxPrefs
 import com.example.sumdays.customize.ThemeAdapter
-import com.example.sumdays.shop.AllThemeMap
+import com.example.sumdays.data.prefs.userPrefs.shop.AllThemeMap
 import com.example.sumdays.shop.OwnedPrefs
 import com.example.sumdays.theme.Theme
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
-import android.app.AlertDialog
-import android.widget.EditText
-import android.widget.Toast
-import com.example.sumdays.alchemy.AlchemyRecipeManager
-import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.ui.component.setupBackToCalendar
 
 class CustomizeActivity : AppCompatActivity() {

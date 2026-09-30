@@ -22,7 +22,7 @@ import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.repository.DailyEntryRepository
 import com.example.sumdays.search.DailyEntrySearchAdapter
 import com.example.sumdays.search.DailySearchViewModelFactory
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 class SearchActivity : AppCompatActivity() {
 

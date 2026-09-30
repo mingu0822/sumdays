@@ -17,7 +17,7 @@ import com.example.sumdays.R
 import com.example.sumdays.databinding.ActivitySettingsNotificationBinding
 import com.example.sumdays.reminder.ReminderPrefs
 import com.example.sumdays.reminder.ReminderScheduler
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
 import com.google.android.material.timepicker.MaterialTimePicker

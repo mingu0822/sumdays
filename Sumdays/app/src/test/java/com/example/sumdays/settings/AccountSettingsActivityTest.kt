@@ -12,7 +12,7 @@ import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.network.*
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.ApiService
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.data.prefs.userPrefs.UserStatsPrefs
 import io.mockk.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.ResponseBody.Companion.toResponseBody

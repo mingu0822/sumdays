@@ -7,10 +7,10 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.sumdays.shop.FoxShopItem
-import com.example.sumdays.shop.ItemPrefs
-import com.example.sumdays.shop.ThemeShopItem
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.shop.FoxShopItem
+import com.example.sumdays.data.prefs.userPrefs.shop.ItemPrefs
+import com.example.sumdays.data.prefs.userPrefs.shop.ThemeShopItem
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 
 class ShopAdapter(
     private val items: List<ShopItem>,

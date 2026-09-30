@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.test.core.app.ApplicationProvider
 import com.example.sumdays.R
 import com.example.sumdays.TestApplication
-import com.example.sumdays.settings.prefs.LabsPrefs
+import com.example.sumdays.data.prefs.devicePrefs.LabsPrefs
 import com.google.android.material.slider.Slider
 import org.junit.Assert.*
 import org.junit.Before

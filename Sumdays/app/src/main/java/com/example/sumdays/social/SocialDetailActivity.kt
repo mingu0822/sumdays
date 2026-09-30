@@ -23,7 +23,7 @@ import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.FriendInfo
 import com.example.sumdays.social.diary.SocialCalendarActivity
 import com.example.sumdays.theme.Theme
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.getErrorMessage
 import kotlinx.coroutines.launch

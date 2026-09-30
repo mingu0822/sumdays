@@ -15,7 +15,7 @@ import com.example.sumdays.R
 import com.example.sumdays.databinding.ActivityProfileEditBinding
 import com.example.sumdays.image.prepareTempFile
 import com.example.sumdays.image.uploadProfileImageToServer
-import com.example.sumdays.settings.prefs.ProfileImagePrefs
+import com.example.sumdays.data.prefs.userPrefs.ProfileImagePrefs
 import com.example.sumdays.settings.profileimage.CategoryAdapter
 import com.example.sumdays.settings.profileimage.ProfileImageCategory
 import com.example.sumdays.settings.profileimage.ProfileImageItem

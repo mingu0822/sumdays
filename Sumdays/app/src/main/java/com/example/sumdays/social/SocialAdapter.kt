@@ -14,7 +14,7 @@ import com.example.sumdays.R
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.FriendInfo
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 
 class SocialAdapter(

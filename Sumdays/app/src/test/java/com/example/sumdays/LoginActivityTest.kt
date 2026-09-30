@@ -12,7 +12,7 @@ import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.ApiService
 import com.example.sumdays.network.LoginResponse
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.data.prefs.userPrefs.UserStatsPrefs
 import io.mockk.*
 import org.junit.After
 import org.junit.Assert.*

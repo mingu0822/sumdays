@@ -1,8 +1,11 @@
-package com.example.sumdays.customize
+package com.example.sumdays.data.prefs.userPrefs
 
 import android.content.Context
+import com.example.sumdays.customize.AllFoxMap
+import com.example.sumdays.customize.CompleteFox
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
 
 object FoxPrefs {
 
@@ -172,7 +175,7 @@ object FoxPrefs {
         // 저장된 미리보기 이미지 파일도 삭제
         fox?.previewPath?.let { path ->
             try {
-                val file = java.io.File(path)
+                val file = File(path)
                 if (file.exists()) {
                     file.delete()
                 }

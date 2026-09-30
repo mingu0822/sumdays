@@ -7,7 +7,7 @@ import com.example.sumdays.TestApplication
 import com.example.sumdays.data.style.StylePrompt
 import com.example.sumdays.data.UserStyle
 import com.example.sumdays.data.style.UserStyleViewModel
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.data.prefs.userPrefs.UserStatsPrefs
 import com.example.sumdays.settings.ui.StyleCardAdapter
 import io.mockk.*
 import kotlinx.coroutines.test.runTest

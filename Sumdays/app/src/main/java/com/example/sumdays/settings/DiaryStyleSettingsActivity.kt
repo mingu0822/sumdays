@@ -12,11 +12,11 @@ import com.example.sumdays.R
 import com.example.sumdays.data.UserStyle
 import com.example.sumdays.data.style.UserStyleViewModel
 import com.example.sumdays.databinding.ActivityProfileDiaryStyleBinding
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.data.prefs.userPrefs.UserStatsPrefs
 import com.example.sumdays.settings.ui.CenterScaleOnScrollListener
 import com.example.sumdays.settings.ui.HorizontalMarginItemDecoration
 import com.example.sumdays.settings.ui.StyleCardAdapter
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
 import kotlinx.coroutines.CoroutineScope

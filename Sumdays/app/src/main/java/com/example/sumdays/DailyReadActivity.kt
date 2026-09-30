@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.util.Base64
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -29,12 +28,12 @@ import com.example.sumdays.daily.memo.MoodRepository
 import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.data.prefs.userPrefs.UserStatsPrefs
 import com.example.sumdays.databinding.ActivityDailyReadBinding
 import com.example.sumdays.image.GalleryItem
 import com.example.sumdays.image.PhotoGalleryAdapter
 import com.example.sumdays.theme.FoxRepository
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
 import kotlinx.coroutines.launch

@@ -10,7 +10,7 @@ import com.example.sumdays.R
 import com.example.sumdays.data.dao.UserStyleDao
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.ApiService
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.data.prefs.userPrefs.UserStatsPrefs
 import com.google.gson.JsonObject
 import io.mockk.every
 import io.mockk.mockk

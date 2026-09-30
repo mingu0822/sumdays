@@ -1,6 +1,5 @@
 package com.example.sumdays.settings.ui
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +12,7 @@ import com.example.sumdays.R
 import com.example.sumdays.data.UserStyle
 import com.example.sumdays.databinding.ItemStyleAddCardBinding
 import com.example.sumdays.databinding.ItemStyleCardBinding
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 
 class StyleCardAdapter(

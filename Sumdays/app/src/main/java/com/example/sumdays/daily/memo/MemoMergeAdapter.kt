@@ -19,8 +19,8 @@ import com.example.sumdays.daily.memo.MemoMergeUtils.extractMood
 import com.example.sumdays.data.Memo
 import com.example.sumdays.data.dao.UserStyleDao
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.settings.prefs.LabsPrefs
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.data.prefs.devicePrefs.LabsPrefs
+import com.example.sumdays.data.prefs.userPrefs.UserStatsPrefs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

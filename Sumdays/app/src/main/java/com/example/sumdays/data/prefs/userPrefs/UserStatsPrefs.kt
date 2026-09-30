@@ -1,4 +1,4 @@
-package com.example.sumdays.settings.prefs
+package com.example.sumdays.data.prefs.userPrefs
 
 import android.content.Context
 import android.content.SharedPreferences

@@ -1,4 +1,4 @@
-package com.example.sumdays.shop
+package com.example.sumdays.data.prefs.userPrefs.shop
 
 import com.example.sumdays.ShopItem
 import com.example.sumdays.theme.Theme

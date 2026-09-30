@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.R
-import com.example.sumdays.shop.FoxShopItem
+import com.example.sumdays.data.prefs.userPrefs.shop.FoxShopItem
 
 class AlchemyItemAdapter(
 

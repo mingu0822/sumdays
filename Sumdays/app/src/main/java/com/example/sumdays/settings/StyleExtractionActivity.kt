@@ -29,8 +29,8 @@ import com.example.sumdays.image.GalleryItem
 import com.example.sumdays.image.PhotoGalleryAdapter
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.StyleExtractionResponse
-import com.example.sumdays.settings.prefs.LabsPrefs
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.devicePrefs.LabsPrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.FileUtil
 import com.example.sumdays.utils.setupEdgeToEdge

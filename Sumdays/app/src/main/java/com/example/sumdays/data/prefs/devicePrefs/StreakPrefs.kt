@@ -1,4 +1,4 @@
-package com.example.sumdays.statistics
+package com.example.sumdays.data.prefs.devicePrefs
 
 import android.content.Context
 import android.os.Build

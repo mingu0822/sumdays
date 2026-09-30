@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 import com.example.sumdays.databinding.DialogFriendRequestBinding
 import com.google.android.material.tabs.TabLayout
 import com.example.sumdays.social.SocialViewModel
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 
 class FriendRequestDialog : DialogFragment() {

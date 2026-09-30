@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.databinding.ItemFriendRequestBinding // 패키지명 확인 필요
 import com.example.sumdays.network.apiService.FriendRequest
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 class FriendRequestAdapter(
     private val onAccept: (FriendRequest) -> Unit, // 수락 클릭 시 실행할 코드

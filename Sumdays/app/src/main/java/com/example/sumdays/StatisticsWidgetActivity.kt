@@ -19,8 +19,8 @@ import androidx.lifecycle.lifecycleScope
 import com.example.sumdays.data.viewModel.WeekSummaryViewModel
 import com.example.sumdays.data.viewModel.WeekSummaryViewModelFactory
 import com.example.sumdays.statistics.FoxTreeBackground
-import com.example.sumdays.statistics.StreakPrefs
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.devicePrefs.StreakPrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
 import kotlin.math.abs

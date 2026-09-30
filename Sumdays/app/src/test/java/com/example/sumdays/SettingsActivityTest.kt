@@ -15,7 +15,7 @@ import com.example.sumdays.settings.AccountSettingsActivity
 import com.example.sumdays.settings.DiaryStyleSettingsActivity
 import com.example.sumdays.settings.LabsSettingsActivity
 import com.example.sumdays.settings.NotificationSettingsActivity
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.data.prefs.userPrefs.UserStatsPrefs
 import com.jakewharton.threetenabp.AndroidThreeTen
 import io.mockk.every
 import io.mockk.mockk

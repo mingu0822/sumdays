@@ -1,7 +1,7 @@
 package com.example.sumdays.theme
 
-import com.example.sumdays.shop.AllItemMap
-import com.example.sumdays.shop.FoxShopItem
+import com.example.sumdays.data.prefs.userPrefs.shop.AllItemMap
+import com.example.sumdays.data.prefs.userPrefs.shop.FoxShopItem
 
 object FoxRepository {
     val ownedFoxes: MutableMap<Int, FoxShopItem> = mutableMapOf()

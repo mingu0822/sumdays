@@ -12,8 +12,8 @@ import com.example.sumdays.network.ChangePasswordRequest
 import com.example.sumdays.network.ChangePasswordResponse
 import com.example.sumdays.network.UpdateNicknameRequest
 import com.example.sumdays.network.UpdateNicknameResponse
-import com.example.sumdays.settings.prefs.UserStatsPrefs
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.UserStatsPrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
 import retrofit2.Call

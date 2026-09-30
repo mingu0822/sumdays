@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.sumdays.TestApplication
+import com.example.sumdays.data.prefs.userPrefs.UserStatsPrefs
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -12,7 +13,6 @@ import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 import kotlin.test.assertNotNull
 
 /**

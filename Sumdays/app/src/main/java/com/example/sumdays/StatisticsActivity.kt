@@ -24,7 +24,7 @@ import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.data.viewModel.WeekSummaryViewModel
 import com.example.sumdays.data.viewModel.WeekSummaryViewModelFactory
 import com.example.sumdays.statistics.FoxTreeBackground
-import com.example.sumdays.statistics.StreakPrefs
+import com.example.sumdays.data.prefs.devicePrefs.StreakPrefs
 import com.example.sumdays.statistics.WeekStatsDetailActivity
 import com.example.sumdays.data.WeekSummary
 import com.example.sumdays.ui.TreeTiledDrawable

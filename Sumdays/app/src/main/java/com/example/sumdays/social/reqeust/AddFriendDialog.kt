@@ -20,11 +20,10 @@ import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.FriendRequest
 import com.example.sumdays.network.apiService.RequestFriendBody
 import com.example.sumdays.social.SocialViewModel
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.getErrorMessage
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 
 class AddFriendDialog() : DialogFragment() {
 

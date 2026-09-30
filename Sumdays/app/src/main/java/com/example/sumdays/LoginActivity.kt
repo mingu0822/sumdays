@@ -16,7 +16,7 @@ import com.example.sumdays.databinding.ActivityLoginBinding
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.LoginRequest
 import com.example.sumdays.network.LoginResponse
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.data.prefs.userPrefs.UserStatsPrefs
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response

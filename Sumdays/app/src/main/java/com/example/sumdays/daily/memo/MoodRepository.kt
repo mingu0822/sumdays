@@ -4,7 +4,7 @@ import android.util.Log
 import com.example.sumdays.daily.memo.MemoMergeUtils.convertStylePromptToMap
 import com.example.sumdays.data.dao.UserStyleDao
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.data.prefs.userPrefs.UserStatsPrefs
 
 object MoodRepository {
 

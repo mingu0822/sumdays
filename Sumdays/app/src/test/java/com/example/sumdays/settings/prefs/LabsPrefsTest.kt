@@ -3,6 +3,7 @@ package com.example.sumdays.settings.prefs
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.example.sumdays.TestApplication
+import com.example.sumdays.data.prefs.devicePrefs.LabsPrefs
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test

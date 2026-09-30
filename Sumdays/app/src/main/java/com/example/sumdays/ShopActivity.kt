@@ -1,6 +1,5 @@
 package com.example.sumdays
 
-import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -12,12 +11,17 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.shop.*
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.shop.AllItemMap
+import com.example.sumdays.data.prefs.userPrefs.shop.AllThemeMap
+import com.example.sumdays.data.prefs.userPrefs.shop.FoxShopItem
+import com.example.sumdays.data.prefs.userPrefs.shop.ItemPrefs
+import com.example.sumdays.data.prefs.userPrefs.shop.PointPrefs
+import com.example.sumdays.data.prefs.userPrefs.shop.ThemeShopItem
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
-import com.google.android.material.button.MaterialButton
 import com.example.sumdays.ui.component.setupBackToCalendar
 
 

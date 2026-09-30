@@ -58,7 +58,7 @@ import com.example.sumdays.image.GalleryItem
 import com.example.sumdays.image.GridSpacingItemDecoration
 import com.example.sumdays.image.PhotoGalleryAdapter
 import com.example.sumdays.theme.FoxRepository
-import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.data.prefs.userPrefs.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import java.text.SimpleDateFormat
 import java.util.Calendar
