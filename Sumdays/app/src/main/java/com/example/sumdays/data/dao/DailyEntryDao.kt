@@ -9,7 +9,6 @@ import androidx.room.Transaction
 import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.data.EmojiData
 import kotlinx.coroutines.flow.Flow
-import kotlin.Boolean
 
 @Dao
 interface DailyEntryDao {

@@ -10,6 +10,7 @@ import com.example.sumdays.data.Highlight
 import com.example.sumdays.data.Insights
 import com.example.sumdays.data.SummaryDetails
 import com.example.sumdays.data.WeekSummary
+import com.example.sumdays.mission.MissionEventPrefs
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.DiaryItem
 import com.example.sumdays.network.WeekAnalysisRequest
@@ -74,6 +75,7 @@ class WeekSummaryWorker(
                 )
 
                 weekSummaryRepo.upsertWeekSummary(dummySummary)
+                MissionEventPrefs.markWeeklySummaryCreated(applicationContext, dummySummary.startDate)
                 Log.d("WeekSummaryWorker", "테스트 데이터 저장 완료!")
                 return Result.success()
             }
@@ -111,6 +113,7 @@ class WeekSummaryWorker(
 
                     // DB 저장
                     weekSummaryRepo.upsertWeekSummary(summary)
+                    MissionEventPrefs.markWeeklySummaryCreated(applicationContext, summary.startDate)
                     Log.d("WeekSummaryWorker", "주간 요약 저장 완료: ${summary.summary.title}")
 
                 } else {

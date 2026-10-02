@@ -1,11 +1,13 @@
 package com.example.sumdays.social
 
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.sumdays.network.ApiClient
+import com.example.sumdays.network.apiService.CancelRequestBody
 import com.example.sumdays.network.apiService.FriendInfo
 import com.example.sumdays.network.apiService.FriendRequest
 import com.example.sumdays.network.apiService.HandleRequestBody
@@ -14,8 +16,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import android.content.Context
-import com.example.sumdays.network.apiService.CancelRequestBody
 
 class SocialViewModel(
     private val repository: SocialRepository

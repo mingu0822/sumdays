@@ -1,7 +1,7 @@
 package com.example.sumdays.data.sync
 
-import com.example.sumdays.data.Memo
 import com.example.sumdays.data.DailyEntry
+import com.example.sumdays.data.Memo
 import com.example.sumdays.data.UserStyle
 import com.example.sumdays.data.WeekSummary
 

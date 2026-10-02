@@ -11,50 +11,50 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
+import android.text.TextWatcher
+import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.Button
-import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.toColorInt
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.core.graphics.toColorInt
+import androidx.work.WorkManager
 import com.example.sumdays.LoginActivity
 import com.example.sumdays.R
 import com.example.sumdays.ShopActivity
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.data.sync.InitialSyncWorker
+import com.example.sumdays.data.sync.LocalDataOwnerPrefs
 import com.example.sumdays.settings.EditProfileActivity
 import com.example.sumdays.settings.prefs.ProfileImagePrefs
 import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.settings.profileimage.ProfileImageItem
 import com.example.sumdays.settings.profileimage.ProfileImageItemType
-import com.example.sumdays.ui.component.NavBarController
-import com.example.sumdays.ui.component.NavSource
-import android.widget.EditText
-import android.text.TextWatcher
-import android.util.Log
-import android.view.View
-import android.widget.TextView
-import android.widget.Toast
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import com.example.sumdays.network.ApiClient
-import com.example.sumdays.network.apiService.FriendInfo
 import com.example.sumdays.social.reqeust.AddFriendDialog
 import com.example.sumdays.social.reqeust.FriendRequestDialog
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
 import com.example.sumdays.theme.Theme
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
+import com.example.sumdays.ui.component.NavBarController
+import com.example.sumdays.ui.component.NavSource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SocialActivity : AppCompatActivity() {
     private lateinit var navBarController: NavBarController
@@ -291,6 +291,13 @@ class SocialActivity : AppCompatActivity() {
     }
 
     private fun logout() {
+        val userId = SessionManager.getUserId()
+        LocalDataOwnerPrefs.clear(applicationContext)
+        if (userId >= 0) {
+            WorkManager.getInstance(applicationContext)
+                .cancelAllWorkByTag(InitialSyncWorker.accountWorkTag(userId))
+        }
+        SessionManager.clearSession()
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 val db = AppDatabase.getDatabase(applicationContext)
@@ -299,7 +306,6 @@ class SocialActivity : AppCompatActivity() {
                 db.userStyleDao().clearAll()
                 db.weekSummaryDao().clearAll()
             }
-            SessionManager.clearSession()
             val intent = Intent(this@SocialActivity, LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)

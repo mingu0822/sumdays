@@ -6,12 +6,12 @@ import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.sumdays.databinding.ActivityProfileMainBinding
-import com.example.sumdays.utils.setupEdgeToEdge
 import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
+import com.example.sumdays.utils.setupEdgeToEdge
 
 class ProfileActivity : AppCompatActivity() {
 

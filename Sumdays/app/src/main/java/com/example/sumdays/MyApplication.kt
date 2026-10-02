@@ -4,11 +4,14 @@ import android.app.Application
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatDelegate
-import com.example.sumdays.data.repository.MemoRepository
+import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.repository.DailyEntryRepository
+import com.example.sumdays.data.repository.MemoRepository
 import com.example.sumdays.data.repository.WeekSummaryRepository
 import com.example.sumdays.data.sync.BackupScheduler
+import com.example.sumdays.data.sync.LocalDataOwnerPrefs
+import com.example.sumdays.shop.PointPrefs
 import com.example.sumdays.statistics.WeekSummaryScheduler
 import com.example.sumdays.test.TestConfig
 import com.example.sumdays.test.TestDataSeeder
@@ -31,6 +34,10 @@ open class MyApplication : Application() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
+        SessionManager.init(applicationContext)
+        PointPrefs.prepareLegacyMigration(applicationContext)
+        LocalDataOwnerPrefs.prepareForCurrentSession(applicationContext)
+        com.example.sumdays.data.sync.InitialSyncScheduler.ensureScheduled(applicationContext)
         AndroidThreeTen.init(this)
         BackupScheduler.scheduleAutoBackup(this)
         WeekSummaryScheduler.scheduleWeeklyTask(this)

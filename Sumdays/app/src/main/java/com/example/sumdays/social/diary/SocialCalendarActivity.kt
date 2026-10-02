@@ -19,7 +19,6 @@ import com.example.sumdays.R
 import com.example.sumdays.calendar.CalendarLanguage
 import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.shop.AllItemMap
 import com.example.sumdays.shop.AllThemeMap
 import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.Theme

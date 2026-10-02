@@ -21,11 +21,6 @@ import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
-import android.app.AlertDialog
-import android.widget.EditText
-import android.widget.Toast
-import com.example.sumdays.alchemy.AlchemyRecipeManager
-import com.example.sumdays.shop.FoxShopItem
 
 class CustomizeActivity : AppCompatActivity() {
 

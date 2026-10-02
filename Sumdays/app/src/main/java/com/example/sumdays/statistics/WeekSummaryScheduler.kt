@@ -3,10 +3,8 @@ package com.example.sumdays.statistics
 import android.content.Context
 import android.util.Log
 import androidx.work.Constraints
-import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import org.threeten.bp.DayOfWeek

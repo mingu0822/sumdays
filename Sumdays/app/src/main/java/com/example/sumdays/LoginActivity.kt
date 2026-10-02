@@ -8,10 +8,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.data.sync.InitialSyncScheduler
 import com.example.sumdays.data.sync.InitialSyncWorker
+import com.example.sumdays.data.sync.LocalDataOwnerPrefs
 import com.example.sumdays.databinding.ActivityLoginBinding
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.LoginRequest
@@ -86,7 +87,13 @@ class LoginActivity : AppCompatActivity() {
                         // 5. 로그인 성공: 서버가 보내준 token과 userId를 저장합니다.
                         Toast.makeText(this@LoginActivity, "로그인 성공!", Toast.LENGTH_SHORT).show()
 
+                        val previousUserId = SessionManager.getUserId()
+                        if (previousUserId >= 0 && previousUserId != loginResponse.userId) {
+                            WorkManager.getInstance(applicationContext)
+                                .cancelAllWorkByTag(InitialSyncWorker.accountWorkTag(previousUserId))
+                        }
                         SessionManager.saveSession(loginResponse.userId, loginResponse.token)
+                        LocalDataOwnerPrefs.beginAccountSwitch(applicationContext)
 
                         // 닉네임 저장 로직
                         loginResponse.nickname?.let {
@@ -94,8 +101,7 @@ class LoginActivity : AppCompatActivity() {
                         }
 
                         // 초기화하고 이동
-                        val request = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
-                        WorkManager.getInstance(applicationContext).enqueue(request)
+                        InitialSyncScheduler.ensureScheduled(applicationContext, replace = true)
 
                         // 메인 화면으로 이동
                         val intent = Intent(this@LoginActivity, CalendarActivity::class.java)

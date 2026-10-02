@@ -90,6 +90,14 @@ exports.login = async (req, res) => {
 exports.signup = async (req, res) => {
     const { nickname, email, password } = req.body;
     console.log(`[회원가입 시도] 이메일: ${email}`);
+
+    if (!nickname || !email || !password) {
+        return res.status(400).json({
+            success: false,
+            message: '닉네임, 이메일과 비밀번호를 모두 입력해주세요.'
+        });
+    }
+
     const connection = await pool.getConnection(); // 트랜잭션을 위한 커넥션 확보
 
     try {
@@ -98,7 +106,7 @@ exports.signup = async (req, res) => {
         // 1. 이메일 중복 확인
         const [existing] = await connection.query('SELECT id FROM users WHERE email = ?', [email]);
         if (existing.length > 0) {
-            connection.release();
+            await connection.rollback();
             return res.status(409).json({ success: false, message: '이미 사용 중인 이메일입니다.' });
         }
 
@@ -115,6 +123,23 @@ exports.signup = async (req, res) => {
         // 4. user_info 테이블 초기화 
         await connection.query(
             'INSERT INTO user_info (user_id) VALUES (?)',
+            [newUserId]
+        );
+
+        // 신규 계정의 포인트는 클라이언트 캐시가 아니라 서버 설정값으로 확정한다.
+        // 이 지갑이 먼저 존재하므로 이후 legacy 초기화 요청이 와도 다른 계정의
+        // 로컬 포인트가 신규 계정에 복사되지 않는다.
+        await connection.query(
+            `INSERT INTO point_wallets (user_id, balance, initialization_source)
+             VALUES (
+               ?,
+               COALESCE(
+                 (SELECT int_value FROM economy_settings
+                  WHERE config_key = 'DEFAULT_POINT_BALANCE'),
+                 9000
+               ),
+               'DEFAULT'
+             )`,
             [newUserId]
         );
 

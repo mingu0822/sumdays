@@ -2,10 +2,16 @@ package com.example.sumdays.network.apiService
 
 import android.os.Parcelable
 import com.example.sumdays.data.sync.DailyEntryPayload
-import com.example.sumdays.data.sync.MemoPayload
 import kotlinx.parcelize.Parcelize
 import retrofit2.Response
-import retrofit2.http.*
+import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.GET
+import retrofit2.http.HTTP
+import retrofit2.http.PATCH
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface SocialApiService {
 

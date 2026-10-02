@@ -47,12 +47,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.sumdays.audio.AudioRecorderHelper
-import com.example.sumdays.data.Memo
 import com.example.sumdays.daily.memo.MemoAdapter
 import com.example.sumdays.daily.memo.MemoDragAndDropCallback
 import com.example.sumdays.daily.memo.MemoViewModel
 import com.example.sumdays.daily.memo.MemoViewModelFactory
 import com.example.sumdays.data.DailyEntry
+import com.example.sumdays.data.Memo
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.image.GalleryItem
 import com.example.sumdays.image.GridSpacingItemDecoration

@@ -1,11 +1,27 @@
 package com.example.sumdays.network.apiService
 
 import com.example.sumdays.daily.diary.AnalysisRequest
+import com.example.sumdays.daily.memo.MergePassPurchase
+import com.example.sumdays.daily.memo.MergeMarbleState
 import com.example.sumdays.daily.memo.MergeRequest
+import com.example.sumdays.daily.memo.MergeTicketPurchase
 import com.example.sumdays.daily.memo.MoodRequest
 import com.example.sumdays.data.sync.SyncFetchResponse
 import com.example.sumdays.data.sync.SyncRequest
 import com.example.sumdays.data.sync.SyncResponse
+import com.example.sumdays.mission.AdRewardClaimRequest
+import com.example.sumdays.mission.FriendDiaryViewRequest
+import com.example.sumdays.mission.GooglePlayPointRedeemRequest
+import com.example.sumdays.mission.GooglePlayPointRedeemResponse
+import com.example.sumdays.mission.LegacyPointBalanceRequest
+import com.example.sumdays.mission.MissionApiResponse
+import com.example.sumdays.mission.MissionDashboardResponse
+import com.example.sumdays.mission.PointRewardResponse
+import com.example.sumdays.mission.PointWalletResponse
+import com.example.sumdays.mission.ShopCatalogResponse
+import com.example.sumdays.mission.ShopPurchaseRequest
+import com.example.sumdays.mission.ShopPurchaseResponse
+import com.example.sumdays.mission.WeeklySummaryViewRequest
 import com.example.sumdays.network.ChangePasswordRequest
 import com.example.sumdays.network.ChangePasswordResponse
 import com.example.sumdays.network.LoginRequest
@@ -24,9 +40,9 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.Response
 import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -35,6 +51,78 @@ import retrofit2.http.Part
 import retrofit2.http.Streaming
 
 interface ApiService {
+    @POST("/api/missions/shop/consume")
+    suspend fun consumeShopItems(
+        @Header("Authorization") token: String,
+        @Body request: com.example.sumdays.alchemy.ConsumeItemsRequest,
+    ): Response<MissionApiResponse<com.example.sumdays.alchemy.ConsumeItemsResponse>>
+
+    @GET("/api/missions/merge-marbles")
+    suspend fun getMergeMarble(@Header("Authorization") token: String): Response<MissionApiResponse<MergeMarbleState>>
+
+    @POST("/api/missions/merge-marbles/tickets/purchase")
+    suspend fun purchaseMergeTicket(
+        @Header("Authorization") token: String,
+        @Body request: MergeTicketPurchase,
+    ): Response<MissionApiResponse<MergeMarbleState>>
+
+    @POST("/api/missions/merge-marbles/pass/redeem")
+    suspend fun redeemMergePass(
+        @Header("Authorization") token: String,
+        @Body request: MergePassPurchase,
+    ): Response<MissionApiResponse<MergeMarbleState>>
+    @GET("/api/missions")
+    suspend fun getMissionDashboard(
+        @Header("Authorization") token: String,
+    ): Response<MissionApiResponse<MissionDashboardResponse>>
+
+    @POST("/api/missions/{code}/claim")
+    suspend fun claimMissionReward(
+        @Header("Authorization") token: String,
+        @retrofit2.http.Path("code") missionCode: String,
+    ): Response<MissionApiResponse<PointRewardResponse>>
+
+    @POST("/api/missions/ad-reward")
+    suspend fun claimAdReward(
+        @Header("Authorization") token: String,
+        @Body request: AdRewardClaimRequest,
+    ): Response<MissionApiResponse<PointRewardResponse>>
+
+    @POST("/api/missions/events/friend-diary-view")
+    suspend fun recordFriendDiaryView(
+        @Header("Authorization") token: String,
+        @Body request: FriendDiaryViewRequest,
+    ): Response<MissionApiResponse<Unit>>
+
+    @POST("/api/missions/events/weekly-summary-view")
+    suspend fun recordWeeklySummaryView(
+        @Header("Authorization") token: String,
+        @Body request: WeeklySummaryViewRequest,
+    ): Response<MissionApiResponse<Unit>>
+
+    @POST("/api/missions/wallet/initialize")
+    suspend fun initializePointWallet(
+        @Header("Authorization") token: String,
+        @Body request: LegacyPointBalanceRequest,
+    ): Response<MissionApiResponse<PointWalletResponse>>
+
+    @POST("/api/missions/play/points/redeem")
+    suspend fun redeemGooglePlayPoints(
+        @Header("Authorization") token: String,
+        @Body request: GooglePlayPointRedeemRequest,
+    ): Response<MissionApiResponse<GooglePlayPointRedeemResponse>>
+
+    @POST("/api/missions/shop/purchase")
+    suspend fun purchaseShopProduct(
+        @Header("Authorization") token: String,
+        @Body request: ShopPurchaseRequest,
+    ): Response<MissionApiResponse<ShopPurchaseResponse>>
+
+    @GET("/api/missions/shop")
+    suspend fun getShopCatalog(
+        @Header("Authorization") token: String,
+    ): Response<MissionApiResponse<ShopCatalogResponse>>
+
     // 로그인 
     @POST("/api/auth/login")
     fun login(@Body request: LoginRequest): Call<LoginResponse>
@@ -73,10 +161,12 @@ interface ApiService {
     ): Response<SyncFetchResponse>
 
     @POST("/api/ai/merge")
-    suspend fun mergeMemos(@Body req: MergeRequest): Response<JsonObject>
+    suspend fun mergeMemos(@Header("Authorization") token: String, @Body req: MergeRequest): Response<JsonObject>
+    @POST("/api/ai/style-preview")
+    suspend fun generateStylePreview(@Header("Authorization") token: String, @Body req: MergeRequest): Response<JsonObject>
     @Streaming
     @POST("/api/ai/merge")
-    fun mergeMemosStream(@Body request: MergeRequest): Call<ResponseBody>
+    fun mergeMemosStream(@Header("Authorization") token: String, @Body request: MergeRequest): Call<ResponseBody>
     @Multipart
     @POST("/api/ai/stt/memo")
     fun transcribeAudio(

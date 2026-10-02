@@ -19,7 +19,6 @@ import kotlinx.coroutines.launch
 import org.threeten.bp.DayOfWeek
 import org.threeten.bp.LocalDate
 import org.threeten.bp.YearMonth
-import kotlin.collections.set
 
 class SocialDayAdapter(
     private val days: List<DateCell>,
@@ -181,6 +180,7 @@ class SocialDayAdapter(
                                             SocialDailyReadActivity::class.java
                                         ).apply {
                                             putExtra("dailyEntry", dailyEntry)
+                                            putExtra("friendId", activity.friendId)
                                         }
                                     activity.startActivity(intent)
                                 }

@@ -9,6 +9,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.ItemPrefs
+import com.example.sumdays.shop.MergePassShopItem
+import com.example.sumdays.shop.MergeTicketShopItem
 import com.example.sumdays.shop.ThemeShopItem
 import com.example.sumdays.theme.ThemePrefs
 
@@ -147,6 +149,34 @@ class ShopAdapter(
 
                     btnShopItemAction.text = "구매"
                     btnShopItemAction.isEnabled = true
+                }
+
+                is MergeTicketShopItem -> {
+                    tvShopItemPrice.text = "${item.price}P"
+                    if (item.ownedTicketCount > 0) {
+                        tvPurchasedBadge.visibility = View.VISIBLE
+                        tvPurchasedBadge.text = "보유 ${item.ownedTicketCount}회"
+                        tvPurchasedBadge.setBackgroundResource(R.drawable.bg_label_applied)
+                        tvPurchasedBadge.setTextColor(context.getColor(android.R.color.black))
+                    } else {
+                        tvPurchasedBadge.visibility = View.GONE
+                    }
+                    btnShopItemAction.text = if (item.purchaseEnabled) "구매" else item.disabledActionLabel
+                    btnShopItemAction.isEnabled = item.purchaseEnabled
+                }
+
+                is MergePassShopItem -> {
+                    tvShopItemPrice.text = "₩3,000 / 1개월"
+                    if (item.active) {
+                        tvPurchasedBadge.visibility = View.VISIBLE
+                        tvPurchasedBadge.text = "이용 중"
+                        tvPurchasedBadge.setBackgroundResource(R.drawable.bg_label_applied)
+                        tvPurchasedBadge.setTextColor(context.getColor(android.R.color.black))
+                    } else {
+                        tvPurchasedBadge.visibility = View.GONE
+                    }
+                    btnShopItemAction.text = if (item.active) "이용 중" else "구매"
+                    btnShopItemAction.isEnabled = !item.active
                 }
             }
 

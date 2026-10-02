@@ -2,17 +2,14 @@ package com.example.sumdays.ui.component
 
 import android.app.Activity
 import android.content.Intent
-import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
-import androidx.annotation.RequiresApi
 import com.example.sumdays.CalendarActivity
 import com.example.sumdays.CustomizeActivity
 import com.example.sumdays.DailyWriteActivity
-import com.example.sumdays.ProfileActivity
 import com.example.sumdays.R
 import com.example.sumdays.ShopActivity
 import com.example.sumdays.social.SocialActivity

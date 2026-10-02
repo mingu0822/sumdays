@@ -23,15 +23,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
-import com.example.sumdays.data.repository.AnalysisRepository
 import com.example.sumdays.daily.memo.MoodRepository
 import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.DailyEntry
+import com.example.sumdays.data.repository.AnalysisRepository
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
-import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.databinding.ActivityDailyReadBinding
 import com.example.sumdays.image.GalleryItem
 import com.example.sumdays.image.PhotoGalleryAdapter
+import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository

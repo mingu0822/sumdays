@@ -4,6 +4,10 @@
   "description": "",
   "main": "app.js",
   "scripts": {
+    "start:local": "node server.local.js",
+    "db:init:local": "node db/initLocalDB.js",
+    "test:merge:local": "node scripts/verify-merge-local.js",
+    "test:economy:local": "node scripts/verify-economy-local.js",
     "test": "jest"
   },
   "keywords": [],

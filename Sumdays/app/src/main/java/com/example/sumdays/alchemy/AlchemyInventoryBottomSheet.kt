@@ -36,11 +36,11 @@ class AlchemyInventoryBottomSheet(
         ItemCategory.GLASSES
 
     /**
-     * 조합이 완료되었는지 여부
+     * 선택한 조합을 이름 입력 화면에 전달했는지 여부
      *
      * true:
-     * 실제 여우 생성까지 완료되었으므로
-     * onDismiss에서 선택 상태를 다시 clear하지 않음
+     * 완성 전이라도 전달한 재료 목록은 유지한다.
+     * 실제 재고 차감은 이름 확인 후 서버가 수행한다.
      *
      * false:
      * 사용자가 그냥 닫은 것이므로

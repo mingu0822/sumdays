@@ -1,14 +1,13 @@
 package com.example.sumdays.data
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import android.content.Context
 import android.os.Parcelable
 import androidx.room.ColumnInfo
-import kotlinx.parcelize.Parcelize
-
-import android.content.Context
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.example.sumdays.data.style.StylePrompt
 import com.example.sumdays.data.style.loadStyleVector
+import kotlinx.parcelize.Parcelize
 
 // Room 데이터베이스 테이블을 정의하는 Entity 클래스
 @Parcelize
