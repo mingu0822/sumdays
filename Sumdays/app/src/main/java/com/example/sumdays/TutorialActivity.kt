@@ -75,6 +75,15 @@ class TutorialActivity : AppCompatActivity() {
             }
         }
 
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : androidx.activity.OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    launchMain()
+                }
+            }
+        )
+
         btnPrev.setOnClickListener {
             val prev = getItem(-1)
             if (prev >= 0) {
@@ -83,14 +92,6 @@ class TutorialActivity : AppCompatActivity() {
             }
         }
 
-        onBackPressedDispatcher.addCallback(
-            this,
-            object : androidx.activity.OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    // 뒤로가기 눌러도 아무 일도 안 일어남
-                }
-            }
-        )
     }
 
     private fun launchMain() {

@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.TextView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.R
@@ -15,38 +15,30 @@ import com.example.sumdays.shop.ItemCategory
 import com.example.sumdays.shop.ItemPrefs
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.button.MaterialButton
 
-class AlchemyInventoryBottomSheet(
+class AlchemyInventoryBottomSheet : BottomSheetDialogFragment() {
 
-    private val onSelectionChanged:
-        (List<FoxShopItem>) -> Unit,
+    companion object {
+        const val TAG = "AlchemyInventory"
+        const val SELECTION_CHANGED = "alchemy_selection_changed"
+        const val CLOSED = "alchemy_inventory_closed"
+        const val EDIT = "edit"
+    }
 
-    private val onCombine:
-        (List<FoxShopItem>) -> Unit,
-
-    private val onSheetClosed:
-        () -> Unit
-
-) : BottomSheetDialogFragment() {
+    private fun onSelectionChanged(items: List<FoxShopItem>) {
+        parentFragmentManager.setFragmentResult(SELECTION_CHANGED, Bundle())
+        view?.findViewById<View>(R.id.btnCombine)?.isEnabled = items.isNotEmpty()
+    }
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: AlchemyItemAdapter
 
     private var currentCategory =
-        ItemCategory.GLASSES
+        ItemCategory.FOXFACE
 
-    /**
-     * 선택한 조합을 이름 입력 화면에 전달했는지 여부
-     *
-     * true:
-     * 완성 전이라도 전달한 재료 목록은 유지한다.
-     * 실제 재고 차감은 이름 확인 후 서버가 수행한다.
-     *
-     * false:
-     * 사용자가 그냥 닫은 것이므로
-     * 선택 상태만 초기화
-     */
-    private var combined = false
+    // Keep the reservation while moving to the placement editor; refund on cancellation.
+    private var openingEditor = false
 
 
     // --------------------------------------------------
@@ -67,16 +59,24 @@ class AlchemyInventoryBottomSheet(
         val behavior =
             BottomSheetBehavior.from(bottomSheet)
 
+        bottomSheet.setBackgroundColor(
+            android.graphics.Color.TRANSPARENT
+        )
+
         val screenHeight =
             resources.displayMetrics.heightPixels
 
-        bottomSheet.layoutParams.height =
-            (screenHeight * 0.45f).toInt()
+        val sheetHeight =
+            (screenHeight * 0.55f).toInt()
+
+        bottomSheet.layoutParams.height = sheetHeight
+        behavior.peekHeight = sheetHeight
 
         behavior.state =
             BottomSheetBehavior.STATE_EXPANDED
 
         behavior.skipCollapsed = true
+        bottomSheet.requestLayout()
     }
 
 
@@ -125,7 +125,7 @@ class AlchemyInventoryBottomSheet(
         recyclerView.layoutManager =
             GridLayoutManager(
                 requireContext(),
-                4
+                maxOf(1, (resources.configuration.screenWidthDp - 40) / 100)
             )
 
 
@@ -180,8 +180,13 @@ class AlchemyInventoryBottomSheet(
         // --------------------------------------------------
 
         loadCategory(
-            ItemCategory.GLASSES
+            ItemCategory.values().find { it.name == savedInstanceState?.getString("category") }
+                ?: currentCategory
         )
+
+        view.findViewById<View>(R.id.btnFoxFace).setOnClickListener {
+            loadCategory(ItemCategory.FOXFACE)
+        }
 
 
         // --------------------------------------------------
@@ -244,9 +249,20 @@ class AlchemyInventoryBottomSheet(
         // 조합 버튼
         // --------------------------------------------------
 
-        view.findViewById<Button>(
+        val combineButton = view.findViewById<MaterialButton>(
             R.id.btnCombine
-        ).setOnClickListener {
+        )
+        combineButton.isEnabled = AlchemySelectionManager.getSelectedItems().isNotEmpty()
+
+        combineButton.backgroundTintList =
+            android.content.res.ColorStateList.valueOf(
+                requireContext().getColor(R.color.foxrange)
+            )
+        combineButton.setTextColor(
+            requireContext().getColor(android.R.color.white)
+        )
+
+        combineButton.setOnClickListener {
 
             val items =
                 AlchemySelectionManager
@@ -264,7 +280,7 @@ class AlchemyInventoryBottomSheet(
             // 조합 시작
             // --------------------------------------------------
 
-            combined = true
+            openingEditor = true
 
 
             // --------------------------------------------------
@@ -278,9 +294,8 @@ class AlchemyInventoryBottomSheet(
             // 아이템 commit
             // --------------------------------------------------
 
-            onCombine(
-                items
-            )
+            // 팝업이 완전히 닫힌 뒤 Activity에서 배치 편집 화면을 연다.
+            dismiss()
 
 
             // 중요
@@ -298,6 +313,11 @@ class AlchemyInventoryBottomSheet(
     // BottomSheet 닫힘
     // --------------------------------------------------
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("category", currentCategory.name)
+    }
+
     override fun onDismiss(
         dialog: DialogInterface
     ) {
@@ -306,8 +326,10 @@ class AlchemyInventoryBottomSheet(
             dialog
         )
 
+        if (activity?.isChangingConfigurations == true || activity?.isFinishing == true) return
 
-        if (!combined) {
+
+        if (!openingEditor) {
 
             // --------------------------------------------------
             // 사용자가 조합하지 않고 닫음
@@ -330,7 +352,9 @@ class AlchemyInventoryBottomSheet(
 
 
         // Activity에 BottomSheet가 닫혔다고 알림
-        onSheetClosed()
+        parentFragmentManager.setFragmentResult(CLOSED, Bundle().apply {
+            putBoolean(EDIT, openingEditor)
+        })
     }
 
 
@@ -344,6 +368,10 @@ class AlchemyInventoryBottomSheet(
 
         currentCategory =
             category
+
+        updateCategoryTabs(category)
+        view?.findViewById<View>(R.id.foxFaceHint)?.visibility =
+            if (category == ItemCategory.FOXFACE) View.VISIBLE else View.GONE
 
 
         // 현재 카테고리의 아이템만 가져오기
@@ -369,5 +397,29 @@ class AlchemyInventoryBottomSheet(
         adapter.submitList(
             ownedItems
         )
+    }
+
+    private fun updateCategoryTabs(category: ItemCategory) {
+
+        val tabs = listOf(
+            Triple(R.id.btnFoxFace, R.id.indicatorFoxFace, ItemCategory.FOXFACE),
+            Triple(R.id.btnGlasses, R.id.indicatorGlasses, ItemCategory.GLASSES),
+            Triple(R.id.btnHat, R.id.indicatorHat, ItemCategory.HAT),
+            Triple(R.id.btnScarf, R.id.indicatorScarf, ItemCategory.SCARF),
+            Triple(R.id.btnAccessory, R.id.indicatorAccessory, ItemCategory.ACCESSORY)
+        )
+
+        tabs.forEach { (textId, indicatorId, tabCategory) ->
+            val selected = tabCategory == category
+
+            view?.findViewById<TextView>(textId)?.setTextColor(
+                requireContext().getColor(
+                    if (selected) R.color.foxrange else android.R.color.black
+                )
+            )
+
+            view?.findViewById<View>(indicatorId)?.visibility =
+                if (selected) View.VISIBLE else View.INVISIBLE
+        }
     }
 }

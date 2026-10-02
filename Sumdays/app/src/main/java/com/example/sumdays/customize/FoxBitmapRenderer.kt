@@ -4,12 +4,87 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.Paint
-import com.example.sumdays.R
+import android.widget.ImageView
 import com.example.sumdays.shop.AllItemMap
 import java.io.File
 
 object FoxBitmapRenderer {
+
+    /**
+     * 전체 합성 영역이 아닌 본체 여우를 기준으로 ImageView의 배율을 맞춘다.
+     * 모자가 추가되어도 본체 얼굴의 크기와 중심은 그대로 유지된다.
+     */
+    fun displayPreview(
+        imageView: ImageView,
+        bitmap: Bitmap,
+        fox: CompleteFox,
+        baseScaleMultiplier: Float = 1f
+    ) {
+        imageView.setImageBitmap(bitmap)
+
+        // Free layouts can extend on every side: show the entire composition.
+        if (fox.placements.isNotEmpty()) {
+            imageView.scaleType = ImageView.ScaleType.FIT_CENTER
+            imageView.scaleX = 1f
+            imageView.scaleY = 1f
+            return
+        }
+
+        imageView.post {
+            if ((imageView.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap !== bitmap) return@post
+            if (imageView.width == 0 || imageView.height == 0) return@post
+
+            val baseResId = FoxBaseImage.resource(fox)
+
+            val baseBitmap = BitmapFactory.decodeResource(
+                imageView.resources,
+                baseResId
+            ) ?: return@post
+
+            val contentWidth =
+                imageView.width - imageView.paddingLeft - imageView.paddingRight
+            val contentHeight =
+                imageView.height - imageView.paddingTop - imageView.paddingBottom
+
+            if (contentWidth <= 0 || contentHeight <= 0) return@post
+
+            val baseScale = minOf(
+                contentWidth.toFloat() / baseBitmap.width,
+                contentHeight.toFloat() / baseBitmap.height
+            ) * baseScaleMultiplier
+
+            val selectedItems = listOf(
+                fox.glasses,
+                fox.hat,
+                fox.scarf,
+                fox.accessory
+            ).mapNotNull { itemId ->
+                itemId?.let(AllItemMap.allItemMap::get)
+            }
+
+            val baseLeft = -(selectedItems
+                .minOfOrNull { minOf(0f, it.offsetX) } ?: 0f)
+            val baseTop = -(selectedItems
+                .minOfOrNull { minOf(0f, it.offsetY) } ?: 0f)
+
+            val translateX =
+                (contentWidth - baseBitmap.width * baseScale) / 2f -
+                        baseLeft * baseScale
+            val translateY =
+                (contentHeight - baseBitmap.height * baseScale) / 2f -
+                        baseTop * baseScale
+
+            imageView.scaleType = ImageView.ScaleType.MATRIX
+            imageView.scaleX = 1f
+            imageView.scaleY = 1f
+            imageView.imageMatrix = Matrix().apply {
+                setScale(baseScale, baseScale)
+                postTranslate(translateX, translateY)
+            }
+        }
+    }
 
     /**
      * 여우 + 아이템 미리보기 Bitmap 생성
@@ -22,11 +97,25 @@ object FoxBitmapRenderer {
         fox: CompleteFox
     ): Bitmap {
 
-        val baseResId = if (fox.previewImage != 0) {
-            fox.previewImage
-        } else {
-            R.drawable.dailyread_fox_face_level_3
+        if (fox.placements.isNotEmpty()) {
+            val composition = FoxComposition(context, fox)
+            val bounds = composition.bounds(composition.placements)
+            // Bound export memory when large accessories are enlarged and moved apart.
+            val scale = minOf(1f, 2048f / maxOf(bounds.width(), bounds.height()))
+            val result = Bitmap.createBitmap(
+                kotlin.math.ceil(bounds.width() * scale).toInt().coerceAtLeast(1),
+                kotlin.math.ceil(bounds.height() * scale).toInt().coerceAtLeast(1),
+                Bitmap.Config.ARGB_8888
+            )
+            Canvas(result).apply {
+                scale(scale, scale)
+                translate(-bounds.left, -bounds.top)
+                composition.draw(this, composition.placements)
+            }
+            return result
         }
+
+        val baseResId = FoxBaseImage.resource(fox)
 
         val baseBitmap = BitmapFactory.decodeResource(
             context.resources,
@@ -62,7 +151,7 @@ object FoxBitmapRenderer {
         }
 
         // --------------------------------------------------
-        // 전체 영역 계산
+        // 선택된 장식을 포함하는 전체 영역 계산
         // --------------------------------------------------
 
         var minX = 0f

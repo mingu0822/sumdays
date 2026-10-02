@@ -21,10 +21,15 @@ import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
+import android.app.AlertDialog
+import android.widget.EditText
+import android.widget.Toast
+import com.example.sumdays.alchemy.AlchemyRecipeManager
+import com.example.sumdays.shop.FoxShopItem
+import com.example.sumdays.ui.component.setupBackToCalendar
 
 class CustomizeActivity : AppCompatActivity() {
 
-    private lateinit var btnBack: ImageButton
     private lateinit var btnShop: ImageButton
     private lateinit var btnAlchemy: ImageButton
 
@@ -60,23 +65,17 @@ class CustomizeActivity : AppCompatActivity() {
         rootLayout = findViewById(R.id.customRoot)
         setupEdgeToEdge(rootLayout)
 
-        btnBack.setOnClickListener {
-            finish()
-        }
-
         btnAlchemy.setOnClickListener {
 
             startActivity(
                 Intent(this, FoxAlchemyActivity::class.java)
             )
-
-            overridePendingTransition(0, 0)
         }
+        setupBackToCalendar()
     }
 
     private fun initViews() {
 
-        btnBack = findViewById(R.id.btnBack)
         btnShop = findViewById(R.id.btnShop)
         btnAlchemy = findViewById(R.id.btnAlchemy)
 
@@ -114,6 +113,8 @@ class CustomizeActivity : AppCompatActivity() {
      */
     private fun loadFoxItems() {
 
+        FoxPrefs.loadAll(this)
+
         foxList.clear()
 
         AllFoxMap.allFoxMap.values.forEach { fox ->
@@ -135,7 +136,7 @@ class CustomizeActivity : AppCompatActivity() {
 
         if (bitmap != null) {
 
-            imgPreview.setImageBitmap(bitmap)
+            FoxBitmapRenderer.displayPreview(imgPreview, bitmap, fox)
 
             return
         }
@@ -147,9 +148,7 @@ class CustomizeActivity : AppCompatActivity() {
                 fox
             )
 
-        imgPreview.setImageBitmap(
-            generatedBitmap
-        )
+        FoxBitmapRenderer.displayPreview(imgPreview, generatedBitmap, fox)
     }
 
     /**
@@ -216,7 +215,7 @@ class CustomizeActivity : AppCompatActivity() {
                     )
 
                 if (bitmap != null) {
-                    imgPreview.setImageBitmap(bitmap)
+                    FoxBitmapRenderer.displayPreview(imgPreview, bitmap, fox)
                 } else {
                     imgPreview.setImageResource(
                         fox.previewImage
@@ -300,7 +299,7 @@ class CustomizeActivity : AppCompatActivity() {
                 )
 
             if (bitmap != null) {
-                imgPreview.setImageBitmap(bitmap)
+                FoxBitmapRenderer.displayPreview(imgPreview, bitmap, currentFox)
             } else {
                 imgPreview.setImageResource(
                     currentFox.previewImage

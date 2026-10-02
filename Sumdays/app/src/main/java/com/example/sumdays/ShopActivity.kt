@@ -22,6 +22,7 @@ import com.example.sumdays.mission.ShopProductResponse
 import com.example.sumdays.shop.AllItemMap
 import com.example.sumdays.shop.AllThemeMap
 import com.example.sumdays.shop.FoxShopItem
+import com.example.sumdays.shop.ItemCategory
 import com.example.sumdays.shop.ItemPrefs
 import com.example.sumdays.shop.MergePassShopItem
 import com.example.sumdays.shop.MergeTicketShopItem
@@ -36,6 +37,10 @@ import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
 import kotlinx.coroutines.launch
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
+import com.example.sumdays.ui.component.setupBackToCalendar
 
 class ShopActivity : AppCompatActivity() {
 
@@ -70,6 +75,7 @@ class ShopActivity : AppCompatActivity() {
     private var shopDataReady = !MissionConfig.USE_SERVER_MISSIONS
     private var ticketState: MergeMarbleState? = null
     private val pendingPassTokens = mutableSetOf<String>()
+    private var selectedItemCategory: ItemCategory? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,6 +96,10 @@ class ShopActivity : AppCompatActivity() {
         initViews()
         setupRecyclerView()
         loadItems()
+        selectedCategory = savedInstanceState?.getString("shop_category") ?: "theme"
+        selectedItemCategory = ItemCategory.values().find {
+            it.name == savedInstanceState?.getString("item_category")
+        }
         setupCategoryChips()
         bindBasicActions()
 
@@ -101,11 +111,17 @@ class ShopActivity : AppCompatActivity() {
 
         updatePointUI()
         filterItems(intent.getStringExtra(EXTRA_INITIAL_CATEGORY) ?: "theme")
+        setupBackToCalendar()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("shop_category", selectedCategory)
+        outState.putString("item_category", selectedItemCategory?.name)
     }
 
     private fun initViews() {
 
-        backButton = findViewById(R.id.backButton)
 
         btnEarnPoint = findViewById(R.id.btnEarnPoint)
         tvCurrencyValue = findViewById(R.id.tvCurrencyValue)
@@ -255,6 +271,24 @@ class ShopActivity : AppCompatActivity() {
         chipMergeTicket.setOnClickListener {
             filterItems("merge_ticket")
         }
+        val group = findViewById<ChipGroup>(R.id.shopItemCategories)
+        listOf(
+            null to "전체", ItemCategory.FOXFACE to "표정",
+            ItemCategory.GLASSES to "안경", ItemCategory.HAT to "모자",
+            ItemCategory.SCARF to "목도리", ItemCategory.ACCESSORY to "악세서리"
+        ).forEach { (category, label) ->
+            group.addView(Chip(this).apply {
+                id = View.generateViewId()
+                tag = category
+                text = label
+                isCheckable = true
+                isChecked = category == selectedItemCategory
+                setOnClickListener {
+                    selectedItemCategory = category
+                    filterItems("item")
+                }
+            })
+        }
     }
 
     private fun filterItems(category: String) {
@@ -269,7 +303,9 @@ class ShopActivity : AppCompatActivity() {
                 filteredItems.addAll(allItems.filterIsInstance<ThemeShopItem>())
 
             "item" ->
-                filteredItems.addAll(allItems.filterIsInstance<FoxShopItem>())
+                filteredItems.addAll(allItems.filterIsInstance<FoxShopItem>().filter {
+                    selectedItemCategory == null || it.itemCategory == selectedItemCategory
+                })
 
             "merge_ticket" ->
                 filteredItems.addAll(
@@ -281,6 +317,12 @@ class ShopActivity : AppCompatActivity() {
         }
 
         updateChipStyle()
+        findViewById<View>(R.id.shopItemCategoryScroll).visibility =
+            if (category == "item") View.VISIBLE else View.GONE
+        val group = findViewById<ChipGroup>(R.id.shopItemCategories)
+        for (index in 0 until group.childCount) {
+            (group.getChildAt(index) as Chip).apply { isChecked = tag == selectedItemCategory }
+        }
 
         if (selectedItem !in filteredItems)
             selectedItem = filteredItems.firstOrNull()
@@ -324,9 +366,6 @@ class ShopActivity : AppCompatActivity() {
     }
 
     private fun bindBasicActions() {
-
-        backButton.setOnClickListener { finish() }
-
         btnEarnPoint.setOnClickListener {
             startActivity(Intent(this, MissionActivity::class.java))
         }
@@ -462,7 +501,6 @@ class ShopActivity : AppCompatActivity() {
 
         tvCurrencyValue.text = "%,d".format(currentPoint)
     }
-
     override fun onResume() {
         super.onResume()
         if (::mergePassBilling.isInitialized) mergePassBilling.refreshPurchases()

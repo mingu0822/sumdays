@@ -47,20 +47,21 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="14dp"
+            android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
             <!-- 이름 + 배지 -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:gravity="start"
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/tvShopItemName"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="보라빛 저녁 테마"
                     android:textColor="#2D2A26"
@@ -72,7 +73,7 @@
                     android:id="@+id/tvPurchasedBadge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="4dp"
                     android:background="@drawable/bg_label_owned"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
@@ -89,10 +90,11 @@
             <!-- 설명 -->
             <TextView
                 android:id="@+id/tvShopItemDescription"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:maxLines="2"
+                android:ellipsize="end"
                 android:text="차분한 저녁 분위기의 배경과 포인트 색상을 적용해요"
                 android:textColor="#7A726A"
                 android:textSize="13sp"

@@ -15,5 +15,7 @@ data class CompleteFox(
     val scarf: Int?,
     val accessory: Int?,
 
-    var isSelected: Boolean = false
+    var isSelected: Boolean = false,
+    val placements: List<FoxItemPlacement> = emptyList(),
+    val foxFace: Int? = null
 )

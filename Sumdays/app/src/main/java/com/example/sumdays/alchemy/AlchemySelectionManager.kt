@@ -2,6 +2,7 @@ package com.example.sumdays.alchemy
 
 import android.content.Context
 import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.shop.AllItemMap
 import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.ItemCategory
 import com.example.sumdays.shop.ItemPrefs
@@ -23,7 +24,18 @@ object AlchemySelectionManager {
         checkOwner()
         if (selected[item.itemCategory]?.id == item.id) selected.remove(item.itemCategory)
         else if (ItemPrefs.getCount(context, item.id) > 0) selected[item.itemCategory] = item
+        saveSelection(context)
         return getSelectedItems()
+    }
+
+    /** Restore draft selection after recreation without reserving or decrementing inventory. */
+    fun resumePendingSelection(context: Context) {
+        checkOwner()
+        val ids = context.getSharedPreferences("alchemy_selection", Context.MODE_PRIVATE)
+            .getStringSet("selected_item_ids", emptySet()).orEmpty()
+        selected.clear()
+        ids.mapNotNull { it.toIntOrNull()?.let(AllItemMap.allItemMap::get) }
+            .forEach { selected[it.itemCategory] = it }
     }
 
     fun getSelectedItems(): List<FoxShopItem> {
@@ -47,6 +59,8 @@ object AlchemySelectionManager {
     fun clear(context: Context) {
         checkOwner()
         selected.clear()
+        context.getSharedPreferences("alchemy_selection", Context.MODE_PRIVATE)
+            .edit().remove("selected_item_ids").apply()
     }
 
     fun restorePendingSelection(context: Context) {
@@ -54,5 +68,10 @@ object AlchemySelectionManager {
         context.getSharedPreferences("alchemy_selection", Context.MODE_PRIVATE)
             .edit().remove("selected_item_ids").apply()
         clear(context)
+    }
+
+    private fun saveSelection(context: Context) {
+        context.getSharedPreferences("alchemy_selection", Context.MODE_PRIVATE)
+            .edit().putStringSet("selected_item_ids", selected.values.map { it.id.toString() }.toSet()).apply()
     }
 }

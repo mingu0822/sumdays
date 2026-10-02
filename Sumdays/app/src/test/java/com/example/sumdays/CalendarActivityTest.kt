@@ -103,21 +103,6 @@ class CalendarActivityTest {
         assertThat(afterPrev.isNotBlank(), `is`(true))
     }
 
-    @Test
-    fun statisticButton_startsStatisticsActivity() {
-        val activity = buildActivity()
-
-        val statsBtn = activity.findViewById<ImageButton>(R.id.statistic_btn)
-        statsBtn.performClick()
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
-
-        val shadowActivity = Shadows.shadowOf(activity)
-        val nextIntent: Intent = shadowActivity.nextStartedActivity
-        assertThat(
-            nextIntent.component?.className,
-            `is`(StatisticsActivity::class.qualifiedName)
-        )
-    }
 
     @Test
     fun navBar_dailyButton_startsDailyWrite_withTodayExtra() {

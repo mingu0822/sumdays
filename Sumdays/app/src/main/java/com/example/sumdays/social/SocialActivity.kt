@@ -11,50 +11,53 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
-import android.text.TextWatcher
-import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.toColorInt
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.work.WorkManager
+import androidx.core.graphics.toColorInt
 import com.example.sumdays.LoginActivity
 import com.example.sumdays.R
 import com.example.sumdays.ShopActivity
+import com.example.sumdays.CalendarActivity
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.AppDatabase
-import com.example.sumdays.data.sync.InitialSyncWorker
-import com.example.sumdays.data.sync.LocalDataOwnerPrefs
 import com.example.sumdays.settings.EditProfileActivity
 import com.example.sumdays.settings.prefs.ProfileImagePrefs
 import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.settings.profileimage.ProfileImageItem
 import com.example.sumdays.settings.profileimage.ProfileImageItemType
+import com.example.sumdays.ui.component.NavBarController
+import com.example.sumdays.ui.component.NavSource
+import android.widget.EditText
+import androidx.activity.addCallback
+import android.text.TextWatcher
+import android.util.Log
+import android.view.View
+import android.widget.TextView
+import android.widget.Toast
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.example.sumdays.network.ApiClient
+import com.example.sumdays.network.apiService.FriendInfo
 import com.example.sumdays.social.reqeust.AddFriendDialog
 import com.example.sumdays.social.reqeust.FriendRequestDialog
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import com.example.sumdays.theme.Theme
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
-import com.example.sumdays.ui.component.NavBarController
-import com.example.sumdays.ui.component.NavSource
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.example.sumdays.ui.component.setupBackToCalendar
 
 class SocialActivity : AppCompatActivity() {
     private lateinit var navBarController: NavBarController
@@ -67,7 +70,6 @@ class SocialActivity : AppCompatActivity() {
     private lateinit var tvAllSocialSection: TextView
     private lateinit var tvSocialRequests: TextView
     private lateinit var btnAddSocial: ImageButton
-    private lateinit var btnUpdate: ImageButton
     private lateinit var myProfileCard: View
     private lateinit var myProfileImageContainer: FrameLayout
     private lateinit var imgMyPhoto: ImageView
@@ -106,6 +108,7 @@ class SocialActivity : AppCompatActivity() {
         observeViewModel()
         viewModel.loadSocialList()
         applyThemeModeSettings()
+        setupBackToCalendar()
     }
     private fun initViewModel() {
         val repository = SocialRepository()
@@ -120,7 +123,6 @@ class SocialActivity : AppCompatActivity() {
         tvAllSocialSection = findViewById(R.id.tvAllSocialSection)
         tvSocialRequests = findViewById(R.id.tvSocialRequests)
         btnAddSocial = findViewById(R.id.btnAddSocial)
-        btnUpdate = findViewById(R.id.btnUpdate)
         myProfileCard = findViewById(R.id.myProfileCard)
         myProfileImageContainer = findViewById(R.id.myProfileImageContainer)
         imgMyPhoto = findViewById(R.id.imgMyPhoto)
@@ -143,9 +145,6 @@ class SocialActivity : AppCompatActivity() {
         btnAddSocial.setOnClickListener {
             val dialog = AddFriendDialog()
             dialog.show(supportFragmentManager, "AddFriendDialog")
-        }
-        btnUpdate.setOnClickListener{
-            viewModel.loadSocialList()
         }
         myProfileCard.setOnClickListener {
             showMyProfileDialog()
@@ -197,7 +196,6 @@ class SocialActivity : AppCompatActivity() {
         tvEmpty.setTextColor(pointColor)
         tvError.setTextColor(pointColor)
         btnAddSocial.imageTintList = ColorStateList.valueOf(iconColor)
-        btnUpdate.imageTintList = ColorStateList.valueOf(iconColor)
         myProfileImageContainer.setBackgroundResource(currentTheme.blockStyleA)
         updateProfileImagePreview(
             imgMyPhoto,
@@ -233,7 +231,7 @@ class SocialActivity : AppCompatActivity() {
         val nickname = view.findViewById<TextView>(R.id.nickname)
         val profileImageContainer = view.findViewById<FrameLayout>(R.id.profileImageContainer)
         val btnLogout = view.findViewById<Button>(R.id.btnLogout)
-        val btnShop = view.findViewById<Button>(R.id.btnShop)
+        // val btnShop = view.findViewById<Button>(R.id.btnShop)
         val btnCustomize = view.findViewById<Button>(R.id.btnCustomize)
 
         currentTheme?.let { theme ->
@@ -249,11 +247,9 @@ class SocialActivity : AppCompatActivity() {
             val buttonTextColor = ContextCompat.getColor(this, theme.themeColorC)
             btnLogout.backgroundTintList = ColorStateList.valueOf(logoutColor)
             btnLogout.setTextColor(buttonTextColor)
-            listOf(btnShop, btnCustomize).forEach { button ->
-                button.backgroundTintList = null
-                button.setBackgroundResource(theme.blockStyleA)
-                button.setTextColor(ContextCompat.getColor(this, theme.themeTextColorBasic))
-            }
+            btnCustomize.backgroundTintList = null
+            btnCustomize.setBackgroundResource(theme.blockStyleA)
+            btnCustomize.setTextColor(ContextCompat.getColor(this, theme.themeTextColorBasic))
         }
 
         nickname.text = userStatsPrefs.getNickname()
@@ -273,10 +269,6 @@ class SocialActivity : AppCompatActivity() {
             dialog.dismiss()
             logout()
         }
-        btnShop.setOnClickListener {
-            dialog.dismiss()
-            startActivity(Intent(this, ShopActivity::class.java))
-        }
         btnCustomize.setOnClickListener {
             dialog.dismiss()
             startActivity(Intent(this, EditProfileActivity::class.java))
@@ -291,13 +283,6 @@ class SocialActivity : AppCompatActivity() {
     }
 
     private fun logout() {
-        val userId = SessionManager.getUserId()
-        LocalDataOwnerPrefs.clear(applicationContext)
-        if (userId >= 0) {
-            WorkManager.getInstance(applicationContext)
-                .cancelAllWorkByTag(InitialSyncWorker.accountWorkTag(userId))
-        }
-        SessionManager.clearSession()
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 val db = AppDatabase.getDatabase(applicationContext)
@@ -306,6 +291,7 @@ class SocialActivity : AppCompatActivity() {
                 db.userStyleDao().clearAll()
                 db.weekSummaryDao().clearAll()
             }
+            SessionManager.clearSession()
             val intent = Intent(this@SocialActivity, LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)

@@ -2,16 +2,16 @@ package com.example.sumdays.network
 
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.network.apiService.ApiService
-import com.example.sumdays.network.apiService.SocialApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+import com.example.sumdays.network.apiService.SocialApiService
 
 object ApiClient {
-    //const val BASE_URL = "http://ec2-13-125-101-143.ap-northeast-2.compute.amazonaws.com:3000/"
-    const val BASE_URL = "http://192.168.0.80:3000/"
+    // const val BASE_URL = "http://ec2-13-125-101-143.ap-northeast-2.compute.amazonaws.com:3000/"
+    const val BASE_URL = "http://10.21.80.40:3000/"
 
     // OkHttp 로깅 + 타임아웃 설정
     private val logging = HttpLoggingInterceptor().apply {
@@ -32,7 +32,7 @@ object ApiClient {
 
                 // 3. 토큰이 있다면 헤더를 추가한 새로운 요청을 생성
                 val newRequestBuilder = originalRequest.newBuilder()
-                if (token != null && originalRequest.header("Authorization") == null) {
+                if (token != null) {
                     newRequestBuilder.addHeader("Authorization", "Bearer $token")
                 }
 
