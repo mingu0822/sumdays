@@ -31,8 +31,10 @@ object AlchemySelectionManager {
     /** Restore draft selection after recreation without reserving or decrementing inventory. */
     fun resumePendingSelection(context: Context) {
         checkOwner()
-        val ids = context.getSharedPreferences("alchemy_selection", Context.MODE_PRIVATE)
-            .getStringSet("selected_item_ids", emptySet()).orEmpty()
+        val prefs = context.getSharedPreferences("alchemy_selection", Context.MODE_PRIVATE)
+        val ids = prefs.getStringSet(selectionKey(owner), emptySet()).orEmpty()
+        // A previous build used one unscoped key, so it cannot be safely assigned to an account.
+        prefs.edit().remove("selected_item_ids").apply()
         selected.clear()
         ids.mapNotNull { it.toIntOrNull()?.let(AllItemMap.allItemMap::get) }
             .forEach { selected[it.itemCategory] = it }
@@ -60,18 +62,26 @@ object AlchemySelectionManager {
         checkOwner()
         selected.clear()
         context.getSharedPreferences("alchemy_selection", Context.MODE_PRIVATE)
-            .edit().remove("selected_item_ids").apply()
+            .edit()
+            .remove(selectionKey(owner))
+            .remove("selected_item_ids") // Remove the pre-account-scoping draft key.
+            .apply()
     }
 
     fun restorePendingSelection(context: Context) {
         // Old builds reserved locally. Never add that amount to authoritative server inventory.
         context.getSharedPreferences("alchemy_selection", Context.MODE_PRIVATE)
-            .edit().remove("selected_item_ids").apply()
+            .edit()
+            .remove(selectionKey(SessionManager.getUserId()))
+            .remove("selected_item_ids")
+            .apply()
         clear(context)
     }
 
     private fun saveSelection(context: Context) {
         context.getSharedPreferences("alchemy_selection", Context.MODE_PRIVATE)
-            .edit().putStringSet("selected_item_ids", selected.values.map { it.id.toString() }.toSet()).apply()
+            .edit().putStringSet(selectionKey(owner), selected.values.map { it.id.toString() }.toSet()).apply()
     }
+
+    private fun selectionKey(userId: Int): String = "user_${userId}_selected_item_ids"
 }

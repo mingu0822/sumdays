@@ -391,8 +391,16 @@ INSERT INTO shop_products (product_type, item_id, price, is_active)
 VALUES
   ('THEME', 2, 280, 1),
   ('ITEM', 1, 300, 1),
-  ('ITEM', 2, 400, 1),
-  ('ITEM', 3, 200, 1);
+  ('ITEM', 2, 200, 1),
+  ('ITEM', 3, 200, 1),
+  ('ITEM', 101, 400, 1),
+  ('ITEM', 102, 200, 1),
+  ('ITEM', 201, 200, 1),
+  ('ITEM', 301, 200, 1),
+  ('ITEM', 401, 200, 1),
+  ('ITEM', 402, 200, 1),
+  ('ITEM', 404, 200, 1),
+  ('ITEM', 405, 200, 1);
 
 INSERT INTO merge_ticket_products (pack_id, ticket_count, point_price, is_active)
 VALUES
