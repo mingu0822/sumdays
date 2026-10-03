@@ -8,7 +8,7 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.widget.ImageView
 import com.example.sumdays.R
-import com.example.sumdays.data.prefs.userPrefs.shop.AllItemMap
+import com.example.sumdays.shop.AllItemMap
 import java.io.File
 
 object FoxBitmapRenderer {

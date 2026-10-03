@@ -2,8 +2,8 @@ package com.example.sumdays.alchemy
 
 import com.example.sumdays.R
 import com.example.sumdays.customize.CompleteFox
-import com.example.sumdays.data.prefs.userPrefs.shop.FoxShopItem
-import com.example.sumdays.data.prefs.userPrefs.shop.ItemCategory
+import com.example.sumdays.shop.FoxShopItem
+import com.example.sumdays.shop.ItemCategory
 
 object AlchemyRecipeManager {
 

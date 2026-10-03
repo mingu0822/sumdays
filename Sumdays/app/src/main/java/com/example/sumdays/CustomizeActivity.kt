@@ -14,7 +14,7 @@ import com.example.sumdays.customize.FoxAdapter
 import com.example.sumdays.customize.FoxBitmapRenderer
 import com.example.sumdays.data.prefs.userPrefs.FoxPrefs
 import com.example.sumdays.customize.ThemeAdapter
-import com.example.sumdays.data.prefs.userPrefs.shop.AllThemeMap
+import com.example.sumdays.shop.AllThemeMap
 import com.example.sumdays.shop.OwnedPrefs
 import com.example.sumdays.theme.Theme
 import com.example.sumdays.data.prefs.userPrefs.ThemePrefs

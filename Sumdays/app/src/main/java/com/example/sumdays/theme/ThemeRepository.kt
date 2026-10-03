@@ -1,6 +1,6 @@
 package com.example.sumdays.theme
 
-import com.example.sumdays.data.prefs.userPrefs.shop.AllThemeMap
+import com.example.sumdays.shop.AllThemeMap
 
 object ThemeRepository {
     val ownedThemes: MutableMap<Int, Theme> = mutableMapOf()

@@ -20,6 +20,7 @@ import com.example.sumdays.data.prefs.userPrefs.UserStatsPrefs
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import com.example.sumdays.data.prefs.PrefManager
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -40,8 +41,6 @@ class LoginActivity : AppCompatActivity() {
         userStatsPrefs = UserStatsPrefs(this)
 
         setupListeners()
-
-
     }
 
     private fun setupListeners() {
@@ -96,6 +95,10 @@ class LoginActivity : AppCompatActivity() {
                         // 초기화하고 이동
                         val request = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
                         WorkManager.getInstance(applicationContext).enqueue(request)
+
+                        // pref 초기화 (아니면 InitialSyncWorker에 넣어도 됨)
+                        PrefManager.initDevicePrefs(this@LoginActivity)
+                        PrefManager.initUserPrefs(this@LoginActivity)
 
                         // 메인 화면으로 이동
                         val intent = Intent(this@LoginActivity, CalendarActivity::class.java)

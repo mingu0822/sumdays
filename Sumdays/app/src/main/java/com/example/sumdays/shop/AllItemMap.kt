@@ -1,4 +1,4 @@
-package com.example.sumdays.data.prefs.userPrefs.shop
+package com.example.sumdays.shop
 
 import com.example.sumdays.R
 

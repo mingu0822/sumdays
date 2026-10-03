@@ -5,10 +5,18 @@ import android.content.Context
 object PrefManager {
 
     fun initDevicePrefs(context: Context) {
-        // deviceprefs 초기화하는 함수
+        // initDiaryPermissionPrefs()
+        // initLabsPrefs()
+        // initStreakPrefs()
     }
 
     fun initUserPrefs(context: Context) {
-        // userprefs 초기화하는 함수
+        // initFoxPrefs()
+        // initItemPrefs()
+        // initOwnedPrefs()
+        // initPointPrefs()
+        // initProfileImagePrefs()
+        // initThemePrefs()
+        // initUserStatsPrefs()
     }
 }

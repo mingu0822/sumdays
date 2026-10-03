@@ -9,9 +9,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.R
-import com.example.sumdays.data.prefs.userPrefs.shop.AllItemMap
-import com.example.sumdays.data.prefs.userPrefs.shop.FoxShopItem
-import com.example.sumdays.data.prefs.userPrefs.shop.ItemCategory
+import com.example.sumdays.shop.AllItemMap
+import com.example.sumdays.shop.FoxShopItem
+import com.example.sumdays.shop.ItemCategory
 import com.example.sumdays.data.prefs.userPrefs.shop.ItemPrefs
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
