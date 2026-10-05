@@ -257,6 +257,7 @@ class DailySumActivity : AppCompatActivity() {
         val sheet = Dialog(this)
         val view = LayoutInflater.from(this).inflate(R.layout.dialog_merge_done, null, false)
         sheet.setContentView(view)
+        sheet.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         val btnCancel =
             view.findViewById<ImageButton>(R.id.btnCancel)

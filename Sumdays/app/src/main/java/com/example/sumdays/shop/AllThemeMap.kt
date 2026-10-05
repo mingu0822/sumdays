@@ -30,7 +30,7 @@ object AllThemeMap {
             backIcon = R.drawable.ic_arrow_back_default,
             forwardIcon = R.drawable.ic_arrow_forward_default,
             searchIcon = R.drawable.ic_search_white,
-            sendIcon = R.drawable.ic_send_white,
+            sendIcon = R.drawable.ic_send_black,
             recordIcon = R.drawable.ic_mic_black,
             addImageIcon = R.drawable.ic_image_black,
             seeMemo = R.drawable.calendar_shape_fox_today,
