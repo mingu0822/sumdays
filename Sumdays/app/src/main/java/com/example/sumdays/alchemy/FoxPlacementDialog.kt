@@ -38,7 +38,6 @@ class FoxPlacementDialog : DialogFragment() {
         val items = requireArguments().getIntArray(ITEM_IDS)?.toList().orEmpty().mapNotNull(AllItemMap.allItemMap::get)
         editor.setFox(AlchemyRecipeManager.createFox(-1, "Preview", items, draft))
         val faceName = items.find { it.itemCategory == ItemCategory.FOXFACE }?.name ?: "기본 표정"
-        view.findViewById<TextView>(R.id.placementFaceLabel).text = "표정: $faceName"
         savedInstanceState?.getInt(SELECTED)?.let(editor::select)
         val layerGroup = view.findViewById<ChipGroup>(R.id.placementLayers)
         val scale = view.findViewById<SeekBar>(R.id.placementScale)
