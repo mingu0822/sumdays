@@ -1,0 +1,13 @@
+// Use a separate package and disable background work only in the instrumentation process.
+// gradlew -I gradle/inventory-device-tests.init.gradle :app:connectedDebugAndroidTest
+gradle.beforeProject { project ->
+    project.plugins.withId('com.android.application') {
+        project.androidComponents.finalizeDsl { android ->
+            android.buildTypes.getByName('debug').applicationIdSuffix = '.inventorycheck'
+            android.defaultConfig.testInstrumentationRunner =
+                'com.example.sumdays.auth.InventoryTestRunner'
+            android.defaultConfig.testInstrumentationRunnerArguments['class'] =
+                'com.example.sumdays.auth.AccountInventoryDeviceTest'
+        }
+    }
+}

@@ -35,6 +35,7 @@ class ShopActivity : AppCompatActivity() {
     private lateinit var tvCurrencyValue: TextView
     private lateinit var chipTheme: TextView
     private lateinit var chipItem: TextView
+    private lateinit var chipSticker: TextView
 
     private lateinit var rvShopItems: RecyclerView
     private lateinit var shopAdapter: ShopAdapter
@@ -106,6 +107,7 @@ class ShopActivity : AppCompatActivity() {
 
         chipTheme = findViewById(R.id.chipTheme)
         chipItem = findViewById(R.id.chipItem)
+        chipSticker = findViewById(R.id.chipSticker)
 
         rvShopItems = findViewById(R.id.rvShopItems)
 
@@ -138,6 +140,10 @@ class ShopActivity : AppCompatActivity() {
                     }
 
                     is FoxShopItem -> {
+                        tryPurchaseItem(item)
+                    }
+
+                    is StickerShopItem -> {
                         tryPurchaseItem(item)
                     }
                 }
@@ -189,6 +195,10 @@ class ShopActivity : AppCompatActivity() {
             )
         }
 
+        allItems.addAll(StickerCatalog.items.map { sticker ->
+            sticker.copy(isOwned = StickerPrefs.getCount(this, sticker.id) > 0)
+        })
+
         ThemeRepository.updateOwned()
     }
 
@@ -200,6 +210,10 @@ class ShopActivity : AppCompatActivity() {
 
         chipItem.setOnClickListener {
             filterItems("item")
+        }
+
+        chipSticker.setOnClickListener {
+            filterItems("sticker")
         }
 
         val group = findViewById<ChipGroup>(R.id.shopItemCategories)
@@ -238,6 +252,9 @@ class ShopActivity : AppCompatActivity() {
                     selectedItemCategory == null || it.itemCategory == selectedItemCategory
                 })
 
+            "sticker" ->
+                filteredItems.addAll(allItems.filterIsInstance<StickerShopItem>())
+
             else ->
                 filteredItems.addAll(allItems)
         }
@@ -257,35 +274,19 @@ class ShopActivity : AppCompatActivity() {
     }
 
     private fun updateChipStyle() {
+        val tabs = listOf("theme" to chipTheme, "item" to chipItem, "sticker" to chipSticker)
+        tabs.forEach { (category, tab) ->
+            tab.isSelected = selectedCategory == category
+            tab.setTextColor(getColor(if (tab.isSelected) R.color.foxrange else android.R.color.black))
+        }
 
-        chipTheme.post {
-
-            val width = chipTheme.width
-
-            val params = indicator.layoutParams
-            params.width = width
-            indicator.layoutParams = params
-
-            if (selectedCategory == "theme") {
-
-                chipTheme.setTextColor(getColor(R.color.foxrange))
-                chipItem.setTextColor(getColor(android.R.color.black))
-
-                indicator.animate()
-                    .translationX(0f)
-                    .setDuration(200)
-                    .start()
-
-            } else {
-
-                chipTheme.setTextColor(getColor(android.R.color.black))
-                chipItem.setTextColor(getColor(R.color.foxrange))
-
-                indicator.animate()
-                    .translationX(width.toFloat())
-                    .setDuration(200)
-                    .start()
-            }
+        indicator.post {
+            val selectedTab = tabs.first { it.first == selectedCategory }.second
+            indicator.layoutParams = indicator.layoutParams.apply { width = selectedTab.width }
+            indicator.animate()
+                .translationX((selectedTab.left - indicator.left).toFloat())
+                .setDuration(200)
+                .start()
         }
     }
 
@@ -348,6 +349,11 @@ class ShopActivity : AppCompatActivity() {
             is FoxShopItem -> {
 
                 ItemPrefs.addItem(this,item.id)
+            }
+
+            is StickerShopItem -> {
+                StickerPrefs.addSticker(this, item.id)
+                item.isOwned = true
             }
         }
 

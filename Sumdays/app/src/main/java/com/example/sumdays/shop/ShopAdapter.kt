@@ -10,6 +10,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.ItemPrefs
 import com.example.sumdays.shop.ThemeShopItem
+import com.example.sumdays.shop.StickerPrefs
+import com.example.sumdays.shop.StickerShopItem
 import com.example.sumdays.theme.ThemePrefs
 
 class ShopAdapter(
@@ -148,8 +150,22 @@ class ShopAdapter(
                     btnShopItemAction.text = "구매"
                     btnShopItemAction.isEnabled = true
                 }
+
+                is StickerShopItem -> {
+                    val count = StickerPrefs.getCount(context, item.id)
+                    tvShopItemPrice.text = context.getString(R.string.shop_sticker_price, item.price)
+                    tvPurchasedBadge.visibility = if (count > 0) View.VISIBLE else View.GONE
+                    tvPurchasedBadge.text = context.getString(R.string.shop_sticker_owned, count)
+                    tvPurchasedBadge.setBackgroundResource(R.drawable.bg_label_applied)
+                    tvPurchasedBadge.setTextColor(context.getColor(android.R.color.black))
+                    btnShopItemAction.setText(R.string.shop_sticker_buy)
+                    btnShopItemAction.isEnabled = true
+                }
             }
 
+            val imagePadding = ((if (item is StickerShopItem) 2 else 12) *
+                context.resources.displayMetrics.density).toInt()
+            ivShopItemImage.setPadding(imagePadding, imagePadding, imagePadding, imagePadding)
             ivShopItemImage.setImageResource(item.imageRes)
 
             btnShopItemAction.setOnClickListener {

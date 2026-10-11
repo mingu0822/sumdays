@@ -149,6 +149,17 @@
                 android:textStyle="bold"
                 android:textSize="18sp"/>
 
+            <TextView
+                android:id="@+id/chipSticker"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackground"
+                android:text="@string/shop_sticker_tab"
+                android:textStyle="bold"
+                android:textSize="18sp"/>
+
         </LinearLayout>
 
         <!-- 밑줄 -->
@@ -184,19 +195,26 @@
     </LinearLayout>
 
     <!-- 상품 리스트 -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvShopItems"
+    <FrameLayout
+        android:id="@+id/shopItemsContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="14dp"
-        android:clipToPadding="false"
-        android:paddingBottom="140dp"
-        tools:itemCount="6"
-        tools:listitem="@layout/item_shop"
+        android:clipChildren="true"
         app:layout_constraintTop_toBottomOf="@id/categoryLayout"
         app:layout_constraintStart_toStartOf="@id/categoryLayout"
         app:layout_constraintEnd_toEndOf="@id/categoryLayout"
-        app:layout_constraintBottom_toTopOf="@id/cardSelectedItem"/>
+        app:layout_constraintBottom_toTopOf="@id/cardSelectedItem">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvShopItems"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="140dp"
+            tools:itemCount="6"
+            tools:listitem="@layout/item_shop" />
+    </FrameLayout>
 
     <!-- 선택 상품 카드 -->
     <com.google.android.material.card.MaterialCardView
