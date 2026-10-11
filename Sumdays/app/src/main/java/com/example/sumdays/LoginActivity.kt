@@ -54,7 +54,9 @@ class LoginActivity : AppCompatActivity() {
             startActivity(intent)
         }
         binding.skipText.setOnClickListener {
+            SessionManager.clearSession()
             val intent = Intent(this, CalendarActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }
     }
@@ -84,9 +86,11 @@ class LoginActivity : AppCompatActivity() {
 
                     if (loginResponse != null && loginResponse.success && loginResponse.token != null && loginResponse.userId != null) {
                         // 5. 로그인 성공: 서버가 보내준 token과 userId를 저장합니다.
+                        if (!SessionManager.saveSession(loginResponse.userId, loginResponse.token)) {
+                            Toast.makeText(this@LoginActivity, "로그인 정보를 저장하지 못했습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
+                            return
+                        }
                         Toast.makeText(this@LoginActivity, "로그인 성공!", Toast.LENGTH_SHORT).show()
-
-                        SessionManager.saveSession(loginResponse.userId, loginResponse.token)
 
                         // 닉네임 저장 로직
                         loginResponse.nickname?.let {
@@ -99,6 +103,7 @@ class LoginActivity : AppCompatActivity() {
 
                         // 메인 화면으로 이동
                         val intent = Intent(this@LoginActivity, CalendarActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
                         finish() // 로그인 화면은 종료
                     } else {

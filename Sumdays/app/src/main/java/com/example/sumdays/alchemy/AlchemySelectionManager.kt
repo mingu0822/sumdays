@@ -1,6 +1,7 @@
 package com.example.sumdays.alchemy
 
 import android.content.Context
+import com.example.sumdays.auth.AccountStorage
 import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.AllItemMap
 import com.example.sumdays.shop.ItemCategory
@@ -14,6 +15,21 @@ object AlchemySelectionManager {
     // 카테고리별 선택된 아이템
     private val selectedMap =
         mutableMapOf<ItemCategory, FoxShopItem>()
+    private var selectedAccount: String? = null
+
+    /** Pending reservations stay in their owner's preferences during account switches. */
+    fun resetMemory() {
+        selectedMap.clear()
+        selectedAccount = null
+    }
+
+    private fun ensureLoaded(context: Context) {
+        if (selectedAccount != AccountStorage.accountKey()) resumePendingSelection(context)
+    }
+
+    private fun discardPreviousAccount() {
+        if (selectedAccount != AccountStorage.accountKey()) selectedMap.clear()
+    }
 
     /**
      * 아이템 선택 / 해제
@@ -24,6 +40,7 @@ object AlchemySelectionManager {
         context: Context,
         item: FoxShopItem
     ): List<FoxShopItem> {
+        ensureLoaded(context)
 
         val current =
             selectedMap[item.itemCategory]
@@ -84,12 +101,14 @@ object AlchemySelectionManager {
      * 현재 선택된 아이템
      */
     fun getSelectedItems(): List<FoxShopItem> {
+        discardPreviousAccount()
         return selectedMap.values.toList()
     }
 
     /** Resume the editor after process recreation without reserving the items twice. */
     fun resumePendingSelection(context: Context) {
-        val ids = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        selectedAccount = AccountStorage.accountKey()
+        val ids = AccountStorage.preferences(context, PREF_NAME)
             .getStringSet(KEY_SELECTED_IDS, emptySet()).orEmpty()
         selectedMap.clear()
         ids.mapNotNull { it.toIntOrNull()?.let(AllItemMap.allItemMap::get) }.forEach {
@@ -103,6 +122,7 @@ object AlchemySelectionManager {
     fun isSelected(
         item: FoxShopItem
     ): Boolean {
+        discardPreviousAccount()
 
         return selectedMap[
             item.itemCategory
@@ -115,6 +135,7 @@ object AlchemySelectionManager {
     fun getSelected(
         category: ItemCategory
     ): FoxShopItem? {
+        discardPreviousAccount()
 
         return selectedMap[category]
     }
@@ -128,6 +149,7 @@ object AlchemySelectionManager {
     fun commit(
         context: Context
     ) {
+        ensureLoaded(context)
 
         selectedMap.clear()
 
@@ -144,6 +166,7 @@ object AlchemySelectionManager {
     fun clear(
         context: Context
     ) {
+        ensureLoaded(context)
 
         selectedMap.values.forEach { item ->
 
@@ -170,12 +193,10 @@ object AlchemySelectionManager {
     fun restorePendingSelection(
         context: Context
     ) {
+        selectedAccount = AccountStorage.accountKey()
 
         val prefs =
-            context.getSharedPreferences(
-                PREF_NAME,
-                Context.MODE_PRIVATE
-            )
+            AccountStorage.preferences(context, PREF_NAME)
 
         val ids =
             prefs.getStringSet(
@@ -214,11 +235,7 @@ object AlchemySelectionManager {
                 .map { it.id.toString() }
                 .toSet()
 
-        context
-            .getSharedPreferences(
-                PREF_NAME,
-                Context.MODE_PRIVATE
-            )
+        AccountStorage.preferences(context, PREF_NAME)
             .edit()
             .putStringSet(
                 KEY_SELECTED_IDS,
@@ -234,11 +251,7 @@ object AlchemySelectionManager {
         context: Context
     ) {
 
-        context
-            .getSharedPreferences(
-                PREF_NAME,
-                Context.MODE_PRIVATE
-            )
+        AccountStorage.preferences(context, PREF_NAME)
             .edit()
             .remove(
                 KEY_SELECTED_IDS

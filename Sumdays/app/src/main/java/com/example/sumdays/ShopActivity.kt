@@ -2,6 +2,8 @@ package com.example.sumdays
 
 import android.content.res.ColorStateList
 import android.os.Bundle
+import com.example.sumdays.auth.AccountInventory
+import com.example.sumdays.auth.InventoryOwner
 import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
@@ -24,6 +26,7 @@ import com.example.sumdays.ui.component.setupBackToCalendar
 
 
 class ShopActivity : AppCompatActivity() {
+    private lateinit var inventoryOwner: InventoryOwner
 
     private lateinit var backButton: ImageButton
 
@@ -51,7 +54,9 @@ class ShopActivity : AppCompatActivity() {
     private var selectedItemCategory: ItemCategory? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        inventoryOwner = InventoryOwner(savedInstanceState)
         super.onCreate(savedInstanceState)
+        if (!inventoryOwner.requireCurrent(this)) return
         setContentView(R.layout.activity_shop)
 
         currentPoint = PointPrefs.getPoint(this)
@@ -78,9 +83,19 @@ class ShopActivity : AppCompatActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        inventoryOwner.saveState(outState)
         super.onSaveInstanceState(outState)
         outState.putString("shop_category", selectedCategory)
         outState.putString("item_category", selectedItemCategory?.name)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!inventoryOwner.requireCurrent(this)) return
+        currentPoint = PointPrefs.getPoint(this)
+        loadItems()
+        filterItems(selectedCategory)
+        updatePointUI()
     }
 
     private fun initViews() {
@@ -108,6 +123,8 @@ class ShopActivity : AppCompatActivity() {
 
             onActionClick = { item ->
 
+                if (!inventoryOwner.requireCurrent(this)) return@ShopAdapter
+
                 selectedItem = item
 
                 when(item){
@@ -134,6 +151,7 @@ class ShopActivity : AppCompatActivity() {
     private fun loadItems() {
 
         allItems.clear()
+        AccountInventory.refreshOwnership(this)
 
         AllThemeMap.allThemeMap.forEach { (id, theme) ->
 
@@ -154,7 +172,8 @@ class ShopActivity : AppCompatActivity() {
 
         AllItemMap.allItemMap.forEach { (id, fox) ->
 
-            fox.isOwned = OwnedPrefs.isOwned(this, id)
+            fox.count = ItemPrefs.getCount(this, id)
+            fox.isOwned = fox.count > 0
 
             allItems.add(
                 FoxShopItem(
@@ -282,6 +301,7 @@ class ShopActivity : AppCompatActivity() {
     }
 
     private fun applyItem(item: ShopItem) {
+        if (!inventoryOwner.requireCurrent(this)) return
 
         when (item) {
 
@@ -300,6 +320,14 @@ class ShopActivity : AppCompatActivity() {
     }
 
     private fun tryPurchaseItem(item: ShopItem){
+        if (!inventoryOwner.requireCurrent(this)) return
+        currentPoint = PointPrefs.getPoint(this)
+
+        if (item is ThemeShopItem && OwnedPrefs.isOwned(this, item.id)) {
+            item.isOwned = true
+            applyItem(item)
+            return
+        }
 
         if(currentPoint < item.price){
             Toast.makeText(this,"포인트가 부족합니다.",Toast.LENGTH_SHORT).show()
@@ -325,6 +353,7 @@ class ShopActivity : AppCompatActivity() {
 
         updatePointUI()
         shopAdapter.notifyDataSetChanged()
+        AccountInventory.refreshOwnership(this)
 
         Toast.makeText(this,"${item.name} 구매 완료",Toast.LENGTH_SHORT).show()
     }

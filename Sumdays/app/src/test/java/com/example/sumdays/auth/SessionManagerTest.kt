@@ -1,8 +1,8 @@
 package com.example.sumdays.auth
 
 import android.content.Context
+import android.app.Application
 import androidx.test.core.app.ApplicationProvider
-import com.example.sumdays.TestApplication
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -17,7 +17,7 @@ import javax.crypto.spec.SecretKeySpec
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34],
-    application = TestApplication::class)
+    application = Application::class)
 class SessionManagerTest {
 
     private lateinit var context: Context
@@ -47,11 +47,15 @@ class SessionManagerTest {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().clear().apply()
         prefsField.set(SessionManager, prefs)
+        SessionManager::class.java.getDeclaredField("applicationContext").apply {
+            isAccessible = true
+            set(SessionManager, context)
+        }
     }
 
     @Test
     fun save_and_load_token_roundtrip() {
-        SessionManager.saveSession(42, "secret_abc")
+        assertTrue(SessionManager.saveSession(42, "secret_abc"))
         assertEquals("secret_abc", SessionManager.getToken())
         assertEquals(42, SessionManager.getUserId())
     }
@@ -78,5 +82,19 @@ class SessionManagerTest {
         prefs.edit().putString("encrypted_auth_token", "BADBASE64").apply()
         prefs.edit().putString("encryption_iv", "BADIV").apply()
         assertNull(SessionManager.getToken())
+    }
+
+    @Test
+    fun failed_session_save_preserves_previous_account_and_inventory() {
+        assertTrue(SessionManager.saveSession(10, "first-token"))
+        com.example.sumdays.shop.PointPrefs.savePoint(context, 1234)
+        Mockito.`when`(mockKeyStore.getKey(KEY_ALIAS, null))
+            .thenThrow(java.security.UnrecoverableKeyException("test failure"))
+
+        assertFalse(SessionManager.saveSession(20, "next-token"))
+        assertEquals(10, SessionManager.getUserId())
+        assertEquals(1234, com.example.sumdays.shop.PointPrefs.getPoint(context))
+        assertFalse(SessionManager.saveSession(-1, "invalid-user"))
+        assertFalse(SessionManager.saveSession(20, ""))
     }
 }

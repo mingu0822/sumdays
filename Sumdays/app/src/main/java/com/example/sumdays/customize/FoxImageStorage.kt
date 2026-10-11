@@ -2,66 +2,15 @@ package com.example.sumdays.customize
 
 import android.content.Context
 import android.graphics.Bitmap
-import java.io.File
 
+/** All fox images use the same account-owned preview directory. */
 object FoxImageStorage {
+    fun save(context: Context, bitmap: Bitmap, foxId: Int): String =
+        FoxBitmapRenderer.savePreview(context, foxId, bitmap)
 
-    private const val FOLDER_NAME = "foxes"
+    fun load(context: Context, path: String): Bitmap? =
+        FoxBitmapRenderer.loadPreview(context, path)
 
-    fun save(
-        context: Context,
-        bitmap: Bitmap,
-        foxId: Int
-    ): String {
-
-        val folder = File(
-            context.filesDir,
-            FOLDER_NAME
-        )
-
-        if (!folder.exists()) {
-            folder.mkdirs()
-        }
-
-        val file = File(
-            folder,
-            "fox_$foxId.png"
-        )
-
-        file.outputStream().use { outputStream ->
-
-            bitmap.compress(
-                Bitmap.CompressFormat.PNG,
-                100,
-                outputStream
-            )
-        }
-
-        return file.absolutePath
-    }
-
-    fun load(
-        path: String
-    ): Bitmap? {
-
-        val file = File(path)
-
-        if (!file.exists()) {
-            return null
-        }
-
-        return android.graphics.BitmapFactory
-            .decodeFile(file.absolutePath)
-    }
-
-    fun delete(
-        path: String
-    ) {
-
-        val file = File(path)
-
-        if (file.exists()) {
-            file.delete()
-        }
-    }
+    fun delete(context: Context, path: String) =
+        FoxBitmapRenderer.deletePreview(context, path)
 }

@@ -9,6 +9,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.customize.AllFoxMap
+import com.example.sumdays.auth.InventoryOwner
 import com.example.sumdays.customize.CompleteFox
 import com.example.sumdays.customize.FoxAdapter
 import com.example.sumdays.customize.FoxBitmapRenderer
@@ -29,6 +30,7 @@ import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.ui.component.setupBackToCalendar
 
 class CustomizeActivity : AppCompatActivity() {
+    private lateinit var inventoryOwner: InventoryOwner
 
     private lateinit var btnShop: ImageButton
     private lateinit var btnAlchemy: ImageButton
@@ -50,7 +52,9 @@ class CustomizeActivity : AppCompatActivity() {
     private var selectedTheme: Theme? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        inventoryOwner = InventoryOwner(savedInstanceState)
         super.onCreate(savedInstanceState)
+        if (!inventoryOwner.requireCurrent(this)) return
         setContentView(R.layout.activity_customize)
 
         initViews()
@@ -66,6 +70,7 @@ class CustomizeActivity : AppCompatActivity() {
         setupEdgeToEdge(rootLayout)
 
         btnAlchemy.setOnClickListener {
+            if (!inventoryOwner.requireCurrent(this)) return@setOnClickListener
 
             startActivity(
                 Intent(this, FoxAlchemyActivity::class.java)
@@ -131,6 +136,7 @@ class CustomizeActivity : AppCompatActivity() {
 
         // 1. 저장된 PNG가 있으면 사용
         val bitmap = FoxBitmapRenderer.loadPreview(
+            this,
             fox.previewPath
         )
 
@@ -170,6 +176,7 @@ class CustomizeActivity : AppCompatActivity() {
             appliedTheme = ThemePrefs.getTheme(this),
 
             onClick = { theme ->
+                if (!inventoryOwner.requireCurrent(this)) return@ThemeAdapter
 
                 ThemePrefs.saveTheme(
                     this,
@@ -202,6 +209,7 @@ class CustomizeActivity : AppCompatActivity() {
             appliedFox = ThemePrefs.getFoxItem(this),
 
             onClick = { fox ->
+                if (!inventoryOwner.requireCurrent(this)) return@FoxAdapter
 
                 ThemePrefs.saveFoxItem(
                     this,
@@ -238,6 +246,7 @@ class CustomizeActivity : AppCompatActivity() {
     private fun showDeleteFoxDialog(
         fox: CompleteFox
     ) {
+        if (!inventoryOwner.requireCurrent(this)) return
 
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("여우 삭제")
@@ -260,6 +269,7 @@ class CustomizeActivity : AppCompatActivity() {
     private fun deleteFox(
         fox: CompleteFox
     ) {
+        if (!inventoryOwner.requireCurrent(this)) return
 
         // 현재 적용 중인 여우라면 기본 여우로 변경
         if (ThemePrefs.getFoxItem(this) == fox.id) {
@@ -343,6 +353,7 @@ class CustomizeActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (!inventoryOwner.requireCurrent(this)) return
 
         // 상점/연금술에서 돌아왔을 때 목록 갱신
         loadThemes()
@@ -384,5 +395,10 @@ class CustomizeActivity : AppCompatActivity() {
         foxAdapter.setAppliedFox(
             ThemePrefs.getFoxItem(this)
         )
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        inventoryOwner.saveState(outState)
+        super.onSaveInstanceState(outState)
     }
 }

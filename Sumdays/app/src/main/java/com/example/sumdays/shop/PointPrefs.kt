@@ -1,6 +1,7 @@
 package com.example.sumdays.shop
 
 import android.content.Context
+import com.example.sumdays.auth.AccountStorage
 
 object PointPrefs {
 
@@ -9,12 +10,12 @@ object PointPrefs {
     private const val DEFAULT_POINT = 9000
 
     fun savePoint(context: Context, point: Int) {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
         prefs.edit().putInt(KEY_POINT, point).apply()
     }
 
     fun getPoint(context: Context): Int {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
         return prefs.getInt(KEY_POINT, DEFAULT_POINT)
     }
 

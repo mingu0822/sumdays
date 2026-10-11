@@ -51,7 +51,7 @@ class LoginActivityTest {
 
         // 동작 정의
         every { ApiClient.api } returns apiMock
-        every { SessionManager.saveSession(any(), any()) } just Runs
+        every { SessionManager.saveSession(any(), any()) } returns true
 
         // WorkManager.getInstance()가 Mock을 반환하도록 설정
         every { WorkManager.getInstance(any<Context>()) } returns mockWorkManager

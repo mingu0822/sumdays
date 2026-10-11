@@ -5,11 +5,30 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0e1f41c8-f7db-4c93-abfb-5cdd3d2f2f7c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/CustomizeActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/CustomizeActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/FoxAlchemyActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/FoxAlchemyActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/LoginActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/LoginActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/MyApplication.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/MyApplication.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/ShopActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/ShopActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/alchemy/AlchemyInventoryBottomSheet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/alchemy/AlchemyInventoryBottomSheet.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/alchemy/AlchemySelectionManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/alchemy/AlchemySelectionManager.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/alchemy/FoxPlacementDialog.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/alchemy/FoxPlacementDialog.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_sum.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_sum.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/dialog_fox_placement.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/dialog_fox_placement.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/auth/SessionManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/auth/SessionManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/customize/AllFoxMap.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/customize/AllFoxMap.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/customize/FoxBitmapRenderer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/customize/FoxBitmapRenderer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/customize/FoxImageStorage.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/customize/FoxImageStorage.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/customize/FoxPrefs.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/customize/FoxPrefs.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/settings/ThemeSettingsActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/settings/ThemeSettingsActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/shop/ItemPrefs.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/shop/ItemPrefs.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/shop/PointPrefs.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/shop/PointPrefs.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/theme/OwnedPrefs.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/theme/OwnedPrefs.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/theme/ThemePrefs.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/theme/ThemePrefs.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/test/java/com/example/sumdays/LoginActivityTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/test/java/com/example/sumdays/LoginActivityTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/test/java/com/example/sumdays/alchemy/FoxPlacementTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/test/java/com/example/sumdays/alchemy/FoxPlacementTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/test/java/com/example/sumdays/auth/SessionManagerTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/test/java/com/example/sumdays/auth/SessionManagerTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/gradle/fox-placement-tests.init.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/gradle/fox-placement-tests.init.gradle" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,7 +73,7 @@
     &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
     &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
     &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;fox-alchemy-individual&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/kimon/AndroidStudioProjects/sumdays&quot;,
     &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
