@@ -1,6 +1,7 @@
 package com.example.sumdays.shop
 
 import android.content.Context
+import com.example.sumdays.auth.AccountStorage
 
 object ItemPrefs {
 
@@ -10,7 +11,7 @@ object ItemPrefs {
      * 아이템 1개 추가
      */
     fun addItem(context: Context, itemId: Int) {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
 
         val current = prefs.getInt(itemId.toString(), 0)
 
@@ -23,7 +24,7 @@ object ItemPrefs {
      * 현재 보유 개수
      */
     fun getCount(context: Context, itemId: Int): Int {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
         return prefs.getInt(itemId.toString(), 0)
     }
 
@@ -31,7 +32,7 @@ object ItemPrefs {
      * 개수 설정 (필요하면 사용)
      */
     fun setCount(context: Context, itemId: Int, count: Int) {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
 
         prefs.edit()
             .putInt(itemId.toString(), count)
@@ -44,7 +45,7 @@ object ItemPrefs {
      * 부족하면 false
      */
     fun useItem(context: Context, itemId: Int): Boolean {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
 
         val current = prefs.getInt(itemId.toString(), 0)
 
@@ -60,7 +61,7 @@ object ItemPrefs {
      * 모든 아이템 초기화
      */
     fun clear(context: Context) {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
         prefs.edit().clear().apply()
     }
 }

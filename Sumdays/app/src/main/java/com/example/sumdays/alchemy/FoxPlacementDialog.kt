@@ -11,6 +11,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
 import com.example.sumdays.R
+import com.example.sumdays.auth.InventoryOwner
 import com.example.sumdays.customize.FoxItemPlacement
 import com.example.sumdays.shop.AllItemMap
 import com.example.sumdays.shop.ItemCategory
@@ -19,11 +20,13 @@ import com.google.android.material.chip.ChipGroup
 import kotlin.math.roundToInt
 
 class FoxPlacementDialog : DialogFragment() {
+    private lateinit var inventoryOwner: InventoryOwner
     private var canvas: FoxPlacementView? = null
     private var accepted = false
     private var draft = arrayListOf<FoxItemPlacement>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        inventoryOwner = InventoryOwner(savedInstanceState)
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NO_TITLE, R.style.Theme_First)
         draft = (savedInstanceState ?: requireArguments()).getParcelableArrayList(PLACEMENTS) ?: arrayListOf()
@@ -122,12 +125,17 @@ class FoxPlacementDialog : DialogFragment() {
 
     override fun onStart() {
         super.onStart()
+        if (!inventoryOwner.isCurrent) {
+            dismissAllowingStateLoss()
+            return
+        }
         dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         dialog?.setCanceledOnTouchOutside(false)
         view?.let(ViewCompat::requestApplyInsets)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        inventoryOwner.saveState(outState)
         super.onSaveInstanceState(outState)
         outState.putParcelableArrayList(PLACEMENTS, draft)
         outState.putInt(SELECTED, canvas?.selectedItemId ?: -1)
@@ -136,6 +144,7 @@ class FoxPlacementDialog : DialogFragment() {
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         if (activity?.isChangingConfigurations == true || activity?.isFinishing == true) return
+        if (!inventoryOwner.isCurrent) return
         parentFragmentManager.setFragmentResult(RESULT, Bundle().apply {
             putBoolean(ACCEPTED, accepted)
             putIntArray(ITEM_IDS, requireArguments().getIntArray(ITEM_IDS))

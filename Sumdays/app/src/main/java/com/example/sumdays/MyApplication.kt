@@ -1,6 +1,7 @@
 package com.example.sumdays
 
 import android.app.Application
+import com.example.sumdays.auth.SessionManager
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatDelegate
@@ -31,6 +32,7 @@ open class MyApplication : Application() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
+        SessionManager.init(this)
         AndroidThreeTen.init(this)
         BackupScheduler.scheduleAutoBackup(this)
         WeekSummaryScheduler.scheduleWeeklyTask(this)

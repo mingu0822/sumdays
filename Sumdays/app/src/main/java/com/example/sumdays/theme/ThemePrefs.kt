@@ -1,6 +1,7 @@
 package com.example.sumdays.theme
 
 import android.content.Context
+import com.example.sumdays.auth.AccountStorage
 
 object ThemePrefs {
 
@@ -11,7 +12,7 @@ object ThemePrefs {
     private const val KEY_FOX = "selected_fox"
 
     fun saveTheme(context: Context, themeId: Int) {
-        val prefs = context.getSharedPreferences(PREF_THEME, Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, PREF_THEME)
 
         prefs.edit()
             .putInt(KEY_THEME, themeId)
@@ -19,13 +20,13 @@ object ThemePrefs {
     }
 
     fun getTheme(context: Context): Int {
-        val prefs = context.getSharedPreferences(PREF_THEME, Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, PREF_THEME)
 
         return prefs.getInt(KEY_THEME, 1)
     }
 
     fun saveFoxItem(context: Context, foxId: Int) {
-        val prefs = context.getSharedPreferences(PREF_FOX, Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, PREF_FOX)
 
         prefs.edit()
             .putInt(KEY_FOX, foxId)
@@ -33,7 +34,7 @@ object ThemePrefs {
     }
 
     fun getFoxItem(context: Context): Int {
-        val prefs = context.getSharedPreferences(PREF_FOX, Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, PREF_FOX)
 
         return prefs.getInt(KEY_FOX, 1)
     }

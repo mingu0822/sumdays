@@ -19,3 +19,6 @@
 
 # server storage
 /sumdays-backend/storage
+
+# Private, durable device recovery backups (not build outputs)
+/local-backups/

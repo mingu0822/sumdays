@@ -1,6 +1,7 @@
 package com.example.sumdays.customize
 
 import android.content.Context
+import com.example.sumdays.auth.AccountStorage
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -251,10 +252,7 @@ object FoxBitmapRenderer {
         bitmap: Bitmap
     ): String {
 
-        val directory = context.getDir(
-            "fox_previews",
-            Context.MODE_PRIVATE
-        )
+        val directory = AccountStorage.directory(context, "fox_previews")
 
         val file = File(
             directory,
@@ -278,13 +276,10 @@ object FoxBitmapRenderer {
      * 저장된 미리보기 이미지 불러오기
      */
     fun loadPreview(
+        context: Context,
         previewPath: String?
     ): Bitmap? {
-
-        if (previewPath.isNullOrEmpty())
-            return null
-
-        val file = File(previewPath)
+        val file = AccountStorage.ownedFile(context, "fox_previews", previewPath) ?: return null
 
         if (!file.exists())
             return null
@@ -299,13 +294,10 @@ object FoxBitmapRenderer {
      * 특정 여우의 미리보기 파일 삭제
      */
     fun deletePreview(
+        context: Context,
         previewPath: String?
     ) {
-
-        if (previewPath.isNullOrEmpty())
-            return
-
-        val file = File(previewPath)
+        val file = AccountStorage.ownedFile(context, "fox_previews", previewPath) ?: return
 
         if (file.exists()) {
             file.delete()

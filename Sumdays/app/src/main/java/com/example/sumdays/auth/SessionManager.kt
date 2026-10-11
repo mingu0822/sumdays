@@ -34,11 +34,13 @@ object SessionManager {
 
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var keyStore: KeyStore
+    private var applicationContext: Context? = null
 
     /**
      * 이 함수를 Application 클래스나 MainActivity의 onCreate에서 최초 한 번만 호출해야 함
      */
     fun init(context: Context) {
+        applicationContext = context.applicationContext
         sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
         keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply {
@@ -48,6 +50,7 @@ object SessionManager {
         if (!keyStore.containsAlias(KEY_ALIAS)) {
             generateSecretKey()
         }
+        AccountInventory.onSessionChanged(context.applicationContext)
     }
 
     private fun generateSecretKey() {
@@ -76,8 +79,9 @@ object SessionManager {
     /**
      * 로그인 성공 시 사용자 정보와 인증 토큰을 암호화하여 저장
      */
-    fun saveSession(userId: Int, token: String) {
-        try {
+    fun saveSession(userId: Int, token: String): Boolean {
+        if (userId < 0 || token.isBlank()) return false
+        return try {
             val secretKey = getSecretKey()
             val cipher = Cipher.getInstance(TRANSFORMATION)
             cipher.init(Cipher.ENCRYPT_MODE, secretKey)
@@ -94,8 +98,11 @@ object SessionManager {
                 putString(ENCRYPTION_IV, ivString)
                 apply()
             }
+            applicationContext?.let(AccountInventory::onSessionChanged)
+            true
         } catch (e: Exception) {
             e.printStackTrace()
+            false
         }
     }
 
@@ -132,7 +139,7 @@ object SessionManager {
      * 저장된 사용자 ID를 가져옴
      */
     fun getUserId(): Int {
-        return sharedPreferences.getInt(KEY_USER_ID, -1)
+        return if (::sharedPreferences.isInitialized) sharedPreferences.getInt(KEY_USER_ID, -1) else -1
     }
 
     /**
@@ -147,6 +154,7 @@ object SessionManager {
      */
     fun clearSession() {
         sharedPreferences.edit().clear().apply()
+        applicationContext?.let(AccountInventory::onSessionChanged)
     }
 }
 /*
