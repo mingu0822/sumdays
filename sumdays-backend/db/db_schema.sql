@@ -1,5 +1,6 @@
 -- 🧹 기존 테이블 전부 삭제 (외래키 무시)
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS diary_stickers;
 DROP TABLE IF EXISTS user_style;
 DROP TABLE IF EXISTS week_summary;
 DROP TABLE IF EXISTS memo;

@@ -28,5 +28,6 @@ router.use('/db/daily/photos', photosRoutes);
 
 router.use('/friend', requireLogin);
 router.use('/friend', friendRoutes);
+router.use('/stickers', requireLogin, require('./stickers'));
 
 module.exports = router;

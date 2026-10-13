@@ -32,7 +32,7 @@ object ApiClient {
 
                 // 3. 토큰이 있다면 헤더를 추가한 새로운 요청을 생성
                 val newRequestBuilder = originalRequest.newBuilder()
-                if (token != null) {
+                if (token != null && originalRequest.header("Authorization") == null) {
                     newRequestBuilder.addHeader("Authorization", "Bearer $token")
                 }
 
@@ -59,5 +59,9 @@ object ApiClient {
 
     val socialApi: SocialApiService by lazy {
         retrofit.create(SocialApiService::class.java)
+    }
+
+    val stickerApi: com.example.sumdays.stickers.StickerApi by lazy {
+        retrofit.create(com.example.sumdays.stickers.StickerApi::class.java)
     }
 }

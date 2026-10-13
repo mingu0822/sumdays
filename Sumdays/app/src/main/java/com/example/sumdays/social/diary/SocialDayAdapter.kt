@@ -181,6 +181,7 @@ class SocialDayAdapter(
                                             SocialDailyReadActivity::class.java
                                         ).apply {
                                             putExtra("dailyEntry", dailyEntry)
+                                            putExtra("friendId", activity.friendId)
                                         }
                                     activity.startActivity(intent)
                                 }

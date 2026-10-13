@@ -36,6 +36,7 @@ async function initializeDatabase() {
 
     // 4️⃣ db_schema.sql의 전체 문장을 그대로 실행
     await connection.query(schemaSQL);
+    await connection.query(fs.readFileSync(path.join(__dirname, 'migrations/001_diary_stickers.sql'), 'utf8'));
     console.log('🎉 DB 스키마 적용 완료!');
 
     await connection.end();

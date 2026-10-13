@@ -22,6 +22,42 @@
         app:layout_constraintTop_toTopOf="parent">
 
 
+        <Button
+            android:id="@+id/sticker_button"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:minWidth="0dp"
+            android:paddingHorizontal="8dp"
+            android:text="스티커 꾸미기"
+            android:textSize="13sp"
+            android:visibility="gone"
+            android:backgroundTint="@color/foxrange"
+            android:textColor="@android:color/white"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/sticker_visibility_button"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <Button
+            android:id="@+id/sticker_visibility_button"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="8dp"
+            android:minWidth="0dp"
+            android:paddingHorizontal="8dp"
+            android:text="스티커 가리기"
+            android:textSize="13sp"
+            android:textColor="#534D46"
+            android:backgroundTint="#EDE9E2"
+            android:visibility="gone"
+            app:layout_constraintStart_toEndOf="@id/sticker_button"
+            app:layout_constraintEnd_toStartOf="@id/lock_toggle_button"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
         <ImageButton
             android:id="@+id/lock_toggle_button"
             android:layout_width="36dp"
@@ -115,15 +151,15 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="12dp"
         android:layout_marginBottom="28dp"
-        android:fillViewport="true"
+        android:fillViewport="false"
         android:clipToPadding="false"
         android:paddingBottom="0dp"
         app:layout_constraintBottom_toTopOf="@+id/photo_gallery_recycler_view"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/date_layout">
+        app:layout_constraintTop_toBottomOf="@id/date_layout">
 
-        <FrameLayout
+        <com.example.sumdays.stickers.StickerPageLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/blockstyle_d_basic"
@@ -152,7 +188,11 @@
                 android:textSize="@dimen/text_size_S"
                 android:visibility="gone"
                 tools:text="수정 모드..." />
-        </FrameLayout>
+            <com.example.sumdays.stickers.StickerCanvasView
+                android:id="@+id/diary_sticker_canvas"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </com.example.sumdays.stickers.StickerPageLayout>
     </ScrollView>
 
     <!-- 일기 수정 / 저장 버튼 -->

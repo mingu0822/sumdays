@@ -6,11 +6,22 @@
   <component name="ChangeListManager">
     <list default="true" id="0e1f41c8-f7db-4c93-abfb-5cdd3d2f2f7c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/DailyReadActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/DailyReadActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/ShopActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/ShopActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/shop/ShopAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/shop/ShopAdapter.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_shop.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_shop.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/values/strings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/network/ApiClient.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/network/ApiClient.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/shop/StickerPrefs.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/shop/StickerPrefs.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/social/diary/SocialDailyReadActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/social/diary/SocialDailyReadActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/social/diary/SocialDayAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/java/com/example/sumdays/social/diary/SocialDayAdapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_daily_read.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_daily_read.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_social_daily_read.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/app/src/main/res/layout/activity_social_daily_read.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Sumdays/docs/sticker-shop.md" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/docs/sticker-shop.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Sumdays/gradle/fox-placement-tests.init.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/Sumdays/gradle/fox-placement-tests.init.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sumdays-backend/db/db_schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/sumdays-backend/db/db_schema.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sumdays-backend/db/initDB.js" beforeDir="false" afterPath="$PROJECT_DIR$/sumdays-backend/db/initDB.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sumdays-backend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/sumdays-backend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sumdays-backend/routes/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/sumdays-backend/routes/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sumdays-backend/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/sumdays-backend/server.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,7 +66,7 @@
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "sticker",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/kimon/AndroidStudioProjects/sumdays",
     "show.migrate.to.gradle.popup": "false"

@@ -65,7 +65,8 @@ class ShopActivity : AppCompatActivity() {
         initViews()
         setupRecyclerView()
         loadItems()
-        selectedCategory = savedInstanceState?.getString("shop_category") ?: "theme"
+        selectedCategory = (savedInstanceState?.getString("shop_category")
+            ?: intent.getStringExtra("shop_category"))?.takeIf { it in listOf("theme", "item", "sticker") } ?: "theme"
         selectedItemCategory = ItemCategory.values().find {
             it.name == savedInstanceState?.getString("item_category")
         }

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="#FFFDF8">
+    <TextView android:id="@+id/stickerEditorTitle" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:padding="16dp" android:text="스티커 붙이기"
+        android:textColor="#2D2A26" android:textSize="20sp" android:textStyle="bold" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp" android:paddingBottom="12dp"
+        android:text="스티커를 끌어서 원하는 곳에 놓아 주세요."
+        android:textSize="13sp" android:textColor="#7A726A" />
+    <ScrollView android:id="@+id/stickerEditorScroll" android:layout_width="match_parent"
+        android:layout_height="0dp" android:layout_weight="1" android:layout_marginHorizontal="12dp">
+        <com.example.sumdays.stickers.StickerPageLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:background="@drawable/blockstyle_d_basic">
+            <TextView android:id="@+id/stickerEditorDiary" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_margin="16dp"
+                android:lineSpacingExtra="8sp" android:textSize="@dimen/text_size_S" />
+            <com.example.sumdays.stickers.StickerCanvasView android:id="@+id/stickerEditorCanvas"
+                android:layout_width="match_parent" android:layout_height="match_parent" />
+        </com.example.sumdays.stickers.StickerPageLayout>
+    </ScrollView>
+    <LinearLayout android:id="@+id/stickerEditorControls" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <TextView android:layout_width="48dp" android:layout_height="wrap_content" android:text="크기" />
+            <SeekBar android:id="@+id/stickerSize" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="40dp" android:max="27" android:progress="10" android:contentDescription="스티커 크기"
+                android:progressTint="@color/foxrange" android:thumbTint="@color/foxrange" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <TextView android:layout_width="48dp" android:layout_height="wrap_content" android:text="회전" />
+            <SeekBar android:id="@+id/stickerRotation" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="40dp" android:max="360" android:progress="180" android:contentDescription="스티커 회전"
+                android:progressTint="@color/foxrange" android:thumbTint="@color/foxrange" />
+        </LinearLayout>
+        <TextView android:id="@+id/stickerEditorHint" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:gravity="center" android:text="붙이면 스티커 1개를 사용해요."
+            android:textSize="12sp" android:textColor="#7A726A" android:paddingVertical="8dp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <Button android:id="@+id/stickerCancel" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="48dp" android:text="취소" android:layout_marginEnd="8dp"
+                android:backgroundTint="#EDE9E2" android:textColor="#534D46" />
+            <Button android:id="@+id/stickerConfirm" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="48dp" android:text="붙이기" android:backgroundTint="@color/foxrange" android:textColor="#FFFFFF" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

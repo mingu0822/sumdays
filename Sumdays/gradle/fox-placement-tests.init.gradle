@@ -5,7 +5,8 @@ gradle.beforeProject { project ->
         project.android.sourceSets.test.java.setSrcDirs([
             'src/test/java/com/example/sumdays/alchemy',
             'src/test/java/com/example/sumdays/auth',
-            'src/test/java/com/example/sumdays/shop'
+            'src/test/java/com/example/sumdays/shop',
+            'src/test/java/com/example/sumdays/stickers'
         ])
     }
 }

@@ -4,7 +4,9 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "test:stickers": "jest --config jest.stickers.config.js --runInBand",
+    "migrate:stickers": "node db/stickerSchema.js"
   },
   "keywords": [],
   "author": "",
