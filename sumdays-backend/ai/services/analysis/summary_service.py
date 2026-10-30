@@ -38,7 +38,6 @@ class SummaryService:
         """ Initialize the summary service. """
         self.model = ChatOpenAI(
             model=os.getenv("GPT_MODEL", "gpt-4.1-nano"),
-            temperature=0.5
         )
 
     def summarize_week(self, diaries: list[Dict]) -> Dict[str, Any]:

@@ -5,6 +5,10 @@ from openai import OpenAI
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
+# max_completion_tokens에는 추론 토큰도 포함되므로 답변 몫과 별도로 여유분을 더한다.
+REASONING_TOKEN_HEADROOM = 1000
+MAX_COMPLETION_TOKENS_CAP = 8000
+
 def merge_stream(memos, style_features, style_examples):
 
     style_features_text, style_examples_text = prep(style_features, style_examples)
@@ -47,18 +51,19 @@ Merge the paragraphs into a complete diary entry with smooth transitions and con
 """
 
     input_len = sum(len(m) for m in memos)
-    estimated_input_tokens = int(input_len * 0.35)
-    max_tokens = estimated_input_tokens + 200
+    # 한국어는 대략 글자당 1토큰 안팎이라 넉넉하게 1.5배로 잡는다.
+    estimated_output_tokens = int(input_len * 1.5) + 200
+    max_tokens = min(estimated_output_tokens + REASONING_TOKEN_HEADROOM, MAX_COMPLETION_TOKENS_CAP)
 
     stream = client.chat.completions.create(
-        model=os.getenv("GPT_MODEL", "gpt-4.1-nano"),
+        model=os.getenv("GPT_MODEL", "gpt-6-luna"),
         stream=True,
         messages=[
             {"role": "developer", "content": developer_msg},
             {"role": "user",  "content": prompt},
         ],
-        temperature=0.8,
-        max_tokens=max_tokens,
+        # temperature=0.8,
+        max_completion_tokens=max_tokens,
     )
 
     for chunk in stream:
@@ -130,17 +135,18 @@ Merge the base memo and the piece memo into a single diary paragraph that follow
         2: 5.0, 
     }.get(length_level, 3.0)
 
-    max_tokens = int(max(200, input_text_len * token_multiplier + 200))
+    estimated_output_tokens = int(max(200, input_text_len * token_multiplier + 200))
+    max_tokens = min(estimated_output_tokens + REASONING_TOKEN_HEADROOM, MAX_COMPLETION_TOKENS_CAP)
 
     stream = client.chat.completions.create(
-        model=os.getenv("GPT_MODEL", "gpt-4.1-nano"),
+        model=os.getenv("GPT_MODEL", "gpt-6-luna"),
         stream=True,
         messages=[
             {"role": "developer", "content": developer_msg},
             {"role": "user",  "content": prompt},
         ],
-        temperature=0.8,
-        max_tokens=max_tokens,
+        # temperature=0.8,
+        max_completion_tokens=max_tokens,
     )
 
     for chunk in stream:
@@ -181,13 +187,13 @@ Write one sentence from the pet's perspective about the owner's emotional state 
 """
 
     response = client.chat.completions.create(
-        model=os.getenv("GPT_MODEL", "gpt-4.1-nano"),
+        model=os.getenv("GPT_MODEL", "gpt-6-luna"),
         messages=[
             {"role": "developer", "content": developer_msg},
             {"role": "user", "content": prompt},
         ],
-        temperature=0.7,
-        max_tokens=120,
+        # temperature=0.7,
+        max_completion_tokens=120 + REASONING_TOKEN_HEADROOM,
     )
 
     return response.choices[0].message.content.strip()

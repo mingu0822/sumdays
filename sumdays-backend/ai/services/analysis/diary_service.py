@@ -29,7 +29,6 @@ Respond in the same language as the user's input.
                 {"role": "user", "content": diary},
             ],
             response_format={"type": "json_object"},
-            temperature=0.5,
         )
 
         result = json.loads(response.choices[0].message.content)

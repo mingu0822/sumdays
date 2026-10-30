@@ -26,6 +26,7 @@ import com.example.sumdays.network.ChangePasswordRequest
 import com.example.sumdays.network.ChangePasswordResponse
 import com.example.sumdays.network.LoginRequest
 import com.example.sumdays.network.LoginResponse
+import com.example.sumdays.network.GoogleLoginRequest
 import com.example.sumdays.network.OcrResponse
 import com.example.sumdays.network.STTResponse
 import com.example.sumdays.network.SignupRequest
@@ -126,6 +127,9 @@ interface ApiService {
     // 로그인 
     @POST("/api/auth/login")
     fun login(@Body request: LoginRequest): Call<LoginResponse>
+
+    @POST("/api/auth/google")
+    fun googleLogin(@Body request: GoogleLoginRequest): Call<LoginResponse>
     
     // 회원가입
     @POST("/api/auth/signup")

@@ -62,6 +62,9 @@ if (providers.gradleProperty("reviewTestsOnly").orNull == "true") {
 }
 
 dependencies {
+    implementation("androidx.credentials:credentials:1.6.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("com.android.billingclient:billing-ktx:9.1.0")
     implementation("com.google.android.gms:play-services-ads:25.4.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
