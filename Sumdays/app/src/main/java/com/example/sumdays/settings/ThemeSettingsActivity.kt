@@ -6,23 +6,28 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.sumdays.customize.ThemeAdapter
+import com.example.sumdays.auth.AccountInventory
+import com.example.sumdays.auth.InventoryOwner
 import com.example.sumdays.databinding.ActivityThemeSettingsBinding
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 
 class ThemeSettingsActivity : AppCompatActivity() {
+    private lateinit var inventoryOwner: InventoryOwner
 
     private lateinit var binding: ActivityThemeSettingsBinding
     private lateinit var adapter: ThemeAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        inventoryOwner = InventoryOwner(savedInstanceState)
         super.onCreate(savedInstanceState)
+        if (!inventoryOwner.requireCurrent(this)) return
 
         binding = ActivityThemeSettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         // 보유한 테마 목록 갱신
-        ThemeRepository.updateOwned()
+        AccountInventory.refreshOwnership(this)
 
         setupHeaderClickListener()
         setupThemeToggle()
@@ -107,6 +112,7 @@ class ThemeSettingsActivity : AppCompatActivity() {
             appliedTheme = ThemePrefs.getTheme(this),
 
             onClick = { theme ->
+                if (!inventoryOwner.requireCurrent(this)) return@ThemeAdapter
 
                 ThemePrefs.saveTheme(
                     this,
@@ -127,5 +133,15 @@ class ThemeSettingsActivity : AppCompatActivity() {
         binding.themeList.adapter = adapter
 
         binding.themeList.visibility = View.VISIBLE
+    }
+
+    override fun onResume() {
+        super.onResume()
+        inventoryOwner.requireCurrent(this)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        inventoryOwner.saveState(outState)
+        super.onSaveInstanceState(outState)
     }
 }

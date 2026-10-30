@@ -59,7 +59,10 @@ class LoginActivity : AppCompatActivity() {
             startActivity(Intent(this, RegisterationActivity::class.java))
         }
         binding.skipText.setOnClickListener {
-            startActivity(Intent(this, CalendarActivity::class.java))
+            SessionManager.clearSession()
+            val intent = Intent(this, CalendarActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
         }
     }
 
@@ -138,12 +141,17 @@ class LoginActivity : AppCompatActivity() {
             WorkManager.getInstance(applicationContext)
                 .cancelAllWorkByTag(InitialSyncWorker.accountWorkTag(previousUserId))
         }
-        SessionManager.saveSession(userId, token)
+        if (!SessionManager.saveSession(userId, token)) {
+            Toast.makeText(this, "로그인 정보를 저장하지 못했습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
+            return true
+        }
         LocalDataOwnerPrefs.beginAccountSwitch(applicationContext)
         loginResponse.nickname?.let(userStatsPrefs::saveNickname)
         InitialSyncScheduler.ensureScheduled(applicationContext, replace = true)
         Toast.makeText(this, "로그인 성공!", Toast.LENGTH_SHORT).show()
-        startActivity(Intent(this, CalendarActivity::class.java))
+        val intent = Intent(this, CalendarActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
         finish()
         return true
     }

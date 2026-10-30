@@ -6,6 +6,7 @@ import android.app.Dialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import com.example.sumdays.auth.InventoryOwner
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -34,6 +35,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 class FoxAlchemyActivity : AppCompatActivity() {
+    private lateinit var inventoryOwner: InventoryOwner
 
     private lateinit var alchemyPot: ImageButton
     private lateinit var btnBack: ImageButton
@@ -62,7 +64,9 @@ class FoxAlchemyActivity : AppCompatActivity() {
     private var nameDialog: Dialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        inventoryOwner = InventoryOwner(savedInstanceState)
         super.onCreate(savedInstanceState)
+        if (!inventoryOwner.requireCurrent(this)) return
 
         setContentView(R.layout.activity_fox_alchemy)
 
@@ -121,12 +125,14 @@ class FoxAlchemyActivity : AppCompatActivity() {
         clearSlots()
 
         supportFragmentManager.setFragmentResultListener(AlchemyInventoryBottomSheet.SELECTION_CHANGED, this) { _, _ ->
+            if (!inventoryOwner.requireCurrent(this)) return@setFragmentResultListener
             selectedItems = AlchemySelectionManager.getSelectedItems()
             selectedPlacements = selectedPlacements.filter { placement -> selectedItems.any { it.id == placement.itemId } }
             updateSlots(selectedItems)
             updatePreviewFox()
         }
         supportFragmentManager.setFragmentResultListener(AlchemyInventoryBottomSheet.CLOSED, this) { _, result ->
+            if (!inventoryOwner.requireCurrent(this)) return@setFragmentResultListener
             hideMaterialPanel()
             if (result.getBoolean(AlchemyInventoryBottomSheet.EDIT)) {
                 selectedItems = AlchemySelectionManager.getSelectedItems()
@@ -137,6 +143,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
             }
         }
         supportFragmentManager.setFragmentResultListener(FoxPlacementDialog.RESULT, this) { _, result ->
+            if (!inventoryOwner.requireCurrent(this)) return@setFragmentResultListener
             selectedItems = AlchemySelectionManager.getSelectedItems()
             selectedPlacements = result.getParcelableArrayList<FoxItemPlacement>(FoxPlacementDialog.PLACEMENTS).orEmpty()
             if (result.getBoolean(FoxPlacementDialog.ACCEPTED) && selectedItems.isNotEmpty()) {
@@ -155,6 +162,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
         // -----------------------------------------
 
         btnBack.setOnClickListener {
+            if (!inventoryOwner.requireCurrent(this)) return@setOnClickListener
 
             AlchemySelectionManager.clear(this)
 
@@ -191,6 +199,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
     }
 
     private fun openInventory() {
+        if (!inventoryOwner.requireCurrent(this)) return
         if (isCombining || isFinishing || supportFragmentManager.isStateSaved) return
         if (supportFragmentManager.findFragmentByTag(AlchemyInventoryBottomSheet.TAG) != null) return
         showMaterialPanel()
@@ -198,6 +207,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
     }
 
     private fun showPlacementEditor() {
+        if (!inventoryOwner.requireCurrent(this)) return
         if (selectedItems.isEmpty() || isFinishing || supportFragmentManager.isStateSaved) return
         if (supportFragmentManager.findFragmentByTag(FoxPlacementDialog.TAG) != null) return
         FoxPlacementDialog.newInstance(selectedItems.map { it.id }, selectedPlacements)
@@ -205,6 +215,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        inventoryOwner.saveState(outState)
         outState.putParcelableArrayList("draft_placements", ArrayList(selectedPlacements))
         outState.putBoolean("combining", isCombining)
         super.onSaveInstanceState(outState)
@@ -214,8 +225,13 @@ class FoxAlchemyActivity : AppCompatActivity() {
         potAnimator?.cancel()
         nameDialog?.setOnDismissListener(null)
         nameDialog?.dismiss()
-        if (isFinishing) AlchemySelectionManager.clear(this)
+        if (isFinishing && inventoryOwner.isCurrent) AlchemySelectionManager.clear(this)
         super.onDestroy()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        inventoryOwner.requireCurrent(this)
     }
 
     // =========================================================
@@ -237,6 +253,8 @@ class FoxAlchemyActivity : AppCompatActivity() {
         name: String,
         items: List<FoxShopItem>
     ) {
+        if (!inventoryOwner.requireCurrent(this)) return
+
         if (items.isEmpty()) {
             Toast.makeText(this, "아이템을 선택해주세요.", Toast.LENGTH_SHORT).show()
             return
@@ -288,6 +306,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
     private fun showFoxNameDialog(
         items: List<FoxShopItem>
     ) {
+        if (!inventoryOwner.requireCurrent(this)) return
 
         if (items.isEmpty()) {
 
@@ -333,6 +352,10 @@ class FoxAlchemyActivity : AppCompatActivity() {
         val previewBitmap = FoxBitmapRenderer.createPreview(this, previewFox)
 
         fun saveFox(returnToCloset: Boolean) {
+            if (!inventoryOwner.requireCurrent(this)) {
+                dialog.dismiss()
+                return
+            }
             val name = editText.text.toString().trim()
 
             if (name.isEmpty()) {
@@ -362,6 +385,7 @@ class FoxAlchemyActivity : AppCompatActivity() {
 
         dialog.setOnDismissListener {
             nameDialog = null
+            if (!inventoryOwner.requireCurrent(this)) return@setOnDismissListener
             isCombining = false
             alchemyPot.isEnabled = true
             if (!foxSaved) showPlacementEditor()

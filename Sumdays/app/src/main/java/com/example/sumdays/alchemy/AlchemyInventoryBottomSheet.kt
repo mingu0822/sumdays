@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.R
+import com.example.sumdays.auth.InventoryOwner
 import com.example.sumdays.shop.AllItemMap
 import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.ItemCategory
@@ -18,6 +19,12 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 
 class AlchemyInventoryBottomSheet : BottomSheetDialogFragment() {
+    private lateinit var inventoryOwner: InventoryOwner
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        inventoryOwner = InventoryOwner(savedInstanceState)
+        super.onCreate(savedInstanceState)
+    }
 
     companion object {
         const val TAG = "AlchemyInventory"
@@ -48,6 +55,10 @@ class AlchemyInventoryBottomSheet : BottomSheetDialogFragment() {
     override fun onStart() {
 
         super.onStart()
+        if (!inventoryOwner.isCurrent) {
+            dismissAllowingStateLoss()
+            return
+        }
 
         dialog?.window?.setDimAmount(0f)
 
@@ -137,6 +148,7 @@ class AlchemyInventoryBottomSheet : BottomSheetDialogFragment() {
             AlchemyItemAdapter(
 
                 onItemClick = { item ->
+                    if (!inventoryOwner.requireCurrent(requireActivity())) return@AlchemyItemAdapter
 
                     // 선택 / 선택 해제
                     val selectedItems =
@@ -263,6 +275,7 @@ class AlchemyInventoryBottomSheet : BottomSheetDialogFragment() {
         )
 
         combineButton.setOnClickListener {
+            if (!inventoryOwner.requireCurrent(requireActivity())) return@setOnClickListener
 
             val items =
                 AlchemySelectionManager
@@ -314,6 +327,7 @@ class AlchemyInventoryBottomSheet : BottomSheetDialogFragment() {
     // --------------------------------------------------
 
     override fun onSaveInstanceState(outState: Bundle) {
+        inventoryOwner.saveState(outState)
         super.onSaveInstanceState(outState)
         outState.putString("category", currentCategory.name)
     }
@@ -327,6 +341,7 @@ class AlchemyInventoryBottomSheet : BottomSheetDialogFragment() {
         )
 
         if (activity?.isChangingConfigurations == true || activity?.isFinishing == true) return
+        if (!inventoryOwner.isCurrent) return
 
 
         if (!openingEditor) {

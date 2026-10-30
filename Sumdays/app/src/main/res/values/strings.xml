@@ -3,4 +3,9 @@
     <string name="google_web_client_id">1097365434057-g40j069d8qlgkgjqgo8qka99cpkr7vm8.apps.googleusercontent.com</string>
     <string name="month_year_format">yyyy년 M월</string>
     <string name="month_year_format_english">MMMM, yyyy</string>
+    <string name="shop_sticker_tab">스티커</string>
+    <string name="shop_sticker_price">%1$dP</string>
+    <string name="shop_sticker_owned">보유 %1$d개</string>
+    <string name="shop_sticker_buy">구매</string>
+    <string name="shop_sticker_coming_soon">준비 중</string>
 </resources>

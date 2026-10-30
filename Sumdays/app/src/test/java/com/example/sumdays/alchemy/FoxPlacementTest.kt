@@ -2,6 +2,7 @@ package com.example.sumdays.alchemy
 
 import android.app.Application
 import android.content.Context
+import com.example.sumdays.auth.AccountStorage
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
@@ -91,7 +92,7 @@ class FoxPlacementTest {
             put("id", 7); put("name", "기존 여우"); put("previewImage", 0)
             put("glasses", glasses.id)
         }
-        context.getSharedPreferences("fox_prefs", Context.MODE_PRIVATE).edit()
+        AccountStorage.preferences(context, "fox_prefs").edit()
             .putString("foxes", JSONArray().put(json).toString()).commit()
         FoxPrefs.loadAll(context)
         val fox = AllFoxMap.allFoxMap.getValue(7)
@@ -120,7 +121,7 @@ class FoxPlacementTest {
                 put("hat", 102)
             })
         }
-        val prefs = context.getSharedPreferences("fox_prefs", Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, "fox_prefs")
         prefs.edit().putString("foxes", legacyFoxes.toString()).commit()
         val controller = Robolectric.buildActivity(CustomizeActivity::class.java).setup().visible()
         val activity = controller.get()
@@ -156,7 +157,7 @@ class FoxPlacementTest {
             put("previewImage", R.drawable.bg_alchemy_selected)
             put("previewImageName", "dailyread_fox_face_level_4")
         }
-        context.getSharedPreferences("fox_prefs", Context.MODE_PRIVATE).edit()
+        AccountStorage.preferences(context, "fox_prefs").edit()
             .putString("foxes", JSONArray().put(saved).toString()).commit()
         FoxPrefs.loadAll(context)
         val fox = AllFoxMap.allFoxMap.getValue(7)
@@ -398,10 +399,10 @@ class FoxPlacementTest {
         dialog.findViewById<EditText>(R.id.editFoxName).setText("자유롭게")
         dialog.findViewById<View>(R.id.btnCloseAfterNaming).performClick()
         shadowOf(Looper.getMainLooper()).idle()
-        val saved = AllFoxMap.allFoxMap.values.single()
+        val saved = AllFoxMap.allFoxMap.values.single { it.id > 2 }
         assertEquals(edited, saved.placements)
         assertEquals("자유롭게", saved.name)
-        val storedBitmap = FoxBitmapRenderer.loadPreview(saved.previewPath)
+        val storedBitmap = FoxBitmapRenderer.loadPreview(context, saved.previewPath)
         assertNotNull(storedBitmap)
         assertTrue(storedBitmap!!.sameAs(FoxBitmapRenderer.createPreview(activity, saved)))
         assertEquals(1, ItemPrefs.getCount(activity, glasses.id))
@@ -463,7 +464,7 @@ class FoxPlacementTest {
         shadowOf(Looper.getMainLooper()).idle()
         activity.supportFragmentManager.executePendingTransactions()
         val dialog = activity.supportFragmentManager.findFragmentByTag(FoxPlacementDialog.TAG) as FoxPlacementDialog
-        assertEquals("표정: ${face.name}", dialog.requireView().findViewById<TextView>(R.id.placementFaceLabel).text.toString())
+        assertArrayEquals(intArrayOf(face.id), dialog.requireArguments().getIntArray(FoxPlacementDialog.ITEM_IDS))
         assertTrue(dialog.requireView().findViewById<FoxPlacementView>(R.id.foxPlacementCanvas).placements.isEmpty())
         renderPhoneView(dialog.requireView(), "face-editor", 2160)
         dialog.requireView().findViewById<View>(R.id.btnPlacementDone).performClick()
@@ -472,10 +473,10 @@ class FoxPlacementTest {
         nameDialog.findViewById<EditText>(R.id.editFoxName).setText("웃는 여우")
         nameDialog.findViewById<View>(R.id.btnCloseAfterNaming).performClick()
         shadowOf(Looper.getMainLooper()).idle()
-        val saved = AllFoxMap.allFoxMap.values.single()
+        val saved = AllFoxMap.allFoxMap.values.single { it.id > 2 }
         assertEquals(face.id, saved.foxFace)
         assertEquals(0, ItemPrefs.getCount(context, face.id))
-        assertTrue(FoxBitmapRenderer.loadPreview(saved.previewPath)!!.sameAs(preview))
+        assertTrue(FoxBitmapRenderer.loadPreview(context, saved.previewPath)!!.sameAs(preview))
         AllFoxMap.allFoxMap.clear()
         FoxPrefs.loadAll(context)
         assertEquals(saved, AllFoxMap.allFoxMap.getValue(saved.id))

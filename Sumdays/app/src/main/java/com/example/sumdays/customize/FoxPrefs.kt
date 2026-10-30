@@ -1,6 +1,7 @@
 package com.example.sumdays.customize
 
 import android.content.Context
+import com.example.sumdays.auth.AccountStorage
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -8,16 +9,19 @@ object FoxPrefs {
 
     private const val PREF_NAME = "fox_prefs"
     private const val KEY_FOXES = "foxes"
+    private var loadedAccount: String? = null
+
+    private fun ensureLoaded(context: Context) {
+        if (loadedAccount != AccountStorage.accountKey()) loadAll(context)
+    }
 
     /**
      * 현재 AllFoxMap 전체 저장
      */
     fun saveAll(context: Context, durable: Boolean = false) {
+        ensureLoaded(context)
 
-        val prefs = context.getSharedPreferences(
-            PREF_NAME,
-            Context.MODE_PRIVATE
-        )
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
 
         val jsonArray = JSONArray()
 
@@ -78,11 +82,10 @@ object FoxPrefs {
      * 저장된 여우 불러오기
      */
     fun loadAll(context: Context) {
+        loadedAccount = AccountStorage.accountKey()
+        AllFoxMap.reset()
 
-        val prefs = context.getSharedPreferences(
-            PREF_NAME,
-            Context.MODE_PRIVATE
-        )
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
 
         val saved = prefs.getString(
             KEY_FOXES,
@@ -152,7 +155,7 @@ object FoxPrefs {
             if (needsMigration) saveAll(context)
 
         } catch (e: Exception) {
-
+            AllFoxMap.reset()
             e.printStackTrace()
         }
     }
@@ -165,6 +168,7 @@ object FoxPrefs {
         fox: CompleteFox,
         durable: Boolean = false,
     ) {
+        ensureLoaded(context)
 
         AllFoxMap.allFoxMap[
             fox.id
@@ -177,15 +181,13 @@ object FoxPrefs {
         context: Context,
         foxId: Int
     ) {
+        ensureLoaded(context)
         val fox = AllFoxMap.allFoxMap[foxId]
 
         // 저장된 미리보기 이미지 파일도 삭제
         fox?.previewPath?.let { path ->
             try {
-                val file = java.io.File(path)
-                if (file.exists()) {
-                    file.delete()
-                }
+                FoxBitmapRenderer.deletePreview(context, path)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -205,13 +207,12 @@ object FoxPrefs {
         context: Context
     ) {
 
-        context.getSharedPreferences(
-            PREF_NAME,
-            Context.MODE_PRIVATE
-        )
+        AccountStorage.preferences(context, PREF_NAME)
             .edit()
             .remove(KEY_FOXES)
             .apply()
+        loadedAccount = AccountStorage.accountKey()
+        AllFoxMap.reset()
     }
 
     /**

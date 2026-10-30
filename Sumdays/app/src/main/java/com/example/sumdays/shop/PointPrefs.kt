@@ -1,33 +1,35 @@
 package com.example.sumdays.shop
 
 import android.content.Context
+import com.example.sumdays.auth.AccountStorage
 import com.example.sumdays.auth.SessionManager
 
 object PointPrefs {
 
     private const val PREF_NAME = "shop_point_prefs"
+    private const val KEY_POINT = "current_point"
     private const val KEY_LEGACY_POINT = "current_point"
     private const val KEY_LEGACY_POINT_OWNER = "legacy_point_owner_user_id"
-    private const val KEY_GUEST_POINT = "guest_point"
-    private const val KEY_USER_POINT_PREFIX = "current_point_user_"
     private const val DEFAULT_POINT = 9000
 
     fun savePoint(context: Context, point: Int) {
-        savePoint(context, currentUserId(), point)
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+        prefs.edit().putInt(KEY_POINT, point).apply()
     }
 
     fun savePoint(context: Context, userId: Int, point: Int) {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putInt(pointKey(userId), point).apply()
+        val prefs = AccountStorage.preferences(context, PREF_NAME, userId)
+        prefs.edit().putInt(KEY_POINT, point).apply()
     }
 
     fun getPoint(context: Context): Int {
-        return getPoint(context, currentUserId())
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+        return prefs.getInt(KEY_POINT, DEFAULT_POINT)
     }
 
     fun getPoint(context: Context, userId: Int): Int {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        return prefs.getInt(pointKey(userId), DEFAULT_POINT)
+        val prefs = AccountStorage.preferences(context, PREF_NAME, userId)
+        return prefs.getInt(KEY_POINT, DEFAULT_POINT)
     }
 
     /**
@@ -38,7 +40,7 @@ object PointPrefs {
         val userId = currentUserId()
         if (userId < 0) return
 
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = legacyPreferences(context)
         if (prefs.contains(KEY_LEGACY_POINT) && !prefs.contains(KEY_LEGACY_POINT_OWNER)) {
             prefs.edit().putInt(KEY_LEGACY_POINT_OWNER, userId).apply()
         }
@@ -53,7 +55,7 @@ object PointPrefs {
     }
 
     fun getLegacyPointForMigration(context: Context, userId: Int): Int {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = legacyPreferences(context)
         val legacyOwnerId = prefs.getInt(KEY_LEGACY_POINT_OWNER, -1)
         return if (userId >= 0 && legacyOwnerId == userId) {
             prefs.getInt(KEY_LEGACY_POINT, getPoint(context, userId))
@@ -71,7 +73,7 @@ object PointPrefs {
     }
 
     fun markLegacyPointHandled(context: Context, userId: Int) {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = legacyPreferences(context)
         if (prefs.getInt(KEY_LEGACY_POINT_OWNER, -1) == userId) {
             prefs.edit()
                 .remove(KEY_LEGACY_POINT)
@@ -84,9 +86,9 @@ object PointPrefs {
         savePoint(context, DEFAULT_POINT)
     }
 
-    private fun pointKey(userId: Int): String {
-        return if (userId >= 0) "$KEY_USER_POINT_PREFIX$userId" else KEY_GUEST_POINT
-    }
+    /** 계정 분리 이전 빌드가 쓰던, 계정 구분 없는 단일 파일입니다. */
+    private fun legacyPreferences(context: Context) =
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
     private fun currentUserId(): Int =
         runCatching { SessionManager.getUserId() }.getOrDefault(-1)

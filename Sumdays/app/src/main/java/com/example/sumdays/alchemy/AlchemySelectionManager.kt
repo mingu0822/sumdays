@@ -1,7 +1,7 @@
 package com.example.sumdays.alchemy
 
 import android.content.Context
-import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.auth.AccountStorage
 import com.example.sumdays.shop.AllItemMap
 import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.ItemCategory
@@ -9,15 +9,24 @@ import com.example.sumdays.shop.ItemPrefs
 
 /** Selection is UI state, not inventory. Cancel/rotation never refunds server items. */
 object AlchemySelectionManager {
-    private var owner = Int.MIN_VALUE
+    private const val PREF_NAME = "alchemy_selection"
+    private const val KEY_SELECTED_IDS = "selected_item_ids"
+
+    private var owner: String? = null
     private val selected = mutableMapOf<ItemCategory, FoxShopItem>()
 
     private fun checkOwner() {
-        val current = SessionManager.getUserId()
+        val current = AccountStorage.accountKey()
         if (current != owner) {
             selected.clear()
             owner = current
         }
+    }
+
+    /** Drop the previous account's in-memory draft after a session change. */
+    fun resetMemory() {
+        selected.clear()
+        owner = null
     }
 
     fun toggle(context: Context, item: FoxShopItem): List<FoxShopItem> {
@@ -31,10 +40,9 @@ object AlchemySelectionManager {
     /** Restore draft selection after recreation without reserving or decrementing inventory. */
     fun resumePendingSelection(context: Context) {
         checkOwner()
-        val prefs = context.getSharedPreferences("alchemy_selection", Context.MODE_PRIVATE)
-        val ids = prefs.getStringSet(selectionKey(owner), emptySet()).orEmpty()
-        // A previous build used one unscoped key, so it cannot be safely assigned to an account.
-        prefs.edit().remove("selected_item_ids").apply()
+        removeLegacyDraft(context)
+        val ids = AccountStorage.preferences(context, PREF_NAME)
+            .getStringSet(KEY_SELECTED_IDS, emptySet()).orEmpty()
         selected.clear()
         ids.mapNotNull { it.toIntOrNull()?.let(AllItemMap.allItemMap::get) }
             .forEach { selected[it.itemCategory] = it }
@@ -57,31 +65,28 @@ object AlchemySelectionManager {
 
     fun commit(context: Context) = clear(context)
 
-    @Suppress("UNUSED_PARAMETER")
     fun clear(context: Context) {
         checkOwner()
         selected.clear()
-        context.getSharedPreferences("alchemy_selection", Context.MODE_PRIVATE)
-            .edit()
-            .remove(selectionKey(owner))
-            .remove("selected_item_ids") // Remove the pre-account-scoping draft key.
-            .apply()
+        AccountStorage.preferences(context, PREF_NAME).edit().remove(KEY_SELECTED_IDS).apply()
+        removeLegacyDraft(context)
     }
 
     fun restorePendingSelection(context: Context) {
         // Old builds reserved locally. Never add that amount to authoritative server inventory.
-        context.getSharedPreferences("alchemy_selection", Context.MODE_PRIVATE)
-            .edit()
-            .remove(selectionKey(SessionManager.getUserId()))
-            .remove("selected_item_ids")
-            .apply()
         clear(context)
     }
 
     private fun saveSelection(context: Context) {
-        context.getSharedPreferences("alchemy_selection", Context.MODE_PRIVATE)
-            .edit().putStringSet(selectionKey(owner), selected.values.map { it.id.toString() }.toSet()).apply()
+        AccountStorage.preferences(context, PREF_NAME)
+            .edit()
+            .putStringSet(KEY_SELECTED_IDS, selected.values.map { it.id.toString() }.toSet())
+            .apply()
     }
 
-    private fun selectionKey(userId: Int): String = "user_${userId}_selected_item_ids"
+    /** Drafts from builds before per-account files lived in one shared file. */
+    private fun removeLegacyDraft(context: Context) {
+        val legacy = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        if (legacy.all.isNotEmpty()) legacy.edit().clear().apply()
+    }
 }

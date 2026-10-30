@@ -33,12 +33,6 @@
         android:text="끌어서 이동 · 두 손가락으로 크기와 회전 조절\n겹친 아이템은 아래 목록에서 선택하세요."
         android:textSize="13sp" android:textColor="#685C56" />
 
-    <TextView android:id="@+id/placementFaceLabel"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:paddingHorizontal="16dp" android:paddingBottom="8dp"
-        android:text="표정: 기본 표정" android:textColor="@color/foxrange"
-        android:textSize="14sp" android:textStyle="bold" />
-
     <com.example.sumdays.alchemy.FoxPlacementView
         android:id="@+id/foxPlacementCanvas" android:layout_width="match_parent"
         android:layout_height="0dp" android:layout_weight="1" android:minHeight="120dp" />

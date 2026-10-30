@@ -12,6 +12,8 @@ import com.example.sumdays.shop.ItemPrefs
 import com.example.sumdays.shop.MergePassShopItem
 import com.example.sumdays.shop.MergeTicketShopItem
 import com.example.sumdays.shop.ThemeShopItem
+import com.example.sumdays.shop.StickerPrefs
+import com.example.sumdays.shop.StickerShopItem
 import com.example.sumdays.theme.ThemePrefs
 
 class ShopAdapter(
@@ -178,8 +180,23 @@ class ShopAdapter(
                     btnShopItemAction.text = if (item.active) "이용 중" else "구매"
                     btnShopItemAction.isEnabled = !item.active
                 }
+
+                is StickerShopItem -> {
+                    val count = StickerPrefs.getCount(context, item.id)
+                    tvShopItemPrice.text = context.getString(R.string.shop_sticker_price, item.price)
+                    tvPurchasedBadge.visibility = if (count > 0) View.VISIBLE else View.GONE
+                    tvPurchasedBadge.text = context.getString(R.string.shop_sticker_owned, count)
+                    tvPurchasedBadge.setBackgroundResource(R.drawable.bg_label_applied)
+                    tvPurchasedBadge.setTextColor(context.getColor(android.R.color.black))
+                    // 서버 포인트 지갑에 스티커 상품이 추가될 때까지 구매를 막는다.
+                    btnShopItemAction.setText(R.string.shop_sticker_coming_soon)
+                    btnShopItemAction.isEnabled = false
+                }
             }
 
+            val imagePadding = ((if (item is StickerShopItem) 2 else 12) *
+                context.resources.displayMetrics.density).toInt()
+            ivShopItemImage.setPadding(imagePadding, imagePadding, imagePadding, imagePadding)
             ivShopItemImage.setImageResource(item.imageRes)
 
             btnShopItemAction.setOnClickListener {

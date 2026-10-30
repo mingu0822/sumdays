@@ -1,0 +1,166 @@
+
+> Configure project :app
+WARNING: The option setting 'android.usesSdkInManifest.disallowed=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.sdk.defaultTargetSdkToCompileSdkIfUnset=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.enableAppCompileTimeRClass=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.newDsl=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.r8.optimizedResourceShrinking=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.defaults.buildfeatures.resvalues=true' is deprecated.
+The current default is 'false'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.enableJetifier=true' is deprecated.
+The current default is 'false'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets UP-TO-DATE
+> Task :app:compressDebugAssets UP-TO-DATE
+> Task :app:checkDebugDuplicateClasses UP-TO-DATE
+> Task :app:desugarDebugFileDependencies UP-TO-DATE
+> Task :app:mergeExtDexDebug UP-TO-DATE
+> Task :app:mergeLibDexDebug UP-TO-DATE
+> Task :app:mergeDebugJniLibFolders UP-TO-DATE
+> Task :app:mergeDebugNativeLibs UP-TO-DATE
+> Task :app:stripDebugDebugSymbols UP-TO-DATE
+> Task :app:validateSigningDebug UP-TO-DATE
+> Task :app:writeDebugAppMetadata UP-TO-DATE
+> Task :app:writeDebugSigningConfigVersions UP-TO-DATE
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :app:processDebugUnitTestManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage
+> Task :app:processDebugResources
+> Task :app:packageDebugUnitTestForUnitTest
+> Task :app:generateDebugUnitTestConfig
+> Task :app:kaptGenerateStubsDebugKotlin
+> Task :app:kaptDebugKotlin
+
+> Task :app:compileDebugKotlin
+w: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/main/java/com/example/sumdays/FoxAlchemyActivity.kt:70:53 'fun <T : Parcelable!> getParcelableArrayList(p0: String?): ArrayList<T!>?' is deprecated. Deprecated in Java.
+w: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/main/java/com/example/sumdays/FoxAlchemyActivity.kt:138:41 'fun <T : Parcelable!> getParcelableArrayList(p0: String?): ArrayList<T!>?' is deprecated. Deprecated in Java.
+
+> Task :app:compileDebugJavaWithJavac UP-TO-DATE
+> Task :app:processDebugJavaRes UP-TO-DATE
+> Task :app:mergeDebugJavaResource UP-TO-DATE
+> Task :app:dexBuilderDebug
+> Task :app:mergeProjectDexDebug
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
+> Task :app:kaptGenerateStubsDebugUnitTestKotlin
+> Task :app:kaptDebugUnitTestKotlin
+
+> Task :app:compileDebugUnitTestKotlin
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/SettingsActivityTest.kt:135:42 Unresolved reference 'logoutBlock'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/SettingsActivityTest.kt:164:42 Unresolved reference 'summaryBlock'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/SettingsActivityTest.kt:167:42 Unresolved reference 'backupBtn'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/SettingsActivityTest.kt:170:42 Unresolved reference 'initBtn'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/StatisticsActivityTest.kt:237:62 Unresolved reference 'btn_move_to_latest_leaf'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/StatisticsActivityTest.kt:238:65 Unresolved reference 'btn_move_to_bottom_leaf'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/alchemy/FoxPlacementTest.kt:467:91 Unresolved reference 'placementFaceLabel'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/daily/diary/AnalysisRepositoryTest.kt:102:27 Unresolved reference 'aiComment'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/daily/diary/AnalysisRepositoryTest.kt:102:38 Argument type mismatch: actual type is 'Matcher<Any!>!', but 'Boolean' was expected.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/daily/memo/MemoMergeAdapterTest.kt:346:43 Argument type mismatch: actual type is 'List<Int>', but 'List<MemoPayload>' was expected.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/daily/memo/MemoMergeAdapterTest.kt:449:42 Argument type mismatch: actual type is 'List<Int>', but 'List<MemoPayload>' was expected.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/data/style/UserSyncFakeTest.kt:118:21 No value passed for parameter 'is_allowed'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/data/style/dataTest.kt:113:5 Class 'DaoTest.FakeDailyEntryDao' is not abstract and does not implement abstract members:
+suspend fun _updateEntryDetails(date: String, diary: String? = ..., keywords: String? = ..., aiComment: String? = ..., emotionScore: Double? = ..., emotionIcon: String? = ..., themeIcon: String? = ..., photoUrls: String? = ..., isAllowed: Boolean? = ...): Unit
+fun searchEntries(q: String): LiveData<List<DailyEntry>>
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/data/style/dataTest.kt:118:9 '_updateEntryDetails' overrides nothing. Potential signatures for overriding:
+suspend fun _updateEntryDetails(date: String, diary: String? = ..., keywords: String? = ..., aiComment: String? = ..., emotionScore: Double? = ..., emotionIcon: String? = ..., themeIcon: String? = ..., photoUrls: String? = ..., isAllowed: Boolean? = ...): Unit
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/data/style/dataTest.kt:131:30 Return type of 'insertRaw' is not a subtype of the return type of the overridden member 'suspend fun insertRaw(memo: Memo): Long' defined in 'com/example/sumdays/data/dao/MemoDao'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/data/style/room/DaoTest.kt:22:5 Class 'DaoLogicTest.FakeDailyEntryDao' is not abstract and does not implement abstract members:
+suspend fun _updateEntryDetails(date: String, diary: String? = ..., keywords: String? = ..., aiComment: String? = ..., emotionScore: Double? = ..., emotionIcon: String? = ..., themeIcon: String? = ..., photoUrls: String? = ..., isAllowed: Boolean? = ...): Unit
+fun searchEntries(q: String): LiveData<List<DailyEntry>>
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/data/style/room/DaoTest.kt:33:9 '_updateEntryDetails' overrides nothing. Potential signatures for overriding:
+suspend fun _updateEntryDetails(date: String, diary: String? = ..., keywords: String? = ..., aiComment: String? = ..., emotionScore: Double? = ..., emotionIcon: String? = ..., themeIcon: String? = ..., photoUrls: String? = ..., isAllowed: Boolean? = ...): Unit
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/data/style/room/DaoTest.kt:116:5 Class 'DaoLogicTest.FakeWeekSummaryDao' is not abstract and does not implement abstract member:
+suspend fun getEntriesBetween(start: String, end: String): List<DailyEntry>
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/image/PhotoGalleryAdapterTest.kt:52:13 No parameter with name 'onPhotoLongClick' found.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/image/PhotoGalleryAdapterTest.kt:52:34 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/image/PhotoGalleryAdapterTest.kt:53:13 No value passed for parameter 'onDeleteClick'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/LabsSettingsActivityTest.kt:80:60 Unresolved reference 'accurate_style_switch'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/LabsSettingsActivityTest.kt:89:65 Unresolved reference 'accurate_style_switch'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/LabsSettingsActivityTest.kt:111:60 Unresolved reference 'accurate_style_switch'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:97:36 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:98:36 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:99:36 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:108:22 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:110:22 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:127:22 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:128:22 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:132:34 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:133:50 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:149:22 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:150:22 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:172:33 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:186:22 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:187:22 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:221:22 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:222:22 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:286:22 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:287:22 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:293:33 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:294:48 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+e: file:///C:/Users/kimon/AndroidStudioProjects/sumdays/Sumdays/app/src/test/java/com/example/sumdays/settings/StyleExtractionActivityTest.kt:316:50 Cannot access 'var binding: ActivityStyleExtractionBinding': it is private in 'com/example/sumdays/settings/StyleExtractionActivity'.
+
+> Task :app:compileDebugUnitTestKotlin FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugUnitTestKotlin'.
+49 actionable tasks: 18 executed, 31 up-to-date
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 40s

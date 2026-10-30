@@ -1,7 +1,7 @@
 package com.example.sumdays.shop
 
 import android.content.Context
-import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.auth.AccountStorage
 
 object ItemPrefs {
 
@@ -11,12 +11,12 @@ object ItemPrefs {
      * 아이템 1개 추가
      */
     fun addItem(context: Context, itemId: Int) {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
 
-        val current = prefs.getInt(itemKey(itemId), 0)
+        val current = prefs.getInt(itemId.toString(), 0)
 
         prefs.edit()
-            .putInt(itemKey(itemId), current + 1)
+            .putInt(itemId.toString(), current + 1)
             .apply()
     }
 
@@ -24,22 +24,26 @@ object ItemPrefs {
      * 현재 보유 개수
      */
     fun getCount(context: Context, itemId: Int): Int {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        return prefs.getInt(itemKey(itemId), 0)
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+        return prefs.getInt(itemId.toString(), 0)
     }
 
     /**
      * 개수 설정 (필요하면 사용)
      */
     fun setCount(context: Context, itemId: Int, count: Int) {
-        setCount(context, currentUserId(), itemId, count)
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+
+        prefs.edit()
+            .putInt(itemId.toString(), count)
+            .apply()
     }
 
     fun setCount(context: Context, userId: Int, itemId: Int, count: Int) {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, PREF_NAME, userId)
 
         prefs.edit()
-            .putInt(itemKey(userId, itemId), count)
+            .putInt(itemId.toString(), count)
             .apply()
     }
 
@@ -49,14 +53,14 @@ object ItemPrefs {
      * 부족하면 false
      */
     fun useItem(context: Context, itemId: Int): Boolean {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
 
-        val current = prefs.getInt(itemKey(itemId), 0)
+        val current = prefs.getInt(itemId.toString(), 0)
 
         if (current <= 0) return false
 
         prefs.edit()
-            .putInt(itemKey(itemId), current - 1)
+            .putInt(itemId.toString(), current - 1)
             .apply()
 
         return true
@@ -65,33 +69,13 @@ object ItemPrefs {
      * 모든 아이템 초기화
      */
     fun clear(context: Context) {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        val prefix = userPrefix()
-        val editor = prefs.edit()
-        prefs.all.keys.filter { it.startsWith(prefix) }.forEach { editor.remove(it) }
-        editor.apply()
-    }
-
-    fun replaceCounts(context: Context, counts: Map<Int, Int>) {
-        replaceCounts(context, currentUserId(), counts)
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+        prefs.edit().clear().apply()
     }
 
     fun replaceCounts(context: Context, userId: Int, counts: Map<Int, Int>) {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        val prefix = userPrefix(userId)
-        val editor = prefs.edit()
-        prefs.all.keys.filter { it.startsWith(prefix) }.forEach { editor.remove(it) }
-        counts.forEach { (itemId, count) -> editor.putInt(itemKey(userId, itemId), count) }
+        val editor = AccountStorage.preferences(context, PREF_NAME, userId).edit().clear()
+        counts.forEach { (itemId, count) -> editor.putInt(itemId.toString(), count) }
         editor.apply()
     }
-
-    private fun itemKey(itemId: Int): String = itemKey(currentUserId(), itemId)
-
-    private fun itemKey(userId: Int, itemId: Int): String = "${userPrefix(userId)}item_$itemId"
-
-    private fun userPrefix(): String = userPrefix(currentUserId())
-
-    private fun userPrefix(userId: Int): String = "user_${userId}_"
-
-    private fun currentUserId(): Int = SessionManager.getUserId()
 }

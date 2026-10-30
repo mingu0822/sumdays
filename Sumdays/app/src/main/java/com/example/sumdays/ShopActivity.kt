@@ -2,6 +2,8 @@ package com.example.sumdays
 
 import android.content.Intent
 import android.os.Bundle
+import com.example.sumdays.auth.AccountInventory
+import com.example.sumdays.auth.InventoryOwner
 import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
@@ -30,6 +32,9 @@ import com.example.sumdays.shop.OwnedPrefs
 import com.example.sumdays.shop.PointPrefs
 import com.example.sumdays.shop.PointWalletRepository
 import com.example.sumdays.shop.ShopPurchaseResult
+import com.example.sumdays.shop.StickerCatalog
+import com.example.sumdays.shop.StickerPrefs
+import com.example.sumdays.shop.StickerShopItem
 import com.example.sumdays.shop.ThemeShopItem
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
@@ -43,6 +48,7 @@ import com.google.android.material.chip.ChipGroup
 import com.example.sumdays.ui.component.setupBackToCalendar
 
 class ShopActivity : AppCompatActivity() {
+    private lateinit var inventoryOwner: InventoryOwner
 
     private lateinit var backButton: ImageButton
 
@@ -51,6 +57,7 @@ class ShopActivity : AppCompatActivity() {
     private lateinit var tvCurrencyValue: TextView
     private lateinit var chipTheme: TextView
     private lateinit var chipItem: TextView
+    private lateinit var chipSticker: TextView
     private lateinit var chipMergeTicket: TextView
 
     private lateinit var rvShopItems: RecyclerView
@@ -78,7 +85,9 @@ class ShopActivity : AppCompatActivity() {
     private var selectedItemCategory: ItemCategory? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        inventoryOwner = InventoryOwner(savedInstanceState)
         super.onCreate(savedInstanceState)
+        if (!inventoryOwner.requireCurrent(this)) return
         setContentView(R.layout.activity_shop)
 
         currentPoint = PointPrefs.getPoint(this)
@@ -115,6 +124,7 @@ class ShopActivity : AppCompatActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        inventoryOwner.saveState(outState)
         super.onSaveInstanceState(outState)
         outState.putString("shop_category", selectedCategory)
         outState.putString("item_category", selectedItemCategory?.name)
@@ -128,6 +138,7 @@ class ShopActivity : AppCompatActivity() {
 
         chipTheme = findViewById(R.id.chipTheme)
         chipItem = findViewById(R.id.chipItem)
+        chipSticker = findViewById(R.id.chipSticker)
         chipMergeTicket = findViewById(R.id.chipMergeTicket)
 
         rvShopItems = findViewById(R.id.rvShopItems)
@@ -145,6 +156,8 @@ class ShopActivity : AppCompatActivity() {
             },
 
             onActionClick = { item ->
+                if (!inventoryOwner.requireCurrent(this)) return@ShopAdapter
+
                 if (!shopDataReady) {
                     Toast.makeText(this, "상점 정보를 불러오는 중입니다.", Toast.LENGTH_SHORT).show()
                 } else {
@@ -169,6 +182,9 @@ class ShopActivity : AppCompatActivity() {
                         is MergePassShopItem -> {
                             startMergePassPurchase()
                         }
+
+                        // 서버 지갑에 스티커 상품이 생기기 전까지 어댑터에서 버튼을 비활성화한다.
+                        is StickerShopItem -> Unit
                     }
                 }
             }
@@ -184,6 +200,7 @@ class ShopActivity : AppCompatActivity() {
     ) {
 
         allItems.clear()
+        AccountInventory.refreshOwnership(this)
         val serverProductMap = serverProducts
             ?.associateBy { "${it.productType}:${it.itemId}" }
 
@@ -220,7 +237,8 @@ class ShopActivity : AppCompatActivity() {
                 return@forEach
             }
 
-            fox.isOwned = OwnedPrefs.isOwned(this, id)
+            fox.count = serverProduct?.quantity ?: ItemPrefs.getCount(this, id)
+            fox.isOwned = fox.count > 0
 
             allItems.add(
                 FoxShopItem(
@@ -229,7 +247,7 @@ class ShopActivity : AppCompatActivity() {
                     description = fox.description,
                     price = serverProduct?.price ?: fox.price,
                     isOwned = fox.isOwned,
-                    count = serverProduct?.quantity ?: ItemPrefs.getCount(this, id),
+                    count = fox.count,
                     itemCategory = fox.itemCategory,
                     imageRes = fox.imageRes
                 )
@@ -255,6 +273,10 @@ class ShopActivity : AppCompatActivity() {
             }
         }
 
+        allItems.addAll(StickerCatalog.items.map { sticker ->
+            sticker.copy(isOwned = StickerPrefs.getCount(this, sticker.id) > 0)
+        })
+
         ThemeRepository.updateOwned()
     }
 
@@ -266,6 +288,10 @@ class ShopActivity : AppCompatActivity() {
 
         chipItem.setOnClickListener {
             filterItems("item")
+        }
+
+        chipSticker.setOnClickListener {
+            filterItems("sticker")
         }
 
         chipMergeTicket.setOnClickListener {
@@ -312,6 +338,9 @@ class ShopActivity : AppCompatActivity() {
                     allItems.filter { it is MergePassShopItem || it is MergeTicketShopItem }
                 )
 
+            "sticker" ->
+                filteredItems.addAll(allItems.filterIsInstance<StickerShopItem>())
+
             else ->
                 filteredItems.addAll(allItems)
         }
@@ -331,37 +360,24 @@ class ShopActivity : AppCompatActivity() {
     }
 
     private fun updateChipStyle() {
+        val tabs = listOf(
+            "theme" to chipTheme,
+            "item" to chipItem,
+            "sticker" to chipSticker,
+            CATEGORY_MERGE_TICKET to chipMergeTicket,
+        )
+        tabs.forEach { (category, tab) ->
+            tab.isSelected = selectedCategory == category
+            tab.setTextColor(getColor(if (tab.isSelected) R.color.foxrange else android.R.color.black))
+        }
 
-        chipTheme.post {
-
-            val width = chipTheme.width
-
-            val params = indicator.layoutParams
-            params.width = width
-            indicator.layoutParams = params
-
-            when (selectedCategory) {
-                "theme" -> {
-                    chipTheme.setTextColor(getColor(R.color.foxrange))
-                    chipItem.setTextColor(getColor(android.R.color.black))
-                    chipMergeTicket.setTextColor(getColor(android.R.color.black))
-                    indicator.animate().translationX(0f).setDuration(200).start()
-                }
-
-                "item" -> {
-                    chipTheme.setTextColor(getColor(android.R.color.black))
-                    chipItem.setTextColor(getColor(R.color.foxrange))
-                    chipMergeTicket.setTextColor(getColor(android.R.color.black))
-                    indicator.animate().translationX(width.toFloat()).setDuration(200).start()
-                }
-
-                else -> {
-                    chipTheme.setTextColor(getColor(android.R.color.black))
-                    chipItem.setTextColor(getColor(android.R.color.black))
-                    chipMergeTicket.setTextColor(getColor(R.color.foxrange))
-                    indicator.animate().translationX((width * 2).toFloat()).setDuration(200).start()
-                }
-            }
+        indicator.post {
+            val selectedTab = tabs.firstOrNull { it.first == selectedCategory }?.second ?: return@post
+            indicator.layoutParams = indicator.layoutParams.apply { width = selectedTab.width }
+            indicator.animate()
+                .translationX((selectedTab.left - indicator.left).toFloat())
+                .setDuration(200)
+                .start()
         }
     }
 
@@ -372,6 +388,7 @@ class ShopActivity : AppCompatActivity() {
     }
 
     private fun applyItem(item: ShopItem) {
+        if (!inventoryOwner.requireCurrent(this)) return
 
         when (item) {
 
@@ -390,6 +407,7 @@ class ShopActivity : AppCompatActivity() {
     }
 
     private fun tryPurchaseItem(item: ShopItem){
+        if (!inventoryOwner.requireCurrent(this)) return
         if (purchaseInProgress) return
         purchaseInProgress = true
         lifecycleScope.launch {
@@ -412,6 +430,7 @@ class ShopActivity : AppCompatActivity() {
                         }
                         updatePointUI()
                         shopAdapter.notifyDataSetChanged()
+                        AccountInventory.refreshOwnership(this@ShopActivity)
                         val message = if (result.alreadyOwned) {
                             "이미 보유한 상품입니다."
                         } else {
@@ -503,6 +522,7 @@ class ShopActivity : AppCompatActivity() {
     }
     override fun onResume() {
         super.onResume()
+        if (!inventoryOwner.requireCurrent(this)) return
         if (::mergePassBilling.isInitialized) mergePassBilling.refreshPurchases()
         if (::tvCurrencyValue.isInitialized) {
             currentPoint = PointPrefs.getPoint(this)

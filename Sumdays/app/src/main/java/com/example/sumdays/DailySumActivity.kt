@@ -314,6 +314,7 @@ class DailySumActivity : AppCompatActivity() {
         val sheet = Dialog(this)
         val view = LayoutInflater.from(this).inflate(R.layout.dialog_merge_done, null, false)
         sheet.setContentView(view)
+        sheet.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         val btnCancel =
             view.findViewById<ImageButton>(R.id.btnCancel)
@@ -345,7 +346,7 @@ class DailySumActivity : AppCompatActivity() {
         sheet.setOnDismissListener { mergeSheetShowing = false }
         sheet.show()
 
-        val width = (resources.displayMetrics.widthPixels * 0.9f).toInt()
+        val width = (resources.displayMetrics.widthPixels * 0.98f).toInt()
         sheet.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
         sheet.window?.setGravity(android.view.Gravity.CENTER)
     }

@@ -4,7 +4,14 @@ import com.example.sumdays.R
 
 
 object AllFoxMap {
-    val allFoxMap: MutableMap<Int, CompleteFox> = mutableMapOf(
+    val allFoxMap: MutableMap<Int, CompleteFox> = defaultFoxes()
+
+    fun reset() {
+        allFoxMap.clear()
+        allFoxMap.putAll(defaultFoxes())
+    }
+
+    private fun defaultFoxes(): MutableMap<Int, CompleteFox> = mutableMapOf(
         1 to CompleteFox(
             name = "angry",
             id = 1,

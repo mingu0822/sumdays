@@ -1,0 +1,13 @@
+// Isolated Android UI verification; the installed user's app and inventory are untouched.
+// gradlew -I gradle/sticker-shop-device-tests.init.gradle :app:connectedDebugAndroidTest
+gradle.beforeProject { project ->
+    project.plugins.withId('com.android.application') {
+        project.androidComponents.finalizeDsl { android ->
+            android.buildTypes.getByName('debug').applicationIdSuffix = '.inventorycheck'
+            android.defaultConfig.testInstrumentationRunner =
+                'com.example.sumdays.auth.InventoryTestRunner'
+            android.defaultConfig.testInstrumentationRunnerArguments['class'] =
+                'com.example.sumdays.shop.StickerShopDeviceTest'
+        }
+    }
+}
