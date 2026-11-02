@@ -31,6 +31,9 @@
 
     <color name="foxrange">#d03b2f</color>
     <color name="dark_foxrange">#7c0200</color>
+    <color name="mission_button_disabled">#B9B5B2</color>
+    <color name="mission_button_claimed">#8D827C</color>
+    <color name="mission_progress_track">#EEE4D8</color>
 
     <color name="icon_color">#988280</color>
     <color name="dark_divider">#E0E0E0</color>

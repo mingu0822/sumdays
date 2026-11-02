@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="merge_marble_loading">횟수 확인 중</string>
+    <string name="merge_marble_state">%1$d회 (+ 무료 %2$d회)</string>
+    <string name="merge_marble_pass_active">무제한 패스 이용 중</string>
+</resources>

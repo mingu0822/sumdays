@@ -16,8 +16,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
 import androidx.lifecycle.lifecycleScope
+import androidx.work.WorkManager
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.data.sync.InitialSyncWorker
+import com.example.sumdays.data.sync.LocalDataOwnerPrefs
 import com.example.sumdays.databinding.ActivitySettingMainBinding
 import com.example.sumdays.settings.AccountSettingsActivity
 import com.example.sumdays.settings.DiaryStyleSettingsActivity
@@ -34,6 +37,7 @@ import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SettingActivity : AppCompatActivity() {
 
@@ -71,20 +75,26 @@ class SettingActivity : AppCompatActivity() {
         }
 
         loginButton.setOnClickListener {
-            lifecycleScope.launch(Dispatchers.IO) {
-                val db = AppDatabase.getDatabase(applicationContext)
-
-                db.memoDao().clearAll()
-                db.dailyEntryDao().clearAll()
-                db.userStyleDao().clearAll()
-                db.weekSummaryDao().clearAll()
+            val userId = SessionManager.getUserId()
+            LocalDataOwnerPrefs.clear(applicationContext)
+            if (userId >= 0) {
+                WorkManager.getInstance(applicationContext)
+                    .cancelAllWorkByTag(InitialSyncWorker.accountWorkTag(userId))
             }
-
             SessionManager.clearSession()
-            // 로그인 화면으로 이동
-            val intent = Intent(this@SettingActivity, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    val db = AppDatabase.getDatabase(applicationContext)
+                    db.memoDao().clearAll()
+                    db.dailyEntryDao().clearAll()
+                    db.userStyleDao().clearAll()
+                    db.weekSummaryDao().clearAll()
+                }
+
+                val intent = Intent(this@SettingActivity, LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+            }
         }
 
         // 세부 설정 페이지

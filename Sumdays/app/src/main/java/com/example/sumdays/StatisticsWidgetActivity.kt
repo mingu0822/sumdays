@@ -23,10 +23,10 @@ import com.example.sumdays.statistics.StreakPrefs
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
-import kotlin.math.abs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.abs
 
 class StatisticsWidgetActivity : AppCompatActivity() {
 

@@ -2,281 +2,91 @@ package com.example.sumdays.alchemy
 
 import android.content.Context
 import com.example.sumdays.auth.AccountStorage
-import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.AllItemMap
+import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.ItemCategory
 import com.example.sumdays.shop.ItemPrefs
 
+/** Selection is UI state, not inventory. Cancel/rotation never refunds server items. */
 object AlchemySelectionManager {
-
     private const val PREF_NAME = "alchemy_selection"
     private const val KEY_SELECTED_IDS = "selected_item_ids"
 
-    // 카테고리별 선택된 아이템
-    private val selectedMap =
-        mutableMapOf<ItemCategory, FoxShopItem>()
-    private var selectedAccount: String? = null
+    private var owner: String? = null
+    private val selected = mutableMapOf<ItemCategory, FoxShopItem>()
 
-    /** Pending reservations stay in their owner's preferences during account switches. */
+    private fun checkOwner() {
+        val current = AccountStorage.accountKey()
+        if (current != owner) {
+            selected.clear()
+            owner = current
+        }
+    }
+
+    /** Drop the previous account's in-memory draft after a session change. */
     fun resetMemory() {
-        selectedMap.clear()
-        selectedAccount = null
+        selected.clear()
+        owner = null
     }
 
-    private fun ensureLoaded(context: Context) {
-        if (selectedAccount != AccountStorage.accountKey()) resumePendingSelection(context)
-    }
-
-    private fun discardPreviousAccount() {
-        if (selectedAccount != AccountStorage.accountKey()) selectedMap.clear()
-    }
-
-    /**
-     * 아이템 선택 / 해제
-     *
-     * 선택하는 순간 인벤토리에서 1개를 예약 차감한다.
-     */
-    fun toggle(
-        context: Context,
-        item: FoxShopItem
-    ): List<FoxShopItem> {
-        ensureLoaded(context)
-
-        val current =
-            selectedMap[item.itemCategory]
-
-        // 같은 아이템을 다시 클릭 → 선택 취소
-        if (current?.id == item.id) {
-
-            restoreItem(
-                context,
-                item.id
-            )
-
-            selectedMap.remove(
-                item.itemCategory
-            )
-
-            saveSelection(
-                context
-            )
-
-            return getSelectedItems()
-        }
-
-        // 재고가 없는 아이템을 누르면 기존 선택을 유지한다.
-        val count = ItemPrefs.getCount(context, item.id)
-        if (count <= 0) return getSelectedItems()
-
-        // 같은 카테고리에 기존 아이템이 있다면 복원
-        if (current != null) {
-
-            restoreItem(
-                context,
-                current.id
-            )
-
-            selectedMap.remove(
-                item.itemCategory
-            )
-        }
-
-        // 새 아이템 1개 예약 차감
-        ItemPrefs.setCount(
-            context,
-            item.id,
-            count - 1
-        )
-
-        selectedMap[
-            item.itemCategory
-        ] = item
-
+    fun toggle(context: Context, item: FoxShopItem): List<FoxShopItem> {
+        checkOwner()
+        if (selected[item.itemCategory]?.id == item.id) selected.remove(item.itemCategory)
+        else if (ItemPrefs.getCount(context, item.id) > 0) selected[item.itemCategory] = item
         saveSelection(context)
-
         return getSelectedItems()
     }
 
-    /**
-     * 현재 선택된 아이템
-     */
-    fun getSelectedItems(): List<FoxShopItem> {
-        discardPreviousAccount()
-        return selectedMap.values.toList()
-    }
-
-    /** Resume the editor after process recreation without reserving the items twice. */
+    /** Restore draft selection after recreation without reserving or decrementing inventory. */
     fun resumePendingSelection(context: Context) {
-        selectedAccount = AccountStorage.accountKey()
+        checkOwner()
+        removeLegacyDraft(context)
         val ids = AccountStorage.preferences(context, PREF_NAME)
             .getStringSet(KEY_SELECTED_IDS, emptySet()).orEmpty()
-        selectedMap.clear()
-        ids.mapNotNull { it.toIntOrNull()?.let(AllItemMap.allItemMap::get) }.forEach {
-            selectedMap[it.itemCategory] = it
-        }
+        selected.clear()
+        ids.mapNotNull { it.toIntOrNull()?.let(AllItemMap.allItemMap::get) }
+            .forEach { selected[it.itemCategory] = it }
     }
 
-    /**
-     * 선택 여부
-     */
-    fun isSelected(
-        item: FoxShopItem
-    ): Boolean {
-        discardPreviousAccount()
-
-        return selectedMap[
-            item.itemCategory
-        ]?.id == item.id
+    fun getSelectedItems(): List<FoxShopItem> {
+        checkOwner()
+        return selected.values.toList()
     }
 
-    /**
-     * 특정 카테고리 선택 아이템
-     */
-    fun getSelected(
-        category: ItemCategory
-    ): FoxShopItem? {
-        discardPreviousAccount()
-
-        return selectedMap[category]
+    fun isSelected(item: FoxShopItem): Boolean {
+        checkOwner()
+        return selected[item.itemCategory]?.id == item.id
     }
 
-    /**
-     * 조합 성공
-     *
-     * 이미 선택할 때 차감했으므로
-     * 여기서는 예약 정보만 삭제한다.
-     */
-    fun commit(
-        context: Context
-    ) {
-        ensureLoaded(context)
-
-        selectedMap.clear()
-
-        clearSavedSelection(
-            context
-        )
+    fun getSelected(category: ItemCategory): FoxShopItem? {
+        checkOwner()
+        return selected[category]
     }
 
-    /**
-     * 조합 취소 / BottomSheet 닫기
-     *
-     * 예약 차감했던 아이템을 전부 복구한다.
-     */
-    fun clear(
-        context: Context
-    ) {
-        ensureLoaded(context)
+    fun commit(context: Context) = clear(context)
 
-        selectedMap.values.forEach { item ->
-
-            restoreItem(
-                context,
-                item.id
-            )
-        }
-
-        selectedMap.clear()
-
-        clearSavedSelection(
-            context
-        )
+    fun clear(context: Context) {
+        checkOwner()
+        selected.clear()
+        AccountStorage.preferences(context, PREF_NAME).edit().remove(KEY_SELECTED_IDS).apply()
+        removeLegacyDraft(context)
     }
 
-    /**
-     * 앱이 다시 시작됐을 때
-     *
-     * 이전에 예약 차감된 아이템을 복구한다.
-     *
-     * 강제 종료 대비용.
-     */
-    fun restorePendingSelection(
-        context: Context
-    ) {
-        selectedAccount = AccountStorage.accountKey()
-
-        val prefs =
-            AccountStorage.preferences(context, PREF_NAME)
-
-        val ids =
-            prefs.getStringSet(
-                KEY_SELECTED_IDS,
-                emptySet()
-            ) ?: emptySet()
-
-        ids.forEach { idString ->
-
-            val id =
-                idString.toIntOrNull()
-                    ?: return@forEach
-
-            restoreItem(
-                context,
-                id
-            )
-        }
-
-        clearSavedSelection(
-            context
-        )
-
-        selectedMap.clear()
+    fun restorePendingSelection(context: Context) {
+        // Old builds reserved locally. Never add that amount to authoritative server inventory.
+        clear(context)
     }
 
-    /**
-     * 현재 예약 상태 저장
-     */
-    private fun saveSelection(
-        context: Context
-    ) {
-
-        val ids =
-            selectedMap.values
-                .map { it.id.toString() }
-                .toSet()
-
+    private fun saveSelection(context: Context) {
         AccountStorage.preferences(context, PREF_NAME)
             .edit()
-            .putStringSet(
-                KEY_SELECTED_IDS,
-                ids
-            )
+            .putStringSet(KEY_SELECTED_IDS, selected.values.map { it.id.toString() }.toSet())
             .apply()
     }
 
-    /**
-     * 저장된 예약 상태 삭제
-     */
-    private fun clearSavedSelection(
-        context: Context
-    ) {
-
-        AccountStorage.preferences(context, PREF_NAME)
-            .edit()
-            .remove(
-                KEY_SELECTED_IDS
-            )
-            .apply()
-    }
-
-    /**
-     * 아이템 1개 복구
-     */
-    private fun restoreItem(
-        context: Context,
-        itemId: Int
-    ) {
-
-        val count =
-            ItemPrefs.getCount(
-                context,
-                itemId
-            )
-
-        ItemPrefs.setCount(
-            context,
-            itemId,
-            count + 1
-        )
+    /** Drafts from builds before per-account files lived in one shared file. */
+    private fun removeLegacyDraft(context: Context) {
+        val legacy = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        if (legacy.all.isNotEmpty()) legacy.edit().clear().apply()
     }
 }

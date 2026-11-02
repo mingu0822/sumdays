@@ -8,6 +8,7 @@ const authController = require('../controllers/authController');
 
 // 로그인 엔드포인트
 router.post('/login', authController.login);
+router.post('/google', authController.googleLogin);
 
 // 회원가입 엔드포인트
 router.post('/signup', authController.signup);

@@ -1,15 +1,16 @@
 package com.example.sumdays
 
 import android.app.Dialog
-import android.util.Log
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
@@ -23,11 +24,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.sumdays.data.repository.AnalysisRepository
-import com.example.sumdays.data.Memo
 import com.example.sumdays.daily.memo.MemoMergeAdapter
+import com.example.sumdays.daily.memo.MergeMarbleRepository
+import com.example.sumdays.daily.memo.MergeMarbleState
 import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.data.Memo
 import com.example.sumdays.data.dao.UserStyleDao
+import com.example.sumdays.data.repository.AnalysisRepository
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.settings.prefs.DiaryPermissionPrefs
 import com.example.sumdays.settings.prefs.UserStatsPrefs
@@ -35,6 +38,7 @@ import com.example.sumdays.statistics.StreakPrefs
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
+import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -53,11 +57,26 @@ class DailySumActivity : AppCompatActivity() {
     private lateinit var loadingOverlay: View
     private lateinit var loadingGifView: ImageView
     private var mergeJob: Job? = null
+    private lateinit var marbleRepository: MergeMarbleRepository
+    private lateinit var marbleText: TextView
+    private lateinit var marbleCard: MaterialCardView
+    private var marbleState: MergeMarbleState? = null
+    private var marbleJob: Job? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sum)
+        marbleRepository = MergeMarbleRepository(applicationContext)
+        marbleText = findViewById(R.id.merge_marble_text)
+        marbleCard = findViewById(R.id.merge_marble_card)
+        marbleCard.setOnClickListener {
+            if (marbleState == null) refreshMergeMarble()
+            else startActivity(
+                Intent(this, ShopActivity::class.java)
+                    .putExtra(ShopActivity.EXTRA_INITIAL_CATEGORY, ShopActivity.CATEGORY_MERGE_TICKET)
+            )
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.sum_layout)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -93,7 +112,8 @@ class DailySumActivity : AppCompatActivity() {
             lifecycleScope,
             ::showAllMergedSheet,
             userStatsPrefs = userStatsPrefs,
-            userStyleDao = userStyleDao
+            userStyleDao = userStyleDao,
+            onMarbleChanged = { refreshMergeMarble() },
         )
         recyclerView.itemAnimator = null
         recyclerView.adapter = memoMergeAdapter
@@ -109,6 +129,8 @@ class DailySumActivity : AppCompatActivity() {
         }
 
         findViewById<ImageButton>(R.id.go_icon).setOnClickListener {
+            if (mergeJob?.isActive == true || memoMergeAdapter.isMerging) return@setOnClickListener
+            // 남은 횟수가 0이어도 이전 성공 결과 복구는 가능하므로 서버에서 최종 판단한다.
             showLoading(true)
             mergeJob = lifecycleScope.launch {
                 try {
@@ -125,7 +147,7 @@ class DailySumActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     showLoading(false)
                     val msg =
-                        if (e is MemoMergeAdapter.MergeException) e.message else "오류가 발생했습니다."
+                        if (e is com.example.sumdays.daily.memo.MergeException) e.message else "오류가 발생했습니다."
                     Toast.makeText(this@DailySumActivity, msg, Toast.LENGTH_SHORT).show()
                 }
             }
@@ -139,6 +161,41 @@ class DailySumActivity : AppCompatActivity() {
                 handleBackPress()
             }
         })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::marbleRepository.isInitialized) refreshMergeMarble()
+    }
+
+    private fun refreshMergeMarble() {
+        if (isFinishing || isDestroyed) return
+        marbleJob?.cancel()
+        marbleJob = lifecycleScope.launch {
+            try {
+                renderMergeMarble(marbleRepository.refresh())
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                marbleState = null
+                marbleText.text = "합치기 횟수를 불러오지 못했어요. 연결을 확인해 주세요."
+                marbleCard.isEnabled = true
+            }
+        }
+    }
+
+    private fun renderMergeMarble(state: MergeMarbleState) {
+        marbleState = state
+        marbleText.text = if (state.passActive) {
+            getString(R.string.merge_marble_pass_active)
+        } else {
+            getString(
+                R.string.merge_marble_state,
+                state.ticketBalance,
+                state.freeRemainingCount,
+            )
+        }
+        marbleCard.isEnabled = true
     }
 
     private fun applyThemeModeSettings() {

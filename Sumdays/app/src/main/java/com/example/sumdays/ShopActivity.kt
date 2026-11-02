@@ -1,6 +1,6 @@
 package com.example.sumdays
 
-import android.content.res.ColorStateList
+import android.content.Intent
 import android.os.Bundle
 import com.example.sumdays.auth.AccountInventory
 import com.example.sumdays.auth.InventoryOwner
@@ -11,19 +11,41 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.sumdays.shop.*
+import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.billing.GooglePlayMergePassBillingManager
+import com.example.sumdays.daily.memo.MergeMarbleRepository
+import com.example.sumdays.daily.memo.MergeMarbleState
+import com.example.sumdays.daily.memo.MergeTicketProduct
+import com.example.sumdays.mission.MissionConfig
+import com.example.sumdays.mission.ShopProductResponse
+import com.example.sumdays.shop.AllItemMap
+import com.example.sumdays.shop.AllThemeMap
+import com.example.sumdays.shop.FoxShopItem
+import com.example.sumdays.shop.ItemCategory
+import com.example.sumdays.shop.ItemPrefs
+import com.example.sumdays.shop.MergePassShopItem
+import com.example.sumdays.shop.MergeTicketShopItem
+import com.example.sumdays.shop.OwnedPrefs
+import com.example.sumdays.shop.PointPrefs
+import com.example.sumdays.shop.PointWalletRepository
+import com.example.sumdays.shop.ShopPurchaseResult
+import com.example.sumdays.shop.StickerCatalog
+import com.example.sumdays.shop.StickerPrefs
+import com.example.sumdays.shop.StickerShopItem
+import com.example.sumdays.shop.ThemeShopItem
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
+import kotlinx.coroutines.launch
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.example.sumdays.ui.component.setupBackToCalendar
-
 
 class ShopActivity : AppCompatActivity() {
     private lateinit var inventoryOwner: InventoryOwner
@@ -36,6 +58,7 @@ class ShopActivity : AppCompatActivity() {
     private lateinit var chipTheme: TextView
     private lateinit var chipItem: TextView
     private lateinit var chipSticker: TextView
+    private lateinit var chipMergeTicket: TextView
 
     private lateinit var rvShopItems: RecyclerView
     private lateinit var shopAdapter: ShopAdapter
@@ -52,6 +75,13 @@ class ShopActivity : AppCompatActivity() {
     private var selectedItem: ShopItem? = null
     private var currentPoint = 0
     private var selectedCategory = "theme"
+    private lateinit var pointWalletRepository: PointWalletRepository
+    private lateinit var mergeMarbleRepository: MergeMarbleRepository
+    private lateinit var mergePassBilling: GooglePlayMergePassBillingManager
+    private var purchaseInProgress = false
+    private var shopDataReady = !MissionConfig.USE_SERVER_MISSIONS
+    private var ticketState: MergeMarbleState? = null
+    private val pendingPassTokens = mutableSetOf<String>()
     private var selectedItemCategory: ItemCategory? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,6 +91,16 @@ class ShopActivity : AppCompatActivity() {
         setContentView(R.layout.activity_shop)
 
         currentPoint = PointPrefs.getPoint(this)
+        pointWalletRepository = PointWalletRepository(applicationContext)
+        mergeMarbleRepository = MergeMarbleRepository(applicationContext)
+        mergePassBilling = GooglePlayMergePassBillingManager(
+            context = applicationContext,
+            onPurchased = ::redeemMergePass,
+            onPending = {
+                Toast.makeText(this, "결제를 확인하고 있어요. 완료되면 패스가 활성화됩니다.", Toast.LENGTH_SHORT).show()
+            },
+            onError = { message -> Toast.makeText(this, message, Toast.LENGTH_SHORT).show() },
+        )
 
         initViews()
         setupRecyclerView()
@@ -80,7 +120,7 @@ class ShopActivity : AppCompatActivity() {
         navBarController.setNavigationBar(NavSource.SHOP)
 
         updatePointUI()
-        filterItems(selectedCategory)
+        filterItems(intent.getStringExtra(EXTRA_INITIAL_CATEGORY) ?: "theme")
         setupBackToCalendar()
     }
 
@@ -89,15 +129,6 @@ class ShopActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
         outState.putString("shop_category", selectedCategory)
         outState.putString("item_category", selectedItemCategory?.name)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (!inventoryOwner.requireCurrent(this)) return
-        currentPoint = PointPrefs.getPoint(this)
-        loadItems()
-        filterItems(selectedCategory)
-        updatePointUI()
     }
 
     private fun initViews() {
@@ -109,6 +140,7 @@ class ShopActivity : AppCompatActivity() {
         chipTheme = findViewById(R.id.chipTheme)
         chipItem = findViewById(R.id.chipItem)
         chipSticker = findViewById(R.id.chipSticker)
+        chipMergeTicket = findViewById(R.id.chipMergeTicket)
 
         rvShopItems = findViewById(R.id.rvShopItems)
 
@@ -125,27 +157,35 @@ class ShopActivity : AppCompatActivity() {
             },
 
             onActionClick = { item ->
-
                 if (!inventoryOwner.requireCurrent(this)) return@ShopAdapter
 
-                selectedItem = item
+                if (!shopDataReady) {
+                    Toast.makeText(this, "상점 정보를 불러오는 중입니다.", Toast.LENGTH_SHORT).show()
+                } else {
+                    selectedItem = item
 
-                when(item){
+                    when(item){
+                        is ThemeShopItem -> {
+                            if(item.isOwned)
+                                applyItem(item)
+                            else
+                                tryPurchaseItem(item)
+                        }
 
-                    is ThemeShopItem -> {
-
-                        if(item.isOwned)
-                            applyItem(item)
-                        else
+                        is FoxShopItem -> {
                             tryPurchaseItem(item)
-                    }
+                        }
 
-                    is FoxShopItem -> {
-                        tryPurchaseItem(item)
-                    }
+                        is MergeTicketShopItem -> {
+                            tryPurchaseMergeTicket(item.product)
+                        }
 
-                    is StickerShopItem -> {
-                        tryPurchaseItem(item)
+                        is MergePassShopItem -> {
+                            startMergePassPurchase()
+                        }
+
+                        // 서버 지갑에 스티커 상품이 생기기 전까지 어댑터에서 버튼을 비활성화한다.
+                        is StickerShopItem -> Unit
                     }
                 }
             }
@@ -155,21 +195,35 @@ class ShopActivity : AppCompatActivity() {
         rvShopItems.adapter = shopAdapter
     }
 
-    private fun loadItems() {
+    private fun loadItems(
+        serverProducts: List<ShopProductResponse>? = null,
+        mergeMarbleState: MergeMarbleState? = ticketState,
+    ) {
 
         allItems.clear()
         AccountInventory.refreshOwnership(this)
+        val serverProductMap = serverProducts
+            ?.associateBy { "${it.productType}:${it.itemId}" }
 
         AllThemeMap.allThemeMap.forEach { (id, theme) ->
 
-            theme.isOwned = OwnedPrefs.isOwned(this, id.toInt())
+            val serverProduct = serverProductMap?.get("THEME:$id")
+            if (serverProducts != null && id != 1 && serverProduct == null) {
+                return@forEach
+            }
+
+            theme.isOwned = when {
+                id == 1 -> true
+                serverProduct != null -> serverProduct.owned
+                else -> OwnedPrefs.isOwned(this, id)
+            }
 
             allItems.add(
                 ThemeShopItem(
                     id = theme.id,
                     name = theme.name,
                     description = theme.description,
-                    price = theme.price,
+                    price = serverProduct?.price ?: theme.price,
                     isOwned = theme.isOwned,
                     theme = theme,
                     imageRes = theme.previewImage
@@ -179,7 +233,12 @@ class ShopActivity : AppCompatActivity() {
 
         AllItemMap.allItemMap.forEach { (id, fox) ->
 
-            fox.count = ItemPrefs.getCount(this, id)
+            val serverProduct = serverProductMap?.get("ITEM:$id")
+            if (serverProducts != null && serverProduct == null) {
+                return@forEach
+            }
+
+            fox.count = serverProduct?.quantity ?: ItemPrefs.getCount(this, id)
             fox.isOwned = fox.count > 0
 
             allItems.add(
@@ -187,13 +246,32 @@ class ShopActivity : AppCompatActivity() {
                     id = fox.id,
                     name = fox.name,
                     description = fox.description,
-                    price = fox.price,
+                    price = serverProduct?.price ?: fox.price,
                     isOwned = fox.isOwned,
                     count = fox.count,
                     itemCategory = fox.itemCategory,
                     imageRes = fox.imageRes
                 )
             )
+        }
+
+        mergeMarbleState?.let { state ->
+            allItems.add(
+                MergePassShopItem(
+                    active = state.passActive,
+                    expiresAt = state.passExpiresAt,
+                )
+            )
+            state.ticketProducts.forEach { product ->
+                allItems.add(
+                    MergeTicketShopItem(
+                        product = product,
+                        ownedTicketCount = state.ticketBalance,
+                        purchaseEnabled = !state.passActive,
+                        disabledActionLabel = "패스 이용 중",
+                    )
+                )
+            }
         }
 
         allItems.addAll(StickerCatalog.items.map { sticker ->
@@ -217,6 +295,9 @@ class ShopActivity : AppCompatActivity() {
             filterItems("sticker")
         }
 
+        chipMergeTicket.setOnClickListener {
+            filterItems("merge_ticket")
+        }
         val group = findViewById<ChipGroup>(R.id.shopItemCategories)
         listOf(
             null to "전체", ItemCategory.FOXFACE to "표정",
@@ -253,6 +334,11 @@ class ShopActivity : AppCompatActivity() {
                     selectedItemCategory == null || it.itemCategory == selectedItemCategory
                 })
 
+            "merge_ticket" ->
+                filteredItems.addAll(
+                    allItems.filter { it is MergePassShopItem || it is MergeTicketShopItem }
+                )
+
             "sticker" ->
                 filteredItems.addAll(allItems.filterIsInstance<StickerShopItem>())
 
@@ -275,14 +361,19 @@ class ShopActivity : AppCompatActivity() {
     }
 
     private fun updateChipStyle() {
-        val tabs = listOf("theme" to chipTheme, "item" to chipItem, "sticker" to chipSticker)
+        val tabs = listOf(
+            "theme" to chipTheme,
+            "item" to chipItem,
+            "sticker" to chipSticker,
+            CATEGORY_MERGE_TICKET to chipMergeTicket,
+        )
         tabs.forEach { (category, tab) ->
             tab.isSelected = selectedCategory == category
             tab.setTextColor(getColor(if (tab.isSelected) R.color.foxrange else android.R.color.black))
         }
 
         indicator.post {
-            val selectedTab = tabs.first { it.first == selectedCategory }.second
+            val selectedTab = tabs.firstOrNull { it.first == selectedCategory }?.second ?: return@post
             indicator.layoutParams = indicator.layoutParams.apply { width = selectedTab.width }
             indicator.animate()
                 .translationX((selectedTab.left - indicator.left).toFloat())
@@ -293,12 +384,7 @@ class ShopActivity : AppCompatActivity() {
 
     private fun bindBasicActions() {
         btnEarnPoint.setOnClickListener {
-
-            Toast.makeText(
-                this,
-                "포인트 기능 준비중",
-                Toast.LENGTH_SHORT
-            ).show()
+            startActivity(Intent(this, MissionActivity::class.java))
         }
     }
 
@@ -323,50 +409,163 @@ class ShopActivity : AppCompatActivity() {
 
     private fun tryPurchaseItem(item: ShopItem){
         if (!inventoryOwner.requireCurrent(this)) return
-        currentPoint = PointPrefs.getPoint(this)
+        if (purchaseInProgress) return
+        purchaseInProgress = true
+        lifecycleScope.launch {
+            try {
+                when (val result = pointWalletRepository.purchase(item)) {
+                    is ShopPurchaseResult.InsufficientPoints -> {
+                        result.pointBalance?.let {
+                            currentPoint = it
+                            updatePointUI()
+                        }
+                        Toast.makeText(this@ShopActivity,"포인트가 부족합니다.",Toast.LENGTH_SHORT).show()
+                    }
+                    is ShopPurchaseResult.Purchased -> {
+                        currentPoint = result.pointBalance
+                        when(item){
+                            is ThemeShopItem -> {
+                                item.isOwned = true
+                            }
+                            is FoxShopItem -> item.count = result.quantity
+                        }
+                        updatePointUI()
+                        shopAdapter.notifyDataSetChanged()
+                        AccountInventory.refreshOwnership(this@ShopActivity)
+                        val message = if (result.alreadyOwned) {
+                            "이미 보유한 상품입니다."
+                        } else {
+                            "${item.name} 구매 완료"
+                        }
+                        Toast.makeText(this@ShopActivity, message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (_: Exception) {
+                Toast.makeText(
+                    this@ShopActivity,
+                    "구매하지 못했습니다. 잠시 후 다시 시도해 주세요",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            } finally {
+                purchaseInProgress = false
+            }
+        }
+    }
 
-        if (item is ThemeShopItem && OwnedPrefs.isOwned(this, item.id)) {
-            item.isOwned = true
-            applyItem(item)
+    private fun tryPurchaseMergeTicket(product: MergeTicketProduct) {
+        if (purchaseInProgress) return
+        purchaseInProgress = true
+        lifecycleScope.launch {
+            try {
+                val state = mergeMarbleRepository.purchaseTicket(product)
+                ticketState = state
+                currentPoint = state.pointBalance
+                loadItems(mergeMarbleState = state)
+                filterItems(selectedCategory)
+                updatePointUI()
+                Toast.makeText(
+                    this@ShopActivity,
+                    "합치기 횟수권 ${product.ticketCount}회를 추가했어요.",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            } catch (error: Exception) {
+                Toast.makeText(
+                    this@ShopActivity,
+                    error.message ?: "횟수권을 구매하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+                    Toast.LENGTH_LONG,
+                ).show()
+            } finally {
+                purchaseInProgress = false
+            }
+        }
+    }
+
+    private fun startMergePassPurchase() {
+        if (ticketState?.passActive == true) return
+        val userId = SessionManager.getUserId()
+        if (userId < 0 || SessionManager.getToken() == null) {
+            Toast.makeText(this, "무제한 패스는 로그인 후 이용할 수 있어요.", Toast.LENGTH_SHORT).show()
             return
         }
+        mergePassBilling.launchPurchase(this, userId)
+    }
 
-        if(currentPoint < item.price){
-            Toast.makeText(this,"포인트가 부족합니다.",Toast.LENGTH_SHORT).show()
-            return
+    private fun redeemMergePass(productId: String, purchaseToken: String) {
+        if (!pendingPassTokens.add(purchaseToken)) return
+        lifecycleScope.launch {
+            try {
+                val state = mergeMarbleRepository.redeemPass(productId, purchaseToken)
+                ticketState = state
+                currentPoint = state.pointBalance
+                loadItems(mergeMarbleState = state)
+                filterItems(CATEGORY_MERGE_TICKET)
+                updatePointUI()
+                Toast.makeText(
+                    this@ShopActivity,
+                    if (state.duplicate) "무제한 패스를 확인했어요." else "무제한 패스가 활성화됐어요!",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            } catch (error: Exception) {
+                Toast.makeText(
+                    this@ShopActivity,
+                    error.message ?: "무제한 패스 구매를 확인하지 못했습니다. 다시 열어 주세요.",
+                    Toast.LENGTH_LONG,
+                ).show()
+            } finally {
+                pendingPassTokens.remove(purchaseToken)
+            }
         }
-
-        currentPoint -= item.price
-        PointPrefs.savePoint(this,currentPoint)
-
-        when(item){
-
-            is ThemeShopItem -> {
-
-                item.isOwned = true
-                OwnedPrefs.saveOwned(this,item.id)
-            }
-
-            is FoxShopItem -> {
-
-                ItemPrefs.addItem(this,item.id)
-            }
-
-            is StickerShopItem -> {
-                StickerPrefs.addSticker(this, item.id)
-                item.isOwned = true
-            }
-        }
-
-        updatePointUI()
-        shopAdapter.notifyDataSetChanged()
-        AccountInventory.refreshOwnership(this)
-
-        Toast.makeText(this,"${item.name} 구매 완료",Toast.LENGTH_SHORT).show()
     }
 
     private fun updatePointUI() {
 
         tvCurrencyValue.text = "%,d".format(currentPoint)
+    }
+    override fun onResume() {
+        super.onResume()
+        if (!inventoryOwner.requireCurrent(this)) return
+        if (::mergePassBilling.isInitialized) mergePassBilling.refreshPurchases()
+        if (::tvCurrencyValue.isInitialized) {
+            currentPoint = PointPrefs.getPoint(this)
+            updatePointUI()
+            lifecycleScope.launch {
+                runCatching {
+                    val catalog = pointWalletRepository.refreshShopCatalog()
+                    val marbles = mergeMarbleRepository.refresh()
+                    catalog to marbles
+                }.onSuccess { (catalog, marbles) ->
+                        ticketState = marbles
+                        if (catalog != null) {
+                            currentPoint = catalog.pointBalance
+                        } else {
+                            currentPoint = marbles.pointBalance
+                        }
+                        loadItems(catalog?.products, marbles)
+                        filterItems(selectedCategory)
+                        shopDataReady = true
+                        updatePointUI()
+                    }
+                    .onFailure {
+                        shopDataReady = !MissionConfig.USE_SERVER_MISSIONS
+                        if (MissionConfig.USE_SERVER_MISSIONS) {
+                            Toast.makeText(
+                                this@ShopActivity,
+                                "상점 정보를 불러오지 못했습니다.",
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        }
+                    }
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        if (::mergePassBilling.isInitialized) mergePassBilling.close()
+        super.onDestroy()
+    }
+
+    companion object {
+        const val EXTRA_INITIAL_CATEGORY = "initial_shop_category"
+        const val CATEGORY_MERGE_TICKET = "merge_ticket"
     }
 }

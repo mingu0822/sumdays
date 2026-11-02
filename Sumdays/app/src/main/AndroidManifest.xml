@@ -22,6 +22,10 @@
         android:usesCleartextTraffic="true"
         android:launchMode="singleTask">
 
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/admob_app_id" />
+
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
@@ -70,6 +74,10 @@
             android:exported="false" />
         <activity
             android:name=".ShopActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".MissionActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
         <activity

@@ -10,21 +10,25 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.example.sumdays.auth.SessionManager
-import com.example.sumdays.data.Memo
 import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.DailyEntry
-import com.example.sumdays.data.WeekSummaryEntity
-import com.example.sumdays.data.style.StylePrompt
-import com.example.sumdays.data.UserStyle
-import com.example.sumdays.network.ApiClient
 import com.example.sumdays.data.EmotionAnalysis
 import com.example.sumdays.data.Highlight
 import com.example.sumdays.data.Insights
+import com.example.sumdays.data.Memo
 import com.example.sumdays.data.SummaryDetails
+import com.example.sumdays.data.UserStyle
 import com.example.sumdays.data.WeekSummary
+import com.example.sumdays.data.WeekSummaryEntity
+import com.example.sumdays.data.style.StylePrompt
+import com.example.sumdays.mission.MissionConfig
+import com.example.sumdays.network.ApiClient
+import com.example.sumdays.shop.PointWalletRepository
 import com.google.gson.Gson
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.IOException
 
 class InitialSyncWorker(
     context: Context,
@@ -69,6 +73,11 @@ class InitialSyncWorker(
         try {
             Log.d("initWork","dowork (back to frontr")
 
+            val expectedUserId = inputData.getInt(KEY_EXPECTED_USER_ID, -1)
+            if (expectedUserId < 0 || SessionManager.getUserId() != expectedUserId) {
+                return@withContext Result.failure()
+            }
+
             // 0) login 되어있는지 확인
             val token = SessionManager.getToken()
             if(token == null) {
@@ -82,27 +91,41 @@ class InitialSyncWorker(
 
             // 1) 서버에서 전체 데이터 가져오기
             val response = ApiClient.api.fetchServerData(tokenHeader)
-            if (!response.isSuccessful || response.body() == null) {
+            if (!response.isSuccessful) {
+                return@withContext if (InitialSyncRetryPolicy.shouldRetry(response.code())) {
+                    Result.retry()
+                } else {
+                    Result.failure(workDataOf("message" to "초기 동기화 거절: ${response.code()}"))
+                }
+            }
+            if (response.body() == null) return@withContext Result.failure()
+            val serverData = response.body()!!
+
+            if (SessionManager.getUserId() != expectedUserId) {
                 return@withContext Result.failure()
             }
-            val serverData = response.body()!!
 
 
             /// printEditedUserStyles(frp = serverData)
 
-            // 2) Room DB 및 전부 삭제
+            // 2) Room DB 준비
             val db = AppDatabase.getDatabase(applicationContext)
             val memoDao = db.memoDao()
             val dailyDao = db.dailyEntryDao()
             val styleDao = db.userStyleDao()
             val weekDao = db.weekSummaryDao()
-            memoDao.clearAll()
-            dailyDao.clearAll()
-            styleDao.clearAll()
-            weekDao.clearAll()
 
-            // 3) 트랜잭션으로 Room DB 업데이트
+            // 3) 삭제와 삽입을 한 트랜잭션으로 처리해 중간 상태를 노출하지 않습니다.
             db.withTransaction {
+                if (SessionManager.getUserId() != expectedUserId) {
+                    throw AccountChangedException()
+                }
+
+                memoDao.clearAll()
+                dailyDao.clearAll()
+                styleDao.clearAll()
+                weekDao.clearAll()
+
                 // --- 서버 데이터 삽입 ---
                 // Memo
                 val memoList = serverData.memo.map { payload ->
@@ -185,13 +208,49 @@ class InitialSyncWorker(
                     )
                 }
                 weekDao.insertAll(weekSummaryList)
+
+                if (SessionManager.getUserId() != expectedUserId) {
+                    throw AccountChangedException()
+                }
             }
+
+            if (SessionManager.getUserId() != expectedUserId) {
+                return@withContext Result.failure()
+            }
+
+            if (MissionConfig.USE_SERVER_MISSIONS) {
+                runCatching {
+                    PointWalletRepository(applicationContext).refreshShopCatalog()
+                }.onFailure { error ->
+                    if (error is CancellationException) throw error
+                    Log.w("InitialSyncWorker", "상점 인벤토리 초기 동기화 실패", error)
+                }
+            }
+
+            if (SessionManager.getUserId() != expectedUserId) {
+                return@withContext Result.failure()
+            }
+            LocalDataOwnerPrefs.markReady(applicationContext, expectedUserId)
 
             return@withContext Result.success()
 
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IOException) {
+            // Keep ownership unready; WorkManager resumes after connectivity recovers.
+            Log.w("InitialSyncWorker", "초기 동기화 연결 실패: 자동 재시도", e)
+            return@withContext Result.retry()
         } catch (e: Exception) {
             e.printStackTrace()
             return@withContext Result.failure()
         }
     }
+
+    companion object {
+        const val KEY_EXPECTED_USER_ID = "expected_user_id"
+
+        fun accountWorkTag(userId: Int): String = "account_work_user_$userId"
+    }
+
+    private class AccountChangedException : IllegalStateException()
 }

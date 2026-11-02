@@ -160,6 +160,16 @@
                 android:textStyle="bold"
                 android:textSize="18sp"/>
 
+            <TextView
+                android:id="@+id/chipMergeTicket"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="이용권"
+                android:textStyle="bold"
+                android:textSize="18sp"/>
+
         </LinearLayout>
 
         <!-- 밑줄 -->

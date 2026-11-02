@@ -78,5 +78,3 @@ Caused by: java.lang.IllegalStateException: Each FIR element should have it's ow
 	at org.jetbrains.kotlin.fir.declarations.FirFile.accept(FirFile.kt:43)
 	at org.jetbrains.kotlin.fir.backend.Fir2IrConverter.runSourcesConversion(Fir2IrConverter.kt:107)
 	... 49 more
-
-

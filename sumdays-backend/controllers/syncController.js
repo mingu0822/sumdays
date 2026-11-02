@@ -110,14 +110,34 @@ exports.syncData = async (req, res) => {
       }
 
       if (edited.weekSummary) {
-        const actuallyCreated = await upsert(
+        const incomingStartDates = edited.weekSummary.map((summary) => summary.startDate);
+        const [existingRows] = incomingStartDates.length > 0
+          ? await connection.query(
+              `SELECT startDate FROM week_summary
+               WHERE user_id = ? AND startDate IN (?)`,
+              [userId, incomingStartDates]
+            )
+          : [[]];
+        const existingStartDates = new Set(existingRows.map((row) => row.startDate));
+
+        await upsert(
           'week_summary',
           edited.weekSummary,
           ['startDate', 'endDate', 'diaryCount', 'emotionAnalysis', 'highlights', 'insights', 'summary']
         );
-        if (actuallyCreated) {
-              weekSummaryChanged = true;
+
+        const newlyCreatedStartDates = incomingStartDates.filter(
+          (startDate) => !existingStartDates.has(startDate)
+        );
+        for (const startDate of newlyCreatedStartDates) {
+          await connection.query(
+            `INSERT IGNORE INTO user_mission_events
+             (user_id, event_type, event_key, event_date)
+             VALUES (?, 'WEEKLY_SUMMARY_CREATED', ?, DATE(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)))`,
+            [userId, startDate]
+          );
         }
+        weekSummaryChanged = weekSummaryChanged || newlyCreatedStartDates.length > 0;
       }
 
       

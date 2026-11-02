@@ -16,6 +16,7 @@ import com.example.sumdays.R
 import com.example.sumdays.data.WeekSummary
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.databinding.ActivityWeekStatsDetailBinding
+import com.example.sumdays.mission.MissionEventReporter
 import com.example.sumdays.utils.setupEdgeToEdge
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -49,6 +50,12 @@ class WeekStatsDetailActivity : AppCompatActivity() {
 
         binding = ActivityWeekStatsDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        lifecycleScope.launch {
+            MissionEventReporter.recordWeeklySummaryView(
+                this@WeekStatsDetailActivity,
+                weekSummary.startDate,
+            )
+        }
 
         setupListeners()
         setupReportViews()

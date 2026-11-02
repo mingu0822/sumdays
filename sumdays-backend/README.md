@@ -1,4 +1,5 @@
-# backend-ai
+`npm run db:init:local`  
+`npm run start:local`
 
 ### 1. 서버 실행 방법
 

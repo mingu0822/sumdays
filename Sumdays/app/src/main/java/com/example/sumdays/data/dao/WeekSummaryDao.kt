@@ -5,8 +5,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.sumdays.data.DailyEntry
-import com.example.sumdays.data.WeekSummaryEntity
 import com.example.sumdays.data.WeekSummary
+import com.example.sumdays.data.WeekSummaryEntity
 
 @Dao
 interface WeekSummaryDao {
@@ -15,8 +15,7 @@ interface WeekSummaryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertEntity(entity: WeekSummaryEntity)
 
-    //// 서버에서 만들고 바로 저장하는 것으로 변경 -> isEdited를 설정할 필요 x
-    suspend fun upsert(summary: WeekSummary, fromServer: Boolean = true) {
+    suspend fun upsert(summary: WeekSummary, fromServer: Boolean = false) {
         val entity = WeekSummaryEntity(
             startDate = summary.startDate,
             weekSummary = summary,

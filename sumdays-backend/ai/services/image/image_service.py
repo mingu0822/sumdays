@@ -24,7 +24,6 @@ class ImageService:
         )
         self.refine_model = ChatOpenAI(
             model=os.getenv("GPT_MODEL", "GPT-4.1-nano"),
-            temperature=0.7
         )
         self.ocr_client = vision.ImageAnnotatorClient()
 

@@ -10,10 +10,10 @@ import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.sumdays.R
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.FriendInfo
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 

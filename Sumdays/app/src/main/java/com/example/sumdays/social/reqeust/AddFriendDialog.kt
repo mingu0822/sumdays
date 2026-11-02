@@ -24,7 +24,6 @@ import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.getErrorMessage
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 
 class AddFriendDialog() : DialogFragment() {
 

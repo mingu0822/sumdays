@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Google 공식 테스트 ID. 실제 배포 전에 AdMob에서 발급한 ID로 교체합니다. -->
+    <string name="admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="admob_rewarded_ad_unit_id" translatable="false">ca-app-pub-3940256099942544/5224354917</string>
+</resources>

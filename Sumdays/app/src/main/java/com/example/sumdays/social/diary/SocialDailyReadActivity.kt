@@ -1,40 +1,20 @@
 package com.example.sumdays.social.diary
 
-import android.app.DatePickerDialog
-import android.app.Dialog
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import com.example.sumdays.R
 import android.os.Build
 import android.os.Bundle
-import android.util.Base64
 import android.view.View
-import android.widget.Toast
-import android.util.Log
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
-import com.example.sumdays.data.repository.AnalysisRepository
-import com.example.sumdays.daily.memo.MoodRepository
-import com.example.sumdays.data.AppDatabase
+import androidx.core.content.IntentCompat
+import com.example.sumdays.R
 import com.example.sumdays.data.DailyEntry
-import com.example.sumdays.data.viewModel.DailyEntryViewModel
-import com.example.sumdays.settings.prefs.UserStatsPrefs
-import com.example.sumdays.databinding.ActivityDailyReadBinding
 import com.example.sumdays.databinding.ActivitySocialDailyReadBinding
-import com.example.sumdays.image.GalleryItem
-import com.example.sumdays.image.PhotoGalleryAdapter
+import com.example.sumdays.mission.MissionEventReporter
 import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
-import com.example.sumdays.ui.component.NavBarController
-import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -72,6 +52,12 @@ class SocialDailyReadActivity : AppCompatActivity() {
             finish()
             return
         }
+
+        MissionEventReporter.recordFriendDiaryView(
+            context = this,
+            friendId = intent.getIntExtra("friendId", -1),
+            diaryDate = dailyEntry!!.date,
+        )
 
         initUi()
         stickerController = DiaryStickerController(this, inventoryOwner, binding.diaryStickerCanvas,

@@ -5,6 +5,8 @@ const { uploadProfile } = require('../middlewares/uploadMiddleware');
 const uploadProfilePromise = util.promisify(uploadProfile.single('profileImage'));
 const path = require('path');
 const fs = require('fs').promises;
+const crypto = require('crypto');
+const { verifyGoogleIdToken } = require('../services/googleIdToken');
 
 // =================================================================
 // ★★★ 중요: 이 비밀 키와 DB 정보는 절대로 코드에 하드코딩하면 안 됩니다. ★★★
@@ -86,10 +88,103 @@ exports.login = async (req, res) => {
     }
 };
 
+exports.googleLogin = async (req, res) => {
+    const { idToken } = req.body;
+    if (!idToken) {
+        return res.status(400).json({ success: false, message: 'Google ID 토큰이 필요합니다.' });
+    }
+
+    let identity;
+    try {
+        identity = await verifyGoogleIdToken(idToken);
+    } catch (error) {
+        if (error.code === 'GOOGLE_AUTH_NOT_CONFIGURED') {
+            return res.status(503).json({ success: false, message: 'Google 로그인이 아직 설정되지 않았습니다.' });
+        }
+        console.warn('[Google 로그인 거부] 유효하지 않은 ID 토큰');
+        return res.status(401).json({ success: false, message: 'Google 계정을 확인할 수 없습니다.' });
+    }
+
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const [linkedUsers] = await connection.query(
+            'SELECT id, email, nickname FROM users WHERE google_sub = ? LIMIT 1',
+            [identity.subject]
+        );
+        let user = linkedUsers[0];
+
+        if (!user) {
+            const [emailUsers] = await connection.query(
+                'SELECT id, email, nickname, google_sub FROM users WHERE email = ? LIMIT 1 FOR UPDATE',
+                [identity.email]
+            );
+            user = emailUsers[0];
+
+            if (user) {
+                if (user.google_sub || !identity.trustedEmail) {
+                    await connection.rollback();
+                    return res.status(409).json({
+                        success: false,
+                        message: '이미 가입된 이메일입니다. 기존 계정으로 로그인해주세요.'
+                    });
+                }
+                await connection.query('UPDATE users SET google_sub = ? WHERE id = ?', [identity.subject, user.id]);
+            } else {
+                const passwordHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
+                const nicknameBase = identity.name.replace(/[\\/\\\\]/g, '').trim().slice(0, 36) || 'Google 사용자';
+                const nickname = `${nicknameBase}_${crypto.randomBytes(4).toString('hex')}`;
+                const [result] = await connection.query(
+                    `INSERT INTO users (nickname, email, password_hash, google_sub, profile_image_url)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [nickname, identity.email, passwordHash, identity.subject, identity.picture]
+                );
+                user = { id: result.insertId, email: identity.email, nickname };
+
+                await connection.query('INSERT INTO user_info (user_id) VALUES (?)', [user.id]);
+                await connection.query(
+                    `INSERT INTO point_wallets (user_id, balance, initialization_source)
+                     VALUES (?, COALESCE((SELECT int_value FROM economy_settings
+                       WHERE config_key = 'DEFAULT_POINT_BALANCE'), 9000), 'DEFAULT')`,
+                    [user.id]
+                );
+            }
+        }
+
+        await connection.commit();
+        const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+        return res.status(200).json({
+            success: true,
+            message: 'Google 로그인 성공',
+            userId: user.id,
+            token,
+            nickname: user.nickname
+        });
+    } catch (error) {
+        await connection.rollback();
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ success: false, message: '이미 연결된 Google 계정입니다.' });
+        }
+        console.error('[서버 오류] Google 로그인 처리 실패:', error);
+        return res.status(500).json({ success: false, message: '서버 내부 오류가 발생했습니다.' });
+    } finally {
+        connection.release();
+    }
+};
+
 // ★★★ POST /api/signup: 회원가입 요청을 처리하는 엔드포인트 추가 ★★★
 exports.signup = async (req, res) => {
     const { nickname, email, password } = req.body;
     console.log(`[회원가입 시도] 이메일: ${email}`);
+
+    if (!nickname || !email || !password) {
+        return res.status(400).json({
+            success: false,
+            message: '닉네임, 이메일과 비밀번호를 모두 입력해주세요.'
+        });
+    }
+
     const connection = await pool.getConnection(); // 트랜잭션을 위한 커넥션 확보
 
     try {
@@ -98,7 +193,7 @@ exports.signup = async (req, res) => {
         // 1. 이메일 중복 확인
         const [existing] = await connection.query('SELECT id FROM users WHERE email = ?', [email]);
         if (existing.length > 0) {
-            connection.release();
+            await connection.rollback();
             return res.status(409).json({ success: false, message: '이미 사용 중인 이메일입니다.' });
         }
 
@@ -115,6 +210,23 @@ exports.signup = async (req, res) => {
         // 4. user_info 테이블 초기화 
         await connection.query(
             'INSERT INTO user_info (user_id) VALUES (?)',
+            [newUserId]
+        );
+
+        // 신규 계정의 포인트는 클라이언트 캐시가 아니라 서버 설정값으로 확정한다.
+        // 이 지갑이 먼저 존재하므로 이후 legacy 초기화 요청이 와도 다른 계정의
+        // 로컬 포인트가 신규 계정에 복사되지 않는다.
+        await connection.query(
+            `INSERT INTO point_wallets (user_id, balance, initialization_source)
+             VALUES (
+               ?,
+               COALESCE(
+                 (SELECT int_value FROM economy_settings
+                  WHERE config_key = 'DEFAULT_POINT_BALANCE'),
+                 9000
+               ),
+               'DEFAULT'
+             )`,
             [newUserId]
         );
 

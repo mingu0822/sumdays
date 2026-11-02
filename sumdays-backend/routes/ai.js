@@ -4,13 +4,15 @@ const multer = require('multer');
 const upload = multer({ dest: 'tmp/' }); // 임시 저장 폴더
 
 const mergeController = require('../controllers/ai/mergeController');
+const requireLogin = require('../middlewares/requireLogin');
 const analyzeController = require('../controllers/ai/analyzeController');
 const ocrController = require('../controllers/ai/ocrController');
 const sttController = require('../controllers/ai/sttController');
 const extractController = require('../controllers/ai/extractController');
 
 // api list
-router.post('/merge', mergeController.merge); // merge memos
+router.post('/merge', requireLogin, mergeController.merge); // 계정별 서버 횟수 제한
+router.post('/style-preview', requireLogin, mergeController.preview);
 router.post('/mood', mergeController.mood);   // generate pet-perspective mood for completed diary
 
 router.post('/analyze', analyzeController.analyze); // analyze a diary: summary, emotion-score, emoji, feedback

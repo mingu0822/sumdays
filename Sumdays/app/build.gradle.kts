@@ -19,11 +19,11 @@ android {
         }
     }
     defaultConfig {
-        applicationId = "com.example.first"
+        applicationId = "com.sumdays.sumdays"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "3"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -54,7 +54,19 @@ android {
     }
 }
 
+// Opt-in regression suite: keeps pre-existing broken tests outside this compile/run.
+// ./gradlew :app:testDebugUnitTest -PreviewTestsOnly=true --offline
+if (providers.gradleProperty("reviewTestsOnly").orNull == "true") {
+    android.sourceSets.getByName("test").java.setSrcDirs(listOf("src/reviewTest/java"))
+    kotlin.sourceSets.getByName("test").kotlin.setSrcDirs(listOf("src/reviewTest/java"))
+}
+
 dependencies {
+    implementation("androidx.credentials:credentials:1.6.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("com.android.billingclient:billing-ktx:9.1.0")
+    implementation("com.google.android.gms:play-services-ads:25.4.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
     testImplementation("androidx.work:work-testing:2.9.0")
     androidTestImplementation("androidx.work:work-testing:2.9.0")

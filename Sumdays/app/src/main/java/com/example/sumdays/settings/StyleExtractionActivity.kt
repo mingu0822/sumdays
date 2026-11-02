@@ -352,7 +352,13 @@ class StyleExtractionActivity : AppCompatActivity(), CoroutineScope {
 
         return withContext(Dispatchers.IO) {
             try {
-                val response = ApiClient.api.mergeMemos(request)
+                val userId = com.example.sumdays.auth.SessionManager.getUserId()
+                val token = com.example.sumdays.auth.SessionManager.getToken()
+                    ?: return@withContext "로그인 후 예시를 생성해 주세요."
+                val response = ApiClient.api.generateStylePreview("Bearer $token", request)
+                if (com.example.sumdays.auth.SessionManager.getUserId() != userId) {
+                    return@withContext "로그인 계정이 변경되었습니다."
+                }
                 val json = response.body()
                 extractMergedText(json ?: JsonObject())
             } catch (e: Exception) {

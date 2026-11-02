@@ -18,7 +18,7 @@ object FoxPrefs {
     /**
      * 현재 AllFoxMap 전체 저장
      */
-    fun saveAll(context: Context) {
+    fun saveAll(context: Context, durable: Boolean = false) {
         ensureLoaded(context)
 
         val prefs = AccountStorage.preferences(context, PREF_NAME)
@@ -73,12 +73,9 @@ object FoxPrefs {
             jsonArray.put(json)
         }
 
-        prefs.edit()
-            .putString(
-                KEY_FOXES,
-                jsonArray.toString()
-            )
-            .apply()
+        val editor = prefs.edit().putString(KEY_FOXES, jsonArray.toString())
+        if (durable) check(editor.commit()) { "완성된 여우를 저장하지 못했습니다." }
+        else editor.apply()
     }
 
     /**
@@ -168,7 +165,8 @@ object FoxPrefs {
      */
     fun save(
         context: Context,
-        fox: CompleteFox
+        fox: CompleteFox,
+        durable: Boolean = false,
     ) {
         ensureLoaded(context)
 
@@ -176,7 +174,7 @@ object FoxPrefs {
             fox.id
         ] = fox
 
-        saveAll(context)
+        saveAll(context, durable)
     }
 
     fun delete(

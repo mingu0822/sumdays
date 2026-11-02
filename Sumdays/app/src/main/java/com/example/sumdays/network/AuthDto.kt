@@ -32,6 +32,8 @@ data class LoginRequest(
     val password: String
 )
 
+data class GoogleLoginRequest(val idToken: String)
+
 data class LoginResponse(
     val success: Boolean,
     val message: String,

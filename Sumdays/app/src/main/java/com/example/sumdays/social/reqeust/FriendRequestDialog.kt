@@ -13,12 +13,12 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
 import com.example.sumdays.databinding.DialogFriendRequestBinding
-import com.google.android.material.tabs.TabLayout
 import com.example.sumdays.social.SocialViewModel
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
+import com.google.android.material.tabs.TabLayout
+import kotlinx.coroutines.launch
 
 class FriendRequestDialog : DialogFragment() {
 

@@ -7,7 +7,8 @@ app.use(express.json());
 // 모든 요청 로그 찍기
 app.use((req, res, next) => {
   console.log(`[REQUEST] ${req.method} ${req.originalUrl}`);
-  console.log("body:", req.body);
+  const { purchaseToken, ...safeBody } = req.body || {};
+  console.log("body:", purchaseToken ? { ...safeBody, purchaseToken: '[redacted]' } : safeBody);
   next();
 });
 

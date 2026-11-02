@@ -16,9 +16,11 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 
 import com.example.sumdays.alchemy.AlchemyInventoryBottomSheet
 import com.example.sumdays.alchemy.AlchemyRecipeManager
+import com.example.sumdays.alchemy.AlchemyRepository
 import com.example.sumdays.alchemy.AlchemySelectionManager
 import com.example.sumdays.alchemy.FoxPlacementDialog
 import com.example.sumdays.customize.AllFoxMap
@@ -29,6 +31,8 @@ import com.example.sumdays.customize.FoxItemPlacement
 import com.example.sumdays.shop.FoxShopItem
 import com.example.sumdays.shop.ItemCategory
 import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 class FoxAlchemyActivity : AppCompatActivity() {
     private lateinit var inventoryOwner: InventoryOwner
@@ -54,6 +58,8 @@ class FoxAlchemyActivity : AppCompatActivity() {
     private var selectedItems: List<FoxShopItem> = emptyList()
     private var selectedPlacements: List<FoxItemPlacement> = emptyList()
     private var isCombining = false
+    private val alchemyRepository by lazy { AlchemyRepository(applicationContext) }
+    private var completing = false
     private var potAnimator: ObjectAnimator? = null
     private var nameDialog: Dialog? = null
 
@@ -170,7 +176,8 @@ class FoxAlchemyActivity : AppCompatActivity() {
         // -----------------------------------------
 
         alchemyPot.setOnClickListener {
-            openInventory()
+            if (alchemyRepository.hasPending()) finishConfirmedAlchemy()
+            else openInventory()
         }
 
         // -----------------------------------------
@@ -249,133 +256,47 @@ class FoxAlchemyActivity : AppCompatActivity() {
         if (!inventoryOwner.requireCurrent(this)) return
 
         if (items.isEmpty()) {
-
-            Toast.makeText(
-                this,
-                "아이템을 선택해주세요.",
-                Toast.LENGTH_SHORT
-            ).show()
-
+            Toast.makeText(this, "아이템을 선택해주세요.", Toast.LENGTH_SHORT).show()
             return
         }
+        finishConfirmedAlchemy { foxId ->
+            val fox = AlchemyRecipeManager.createFox(foxId, name, items, selectedPlacements)
+            val bitmap = FoxBitmapRenderer.createPreview(this, fox)
+            fox.copy(previewPath = FoxBitmapRenderer.savePreview(this, foxId, bitmap))
+        }
+    }
 
-        // -----------------------------------------
-        // 1. ID 생성
-        // -----------------------------------------
-
-        val foxId =
-            getNextFoxId()
-
-        // -----------------------------------------
-        // 2. 아이템으로 CompleteFox 생성
-        // -----------------------------------------
-
-        val fox =
-            AlchemyRecipeManager.createFox(
-                id = foxId,
-                name = name,
-                items = items,
-                placements = selectedPlacements
-            )
-
-        // -----------------------------------------
-        // 3. 아이템이 포함된 실제 Bitmap 생성
-        // -----------------------------------------
-
-        val bitmap =
-            FoxBitmapRenderer.createPreview(
-                context = this,
-                fox = fox
-            )
-
-        // -----------------------------------------
-        // 4. PNG 저장
-        // -----------------------------------------
-
-        val previewPath =
-            FoxBitmapRenderer.savePreview(
-                context = this,
-                foxId = foxId,
-                bitmap = bitmap
-            )
-
-        // -----------------------------------------
-        // 5. previewPath 포함
-        // -----------------------------------------
-
-        val savedFox =
-            fox.copy(
-                previewPath = previewPath
-            )
-
-        // -----------------------------------------
-        // 6. 메모리에 저장
-        // -----------------------------------------
-
-        AllFoxMap.allFoxMap[foxId] =
-            savedFox
-
-        // -----------------------------------------
-        // 7. 영구 저장
-        // -----------------------------------------
-
-        FoxPrefs.save(
-            context = this,
-            fox = savedFox
-        )
-
-        // -----------------------------------------
-        // 8. 아이템 차감
-        //
-        // 중요:
-        // BottomSheet에서 이미 commit했다면
-        // 여기서 다시 commit하면 안 된다.
-        // 따라서 commit은 여기서 딱 한 번만 한다.
-        // -----------------------------------------
-
-        AlchemySelectionManager.commit(this)
-
-        // -----------------------------------------
-        // 9. 선택 상태 초기화
-        // -----------------------------------------
-
-        selectedItems = emptyList()
-
-        selectedPlacements = emptyList()
-
-        clearSlots()
-
-        // -----------------------------------------
-        // 10. 화면에 새로 만들어진 여우 표시
-        // -----------------------------------------
-
-        FoxBitmapRenderer.displayPreview(imgResultFox, bitmap, savedFox)
-
-        imgResultFox.visibility =
-            View.VISIBLE
-
-        imgResultFox.alpha = 1f
-        imgResultFox.scaleX = 1f
-        imgResultFox.scaleY = 1f
-        imgResultFox.translationY = 0f
-
-        // -----------------------------------------
-        // 11. 완료 메시지
-        // -----------------------------------------
-
-        Toast.makeText(
-            this,
-            "\"$name\" 여우가 완성되었습니다!",
-            Toast.LENGTH_SHORT
-        ).show()
-
-        /*
-         * 여기서 finish() 하지 않는다.
-         *
-         * 사용자가 말한
-         * "여우를 만들고 나서 뒤로가기 하기 싫어"
-         * 를 해결하는 부분.
-         */
+    /** The repository persists the exact recipe before sending an idempotent inventory request. */
+    private fun finishConfirmedAlchemy(createDraft: ((Int) -> CompleteFox)? = null) {
+        if (completing) return
+        completing = true
+        isCombining = true
+        alchemyPot.isEnabled = false
+        lifecycleScope.launch {
+            try {
+                val fox = alchemyRepository.complete(createDraft)
+                AlchemySelectionManager.commit(this@FoxAlchemyActivity)
+                selectedItems = emptyList()
+                selectedPlacements = emptyList()
+                clearSlots()
+                val bitmap = FoxBitmapRenderer.createPreview(this@FoxAlchemyActivity, fox)
+                FoxBitmapRenderer.displayPreview(imgResultFox, bitmap, fox)
+                imgResultFox.visibility = View.VISIBLE
+                imgResultFox.alpha = 1f
+                imgResultFox.scaleX = 1f
+                imgResultFox.scaleY = 1f
+                imgResultFox.translationY = 0f
+                Toast.makeText(this@FoxAlchemyActivity, "\"${fox.name}\" 여우가 완성되었습니다!", Toast.LENGTH_SHORT).show()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Toast.makeText(this@FoxAlchemyActivity, error.message ?: "조합을 완료하지 못했습니다.", Toast.LENGTH_LONG).show()
+            } finally {
+                completing = false
+                isCombining = false
+                alchemyPot.isEnabled = true
+            }
+        }
     }
 
     // =========================================================

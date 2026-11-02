@@ -13,4 +13,5 @@ data class MergeRequest(
     @SerializedName("advanced_flag") val advancedFlag: Boolean,
     @SerializedName("temperature") val temperature: Float,
     @SerializedName("length_level") val lengthLevel: Int,
+    @SerializedName("request_id") val requestId: String = "",
 )

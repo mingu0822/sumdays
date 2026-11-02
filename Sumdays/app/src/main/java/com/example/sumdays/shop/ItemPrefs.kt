@@ -39,6 +39,14 @@ object ItemPrefs {
             .apply()
     }
 
+    fun setCount(context: Context, userId: Int, itemId: Int, count: Int) {
+        val prefs = AccountStorage.preferences(context, PREF_NAME, userId)
+
+        prefs.edit()
+            .putInt(itemId.toString(), count)
+            .apply()
+    }
+
     /**
      * 아이템 하나 사용
      * 성공하면 true
@@ -63,5 +71,11 @@ object ItemPrefs {
     fun clear(context: Context) {
         val prefs = AccountStorage.preferences(context, PREF_NAME)
         prefs.edit().clear().apply()
+    }
+
+    fun replaceCounts(context: Context, userId: Int, counts: Map<Int, Int>) {
+        val editor = AccountStorage.preferences(context, PREF_NAME, userId).edit().clear()
+        counts.forEach { (itemId, count) -> editor.putInt(itemId.toString(), count) }
+        editor.apply()
     }
 }

@@ -5,14 +5,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.example.sumdays.data.Memo
 import com.example.sumdays.data.converter.WeekSummaryConverter
 import com.example.sumdays.data.dao.DailyEntryDao
 import com.example.sumdays.data.dao.MemoDao
 import com.example.sumdays.data.dao.UserStyleDao
 import com.example.sumdays.data.dao.WeekSummaryDao
 import com.example.sumdays.data.style.StyleConverters
-import com.example.sumdays.data.UserStyle
 
 @Database(
     entities = [
