@@ -16,8 +16,17 @@ import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import androidx.core.content.IntentCompat
+import com.example.sumdays.auth.InventoryOwner
+import com.example.sumdays.stickers.DiaryStickerController
 
 class SocialDailyReadActivity : AppCompatActivity() {
+    private lateinit var inventoryOwner: InventoryOwner
+    private lateinit var stickerController: DiaryStickerController
 
     private lateinit var binding: ActivitySocialDailyReadBinding
     private lateinit var btnBack: ImageButton
@@ -25,7 +34,9 @@ class SocialDailyReadActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
+        inventoryOwner = InventoryOwner(savedInstanceState)
         super.onCreate(savedInstanceState)
+        if (!inventoryOwner.requireCurrent(this)) return
         binding = ActivitySocialDailyReadBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -35,7 +46,8 @@ class SocialDailyReadActivity : AppCompatActivity() {
             DailyEntry::class.java
         )
 
-        if (dailyEntry == null) {
+        val friendId = intent.getIntExtra("friendId", -1)
+        if (dailyEntry == null || friendId <= 0 || dailyEntry?.isAllowed != true || dailyEntry?.isDeleted == true) {
             Toast.makeText(this, "일기 정보를 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
             finish()
             return
@@ -48,6 +60,12 @@ class SocialDailyReadActivity : AppCompatActivity() {
         )
 
         initUi()
+        stickerController = DiaryStickerController(this, inventoryOwner, binding.diaryStickerCanvas,
+            binding.stickerButton, binding.stickerVisibilityButton, onAccessDenied = {
+                binding.diaryContentTextView.text = ""
+                finish()
+            })
+        stickerController.bind(friendId, dailyEntry)
         applyThemeModeSettings()
 
         val rootView = findViewById<View>(R.id.main)
@@ -103,7 +121,13 @@ class SocialDailyReadActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (!inventoryOwner.requireCurrent(this)) return
         updateOwned()
         applyThemeModeSettings()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        inventoryOwner.saveState(outState)
+        super.onSaveInstanceState(outState)
     }
 }

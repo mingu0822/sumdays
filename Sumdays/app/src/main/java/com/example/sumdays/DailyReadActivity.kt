@@ -42,8 +42,13 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import androidx.activity.addCallback
+import com.example.sumdays.auth.InventoryOwner
+import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.stickers.DiaryStickerController
 
 class DailyReadActivity : AppCompatActivity() {
+    private lateinit var inventoryOwner: InventoryOwner
+    private lateinit var stickerController: DiaryStickerController
     private lateinit var binding: ActivityDailyReadBinding
     private lateinit var currentDate: Calendar
     private val viewModel: DailyEntryViewModel by viewModels()
@@ -77,14 +82,21 @@ class DailyReadActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
+        inventoryOwner = InventoryOwner(savedInstanceState)
         super.onCreate(savedInstanceState)
+        if (!inventoryOwner.requireCurrent(this)) return
         binding = ActivityDailyReadBinding.inflate(layoutInflater)
         setContentView(binding.root)
         instance = this
+        stickerController = DiaryStickerController(this, inventoryOwner, binding.diaryStickerCanvas,
+            binding.stickerButton, binding.stickerVisibilityButton)
 
 
         initializeImagePicker()
         initializeDate()
+        savedInstanceState?.getString("sticker_diary_date")?.let { date ->
+            repoKeyFormatter.parse(date)?.let { currentDate.time = it }
+        }
         setupPhotoGallery()
         setupClickListeners()
         observeEntry()
@@ -106,6 +118,7 @@ class DailyReadActivity : AppCompatActivity() {
     }
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        if (!inventoryOwner.requireCurrent(this)) return
         setIntent(intent)
         initializeDate()
         observeEntry()
@@ -215,6 +228,8 @@ class DailyReadActivity : AppCompatActivity() {
     }
 
     private fun updateUI(entry: DailyEntry?) {
+        if (!inventoryOwner.requireCurrent(this)) return
+        stickerController.bind(SessionManager.getUserId(), entry)
         val isToday = isSameDay(currentDate, Calendar.getInstance())
 
         if (isToday) {
@@ -446,6 +461,7 @@ class DailyReadActivity : AppCompatActivity() {
     // 일기 수정 / 재분석
     // ──────────────────────────────────
     private fun toggleEditMode(isEditing: Boolean) {
+        stickerController.setEditing(isEditing)
         if (isEditing) {
             binding.diaryContentEditText.setText(binding.diaryContentTextView.text)
             binding.diaryContentTextView.visibility = View.GONE
@@ -517,7 +533,14 @@ class DailyReadActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (!inventoryOwner.requireCurrent(this)) return
         updateOwned()
         applyThemeModeSettings()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        inventoryOwner.saveState(outState)
+        if (::currentDate.isInitialized) outState.putString("sticker_diary_date", repoKeyFormatter.format(currentDate.time))
+        super.onSaveInstanceState(outState)
     }
 }

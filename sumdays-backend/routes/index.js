@@ -30,6 +30,7 @@ router.use('/db/daily/photos', photosRoutes);
 
 router.use('/friend', requireLogin);
 router.use('/friend', friendRoutes);
+router.use('/stickers', requireLogin, require('./stickers'));
 
 router.use('/missions', requireLogin);
 router.use('/missions', missionRoutes);

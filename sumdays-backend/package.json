@@ -4,6 +4,9 @@
   "description": "",
   "main": "app.js",
   "scripts": {
+    "test": "jest",
+    "test:stickers": "jest --config jest.stickers.config.js --runInBand",
+    "migrate:stickers": "node db/stickerSchema.js"
     "start:local": "node server.local.js",
     "db:init:local": "node db/initLocalDB.js",
     "test:merge:local": "node scripts/verify-merge-local.js",
