@@ -7,7 +7,6 @@ import android.widget.ImageButton
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.IntentCompat
 import com.example.sumdays.R
 import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.databinding.ActivitySocialDailyReadBinding

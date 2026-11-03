@@ -7,7 +7,7 @@ client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 class DiaryAnalyzer:
     def __init__(self):
-        self.model = os.getenv("GPT_MODEL", "gpt-4.1-nano")
+        self.model = os.getenv("GPT_MODEL", "gpt-6-luna")
 
     def analyze(self, diary: str) -> Dict[str, Any]:
         if not diary.strip():

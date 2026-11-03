@@ -16,6 +16,7 @@ function createStickerRouter(service = createStickerService(pool)) {
       res.status(500).json({ success: false, code: 'STICKER_SERVER', message: '스티커를 저장하지 못했어요. 다시 시도해 주세요.' });
     }
   };
+  router.get('/inventory', handle(req => service.inventory(req.user.userId)));
   router.get('/:ownerId/:date', handle((req, owner, date) => service.list(req.user.userId, owner, date)));
   router.put('/:ownerId/:date/:id', handle((req, owner, date) => service.place(req.user.userId, owner, date, req.params.id, req.body || {})));
   router.patch('/:ownerId/:date/:id', handle((req, owner, date) => service.update(req.user.userId, owner, date, req.params.id, req.body || {})));

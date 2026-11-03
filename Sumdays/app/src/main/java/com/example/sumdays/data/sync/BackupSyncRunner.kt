@@ -2,13 +2,18 @@ package com.example.sumdays.data.sync
 
 import android.content.Context
 import androidx.room.withTransaction
+import androidx.work.WorkManager
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.network.ApiClient
+import com.example.sumdays.network.apiService.ApiService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.io.IOException
 
 data class BackupSyncResult(
     val success: Boolean,
@@ -19,7 +24,12 @@ data class BackupSyncResult(
 object BackupSyncRunner {
     private val syncMutex = Mutex()
 
-    suspend fun syncNow(context: Context): BackupSyncResult = syncMutex.withLock {
+    suspend fun syncNow(
+        context: Context,
+        api: ApiService = ApiClient.api,
+        db: AppDatabase = AppDatabase.getDatabase(context.applicationContext),
+        logoutAfterSync: Boolean = false,
+    ): BackupSyncResult = syncMutex.withLock {
         withContext(Dispatchers.IO) {
             val userId = SessionManager.getUserId()
             val token = SessionManager.getToken()
@@ -34,19 +44,22 @@ object BackupSyncRunner {
             }
 
             try {
-                val db = AppDatabase.getDatabase(context.applicationContext)
                 val memoDao = db.memoDao()
                 val userStyleDao = db.userStyleDao()
                 val dailyEntryDao = db.dailyEntryDao()
                 val weekSummaryDao = db.weekSummaryDao()
 
-                val deletedMemoIds = memoDao.getDeletedMemos().map { it.id }
+                val deletedMemos = memoDao.getDeletedMemos()
+                val deletedMemoIds = deletedMemos.map { it.id }
                 val editedMemos = memoDao.getEditedMemos()
-                val deletedStyleIds = userStyleDao.getDeletedStyles().map { it.styleId }
+                val deletedStyles = userStyleDao.getDeletedStyles()
+                val deletedStyleIds = deletedStyles.map { it.styleId }
                 val editedStyles = userStyleDao.getEditedStyles()
-                val deletedEntryDates = dailyEntryDao.getDeletedEntries().map { it.date }
+                val deletedEntries = dailyEntryDao.getDeletedEntries()
+                val deletedEntryDates = deletedEntries.map { it.date }
                 val editedEntries = dailyEntryDao.getEditedEntries()
-                val deletedSummaryStartDates = weekSummaryDao.getDeletedSummaries().map { it.startDate }
+                val deletedSummaries = weekSummaryDao.getDeletedSummaries()
+                val deletedSummaryStartDates = deletedSummaries.map { it.startDate }
                 val editedSummaryEntities = weekSummaryDao.getEditedSummaries()
                 val editedSummaries = editedSummaryEntities.map { it.weekSummary }
 
@@ -70,14 +83,16 @@ object BackupSyncRunner {
                         "동기화 중 로그인 계정이 변경됨",
                     )
                 }
-                val response = ApiClient.api.syncData("Bearer $token", request)
-                val body = response.body()
-                if (!response.isSuccessful || body?.status != "success") {
-                    return@withContext BackupSyncResult(
-                        false,
-                        "server_error",
-                        body?.message ?: "서버 응답 없음 (${response.code()})",
-                    )
+                if (request.edited != null || request.deleted != null) {
+                    val response = api.syncData("Bearer $token", request)
+                    val body = response.body()
+                    if (!response.isSuccessful || body?.status != "success") {
+                        return@withContext BackupSyncResult(
+                            false,
+                            if (response.code() in listOf(408, 429) || response.code() >= 500) "server_retry" else "server_error",
+                            body?.message ?: "서버 응답 없음 (${response.code()})",
+                        )
+                    }
                 }
 
                 if (
@@ -99,14 +114,16 @@ object BackupSyncRunner {
                         throw AccountChangedException()
                     }
 
-                    memoDao.resetDeletedFlags(deletedMemoIds)
-                    memoDao.resetEditedFlags(editedMemos.map { it.id })
-                    userStyleDao.resetDeletedFlags(deletedStyleIds)
-                    userStyleDao.resetEditedFlags(editedStyles.map { it.styleId })
-                    dailyEntryDao.resetDeletedFlags(deletedEntryDates)
-                    dailyEntryDao.resetEditedFlags(editedEntries.map { it.date })
-                    weekSummaryDao.resetDeletedFlags(deletedSummaryStartDates)
-                    weekSummaryDao.resetEditedFlags(editedSummaries.map { it.startDate })
+                    // Only acknowledge the exact snapshots uploaded. A newer
+                    // local edit/deletion must remain pending for the next run.
+                    memoDao.resetDeletedFlags(memoDao.getDeletedMemos().filter { it in deletedMemos }.map { it.id })
+                    memoDao.resetEditedFlags(memoDao.getEditedMemos().filter { it in editedMemos }.map { it.id })
+                    userStyleDao.resetDeletedFlags(userStyleDao.getDeletedStyles().filter { it in deletedStyles }.map { it.styleId })
+                    userStyleDao.resetEditedFlags(userStyleDao.getEditedStyles().filter { it in editedStyles }.map { it.styleId })
+                    dailyEntryDao.resetDeletedFlags(dailyEntryDao.getDeletedEntries().filter { it in deletedEntries }.map { it.date })
+                    dailyEntryDao.resetEditedFlags(dailyEntryDao.getEditedEntries().filter { it in editedEntries }.map { it.date })
+                    weekSummaryDao.resetDeletedFlags(weekSummaryDao.getDeletedSummaries().filter { it in deletedSummaries }.map { it.startDate })
+                    weekSummaryDao.resetEditedFlags(weekSummaryDao.getEditedSummaries().filter { it in editedSummaryEntities }.map { it.startDate })
 
                     if (
                         SessionManager.getUserId() != userId ||
@@ -116,12 +133,45 @@ object BackupSyncRunner {
                     }
                 }
 
+                if (logoutAfterSync) {
+                    // Do not erase anything until every pending change is on
+                    // the server. Cancellation cannot split DB/session cleanup.
+                    withContext(NonCancellable) {
+                        db.withTransaction {
+                            if (SessionManager.getUserId() != userId || !LocalDataOwnerPrefs.isReadyFor(context, userId)) {
+                                throw AccountChangedException()
+                            }
+                            if (hasPendingChanges(db)) throw PendingChangesException()
+                            memoDao.clearAll()
+                            dailyEntryDao.clearAll()
+                            userStyleDao.clearAll()
+                            weekSummaryDao.clearAll()
+                        }
+                        LocalDataOwnerPrefs.clear(context)
+                        SessionManager.clearSession()
+                        WorkManager.getInstance(context).cancelAllWorkByTag(InitialSyncWorker.accountWorkTag(userId))
+                    }
+                }
+
                 BackupSyncResult(true)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: IOException) {
+                BackupSyncResult(false, "connection_error", "서버에 연결하지 못했어요. 기기의 일기는 보관되어 있습니다.")
+            } catch (error: PendingChangesException) {
+                BackupSyncResult(false, "changes_pending", "새 변경사항을 저장하고 있어요. 잠시 후 다시 시도해 주세요.")
             } catch (error: Exception) {
                 BackupSyncResult(false, "exception", error.message ?: "알 수 없는 오류")
             }
         }
     }
 
+    private suspend fun hasPendingChanges(db: AppDatabase): Boolean =
+        db.dailyEntryDao().getEditedEntries().isNotEmpty() || db.dailyEntryDao().getDeletedEntries().isNotEmpty() ||
+            db.memoDao().getEditedMemos().isNotEmpty() || db.memoDao().getDeletedMemos().isNotEmpty() ||
+            db.userStyleDao().getEditedStyles().isNotEmpty() || db.userStyleDao().getDeletedStyles().isNotEmpty() ||
+            db.weekSummaryDao().getEditedSummaries().isNotEmpty() || db.weekSummaryDao().getDeletedSummaries().isNotEmpty()
+
+    private class PendingChangesException : IllegalStateException()
     private class AccountChangedException : IllegalStateException()
 }

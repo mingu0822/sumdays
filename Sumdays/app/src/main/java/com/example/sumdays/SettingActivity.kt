@@ -12,15 +12,13 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
 import androidx.lifecycle.lifecycleScope
-import androidx.work.WorkManager
 import com.example.sumdays.auth.SessionManager
-import com.example.sumdays.data.AppDatabase
-import com.example.sumdays.data.sync.InitialSyncWorker
-import com.example.sumdays.data.sync.LocalDataOwnerPrefs
+import com.example.sumdays.data.sync.BackupSyncRunner
 import com.example.sumdays.databinding.ActivitySettingMainBinding
 import com.example.sumdays.settings.AccountSettingsActivity
 import com.example.sumdays.settings.DiaryStyleSettingsActivity
@@ -75,25 +73,24 @@ class SettingActivity : AppCompatActivity() {
         }
 
         loginButton.setOnClickListener {
-            val userId = SessionManager.getUserId()
-            LocalDataOwnerPrefs.clear(applicationContext)
-            if (userId >= 0) {
-                WorkManager.getInstance(applicationContext)
-                    .cancelAllWorkByTag(InitialSyncWorker.accountWorkTag(userId))
-            }
-            SessionManager.clearSession()
+            if (!loginButton.isEnabled) return@setOnClickListener
+            loginButton.isEnabled = false
             lifecycleScope.launch {
-                withContext(Dispatchers.IO) {
-                    val db = AppDatabase.getDatabase(applicationContext)
-                    db.memoDao().clearAll()
-                    db.dailyEntryDao().clearAll()
-                    db.userStyleDao().clearAll()
-                    db.weekSummaryDao().clearAll()
+                try {
+                    if (SessionManager.isLoggedIn()) {
+                        val result = BackupSyncRunner.syncNow(applicationContext, logoutAfterSync = true)
+                        if (!result.success) {
+                            Toast.makeText(this@SettingActivity,
+                                "서버 저장을 확인하지 못해 로그아웃하지 않았어요. ${result.message.orEmpty()}", Toast.LENGTH_LONG).show()
+                            return@launch
+                        }
+                    }
+                    val intent = Intent(this@SettingActivity, LoginActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                } finally {
+                    loginButton.isEnabled = true
                 }
-
-                val intent = Intent(this@SettingActivity, LoginActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
             }
         }
 

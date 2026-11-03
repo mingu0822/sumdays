@@ -1,9 +1,19 @@
-from flask import Blueprint, request, jsonify, Response
+from flask import Blueprint, request, jsonify, Response, current_app
+from openai import OpenAIError
 from .merge_service import merge_stream, merge_paragraph_stream, generate_mood
 from ..analysis.diary_service import DiaryAnalyzer
 
 analysis_service = DiaryAnalyzer()
 merge_bp = Blueprint("merge", __name__, url_prefix="/merge")
+
+
+def generation_error():
+    current_app.logger.exception("AI merge generation failed")
+    return jsonify({
+        "error": "AI 응답을 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        "code": "AI_GENERATION_FAILED",
+    }), 502
+
 
 @merge_bp.route("/", methods=["POST"])
 def merge_memo():
@@ -49,8 +59,10 @@ def merge_memo():
 
         return jsonify(response), 200
 
+    except OpenAIError:
+        return generation_error()
     except Exception as e:
-        return jsonify({"error": str(e)}), 401
+        return jsonify({"error": str(e)}), 400
     
 @merge_bp.route("/mood", methods=["POST"])
 def generate_mood_route():
@@ -70,6 +82,8 @@ def generate_mood_route():
         mood = generate_mood(diary, style_prompt, style_examples)
         return jsonify({"mood": mood}), 200
 
+    except OpenAIError:
+        return generation_error()
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -86,22 +100,60 @@ def merge_memo_paragraph():
         "style_examples": {"adsf", "asdfaf", "FKSJD"}
     \}
     """
+    data = request.get_json(silent=True)
     try:
-        data = request.get_json()
-        memos =  [m["content"] for m in sorted(data["memos"], key=lambda x: x["order"])]
+        if not isinstance(data, dict):
+            raise ValueError("JSON 요청 본문이 필요합니다.")
+        memo_entries = data["memos"]
+        if not isinstance(memo_entries, list) or len(memo_entries) < 2:
+            raise ValueError("두 개 이상의 메모가 필요합니다.")
+        for memo in memo_entries:
+            if (not isinstance(memo, dict)
+                    or not isinstance(memo.get("content"), str)
+                    or not memo["content"].strip()
+                    or type(memo.get("order")) is not int):
+                raise ValueError("메모 내용과 순서를 확인해 주세요.")
+        memos = [m["content"] for m in sorted(memo_entries, key=lambda x: x["order"])]
         length_level = data["length_level"]
+        if type(length_level) is not int or length_level not in (0, 1, 2):
+            raise ValueError("length_level은 0, 1, 2 중 하나여야 합니다.")
         style_prompt = data["style_prompt"]
         style_examples = data["style_examples"]
+    except (KeyError, TypeError, ValueError) as e:
+        return jsonify({"error": str(e), "code": "INVALID_REQUEST"}), 400
 
-        def generate():
-            for chunk in merge_paragraph_stream(memos, style_prompt, style_examples, length_level=length_level):
-                delta = chunk.choices[0].delta
-                content = delta.content or ""
-                if not content:
-                    continue
-                yield content
+    def generate_text():
+        chunks = merge_paragraph_stream(
+            memos, style_prompt, style_examples, length_level=length_level,
+        )
+        try:
+            for chunk in chunks:
+                content = chunk.choices[0].delta.content or ""
+                if content:
+                    yield content
+        finally:
+            chunks.close()
 
-        return Response(generate(), mimetype="text/plain; charset=utf-8")
+    text_stream = generate_text()
+    try:
+        # Start the upstream request before HTTP headers are committed. A model
+        # error must return 502 instead of an empty successful streaming response.
+        first_text = next(text_stream, None)
+        if first_text is None:
+            raise RuntimeError("AI returned an empty paragraph")
+    except Exception:
+        text_stream.close()
+        return generation_error()
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 402
+    def generate():
+        try:
+            yield first_text
+            # Later failures must propagate and abort the connection so the Node
+            # server refunds the request rather than saving a partial paragraph.
+            yield from text_stream
+        finally:
+            text_stream.close()
+
+    response = Response(generate(), content_type="text/plain; charset=utf-8")
+    response.call_on_close(text_stream.close)
+    return response

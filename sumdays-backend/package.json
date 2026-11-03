@@ -4,14 +4,17 @@
   "description": "",
   "main": "app.js",
   "scripts": {
+    "start": "node server.js",
     "test": "jest",
     "test:stickers": "jest --config jest.stickers.config.js --runInBand",
-    "migrate:stickers": "node db/stickerSchema.js"
+    "migrate:stickers": "node db/stickerSchema.js",
+    "migrate:economy": "node db/economySchema.js",
+    "migrate:sticker-products": "node db/economySchema.js --stickers-only",
+    "test:migrations": "node --test tests/economySchema.test.cjs",
     "start:local": "node server.local.js",
     "db:init:local": "node db/initLocalDB.js",
     "test:merge:local": "node scripts/verify-merge-local.js",
-    "test:economy:local": "node scripts/verify-economy-local.js",
-    "test": "jest"
+    "test:economy:local": "node scripts/verify-economy-local.js"
   },
   "keywords": [],
   "author": "",

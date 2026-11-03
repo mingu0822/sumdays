@@ -42,6 +42,21 @@ class DailyEntryViewModel(application: Application) : AndroidViewModel(applicati
         photoUrls: String? = null,
         isAllowed: Boolean? = null
     ) = viewModelScope.launch {
+        updateEntryNow(date, diary, keywords, aiComment, emotionScore, emotionIcon, themeIcon, photoUrls, isAllowed)
+    }
+
+    // Saving screens await the local commit before finishing their Activity.
+    suspend fun updateEntryNow(
+        date: String,
+        diary: String? = null,
+        keywords: String? = null,
+        aiComment: String? = null,
+        emotionScore: Double? = null,
+        emotionIcon: String? = null,
+        themeIcon: String? = null,
+        photoUrls: String? = null,
+        isAllowed: Boolean? = null,
+    ) {
         dao.updateEntry(
             date = date,
             diary = diary,
@@ -53,13 +68,13 @@ class DailyEntryViewModel(application: Application) : AndroidViewModel(applicati
             photoUrls = photoUrls,
             isAllowed = isAllowed
         )
+        BackupScheduler.triggerManualBackup(getApplication())
     }
 
     // 소셜 공개 권한 변경
     // 친구 화면에 바로 반영되도록 저장이 끝난 뒤 즉시 백업
     fun updatePermission(date: String, isAllowed: Boolean) = viewModelScope.launch {
-        repository.updatePermission(date, isAllowed)
-        BackupScheduler.triggerManualBackup(getApplication())
+        updateEntryNow(date, isAllowed = isAllowed)
     }
 
     // 모든 작성 날짜를 조회하는 함수 추가 (Strike 계산용)
@@ -70,6 +85,7 @@ class DailyEntryViewModel(application: Application) : AndroidViewModel(applicati
 
     fun deleteEntry(date: String) = viewModelScope.launch {
         dao.deleteEntry(date)
+        BackupScheduler.triggerManualBackup(getApplication())
     }
 
 }

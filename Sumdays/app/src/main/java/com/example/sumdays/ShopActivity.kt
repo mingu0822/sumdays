@@ -120,7 +120,7 @@ class ShopActivity : AppCompatActivity() {
         navBarController.setNavigationBar(NavSource.SHOP)
 
         updatePointUI()
-        filterItems(intent.getStringExtra(EXTRA_INITIAL_CATEGORY) ?: "theme")
+        filterItems(intent.getStringExtra(EXTRA_INITIAL_CATEGORY) ?: selectedCategory)
         setupBackToCalendar()
     }
 
@@ -184,8 +184,7 @@ class ShopActivity : AppCompatActivity() {
                             startMergePassPurchase()
                         }
 
-                        // 서버 지갑에 스티커 상품이 생기기 전까지 어댑터에서 버튼을 비활성화한다.
-                        is StickerShopItem -> Unit
+                        is StickerShopItem -> if (item.purchaseEnabled) tryPurchaseItem(item)
                     }
                 }
             }
@@ -275,7 +274,12 @@ class ShopActivity : AppCompatActivity() {
         }
 
         allItems.addAll(StickerCatalog.items.map { sticker ->
-            sticker.copy(isOwned = StickerPrefs.getCount(this, sticker.id) > 0)
+            val product = serverProductMap?.get("ITEM:${sticker.id}")
+            sticker.copy(
+                price = product?.price ?: sticker.price,
+                isOwned = StickerPrefs.getCount(this, sticker.id) > 0,
+                purchaseEnabled = product != null || !MissionConfig.USE_SERVER_MISSIONS,
+            )
         })
 
         ThemeRepository.updateOwned()
@@ -428,6 +432,7 @@ class ShopActivity : AppCompatActivity() {
                                 item.isOwned = true
                             }
                             is FoxShopItem -> item.count = result.quantity
+                            is StickerShopItem -> item.isOwned = result.quantity > 0
                         }
                         updatePointUI()
                         shopAdapter.notifyDataSetChanged()

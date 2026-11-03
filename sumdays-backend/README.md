@@ -1,5 +1,14 @@
-`npm run db:init:local`  
-`npm run start:local`
+### 기존 DB를 유지하면서 서버 실행
+
+`npm install` 후 `npm start`로 현재 코드의 서버를 실행합니다. 코드 갱신 후에는 실행 중인 Node 서버를 종료하고 다시 시작해야 새 API가 반영됩니다.
+
+기존 DB에 상점·지갑·미션·여우구슬 테이블이 없다면 `npm run migrate:economy`로 추가할 테이블과 기본 데이터 목록을 먼저 확인합니다. 이 명령은 기본적으로 DB를 변경하지 않습니다. 대상 DB의 변경 승인을 받은 뒤 `npm run migrate:economy -- --apply --database=<설정된_DB_이름>`으로 한 번 적용합니다. 기존 데이터와 이미 설정된 상품 가격은 유지합니다. 서버 시작 시 이 마이그레이션을 자동 실행하지 않습니다.
+
+로컬 MySQL을 사용할 때는 `.env.local.example`을 참고해 `.env.local`을 준비하고 `npm run start:local`을 실행합니다. `npm run db:init:local`은 로컬 DB를 삭제하고 다시 만드는 명령이므로 기존 데이터가 있는 DB의 오류 복구에 사용하지 않습니다.
+
+스티커 구매 활성화 시 기존 상점 DB에는 `npm run migrate:sticker-products`로 확인한 뒤 `npm run migrate:sticker-products -- --apply --database=<설정된_DB_이름>`으로 6개 상품만 추가할 수 있습니다. 스티커는 `ITEM` 상품 ID 1001–1006을 사용하며, 구매와 일기 붙이기의 수량은 서버에서 관리합니다. 서버를 재시작하고 Android 앱도 갱신해야 합니다.
+
+검증: `npm run test:stickers`, `npm run test:migrations`. 실제 DB 검증은 `node scripts/verify-sticker-shop.js --database=<DB_이름> --user=<기존_테스트_계정_ID>`로 실행하며, 테스트 거래는 하나의 트랜잭션 안에서 수행 후 모두 롤백합니다.
 
 ### 1. 서버 실행 방법
 

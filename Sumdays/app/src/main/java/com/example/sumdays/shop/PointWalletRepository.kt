@@ -3,13 +3,17 @@ package com.example.sumdays.shop
 import android.content.Context
 import com.example.sumdays.ShopItem
 import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.auth.AccountStorage
+import com.example.sumdays.stickers.StickerInventoryStore
+import com.example.sumdays.stickers.RetrofitStickerRemote
+import com.example.sumdays.stickers.recoverPendingStickers
 import com.example.sumdays.mission.LegacyPointBalanceRequest
 import com.example.sumdays.mission.MissionConfig
 import com.example.sumdays.mission.ShopCatalogResponse
 import com.example.sumdays.mission.ShopPurchaseRequest
 import com.example.sumdays.mission.ShopPurchaseResponse
 import com.example.sumdays.network.ApiClient
-import kotlinx.coroutines.sync.Mutex
+import com.example.sumdays.network.apiService.ApiService
 import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 
@@ -22,16 +26,17 @@ sealed interface ShopPurchaseResult {
     data class InsufficientPoints(val pointBalance: Int?) : ShopPurchaseResult
 }
 
-class PointWalletRepository(context: Context) {
+class PointWalletRepository(context: Context, private val api: ApiService = ApiClient.api) {
     private val appContext = context.applicationContext
-    private val operationMutex = Mutex()
+    private val operationMutex = StickerInventoryStore.operationMutex
 
     suspend fun refreshBalance(): Int = operationMutex.withLock {
         if (!MissionConfig.USE_SERVER_MISSIONS) return@withLock PointPrefs.getPoint(appContext)
         val session = requireSession()
+        recoverStickerPlacements(session)
         recoverPendingPurchase(session)
         initializeServerWallet(session)
-        val response = ApiClient.api.getShopCatalog(session.authorization)
+        val response = api.getShopCatalog(session.authorization)
         if (!response.isSuccessful) error("포인트 조회 실패: ${response.code()}")
         val catalog = response.body()?.data ?: error("상점 응답 데이터가 없습니다.")
         ensureCurrent(session)
@@ -42,9 +47,10 @@ class PointWalletRepository(context: Context) {
     suspend fun refreshShopCatalog(): ShopCatalogResponse? = operationMutex.withLock {
         if (!MissionConfig.USE_SERVER_MISSIONS) return@withLock null
         val session = requireSession()
+        recoverStickerPlacements(session)
         recoverPendingPurchase(session)
         initializeServerWallet(session)
-        val response = ApiClient.api.getShopCatalog(session.authorization)
+        val response = api.getShopCatalog(session.authorization)
         if (!response.isSuccessful) error("상점 조회 실패: ${response.code()}")
         val catalog = response.body()?.data ?: error("상점 응답 데이터가 없습니다.")
         ensureCurrent(session)
@@ -60,7 +66,10 @@ class PointWalletRepository(context: Context) {
             }
             val balance = current - item.price
             PointPrefs.savePoint(appContext, balance)
-            val quantity = if (item is FoxShopItem) {
+            val quantity = if (item is StickerShopItem) {
+                StickerPrefs.addSticker(appContext, item.id)
+                StickerPrefs.getCount(appContext, item.id)
+            } else if (item is FoxShopItem) {
                 val nextCount = ItemPrefs.getCount(appContext, item.id) + 1
                 ItemPrefs.setCount(appContext, item.id, nextCount)
                 nextCount
@@ -76,6 +85,7 @@ class PointWalletRepository(context: Context) {
         }
 
         val session = requireSession()
+        recoverStickerPlacements(session)
         initializeServerWallet(session)
         val productType = if (item is ThemeShopItem) "THEME" else "ITEM"
         val previousPending = PendingShopPurchaseStore.get(appContext, session.userId)
@@ -102,7 +112,7 @@ class PointWalletRepository(context: Context) {
         session: AuthSession,
         pending: PendingShopPurchase,
     ): ShopPurchaseResult {
-        val response = ApiClient.api.purchaseShopProduct(
+        val response = api.purchaseShopProduct(
             session.authorization,
             ShopPurchaseRequest(
                 productType = pending.productType,
@@ -144,6 +154,9 @@ class PointWalletRepository(context: Context) {
         PointPrefs.savePoint(appContext, userId, purchase.pointBalance)
         if (pending.productType == "THEME") {
             if (purchase.owned) OwnedPrefs.saveOwned(appContext, userId, pending.itemId)
+        } else if (StickerCatalog.contains(pending.itemId)) {
+            StickerInventoryStore(appContext, AccountStorage.accountKey(userId))
+                .setCount(pending.itemId, purchase.quantity)
         } else {
             ItemPrefs.setCount(appContext, userId, pending.itemId, purchase.quantity)
         }
@@ -162,13 +175,25 @@ class PointWalletRepository(context: Context) {
             appContext,
             userId,
             catalog.products
-                .filter { it.productType == "ITEM" }
+                .filter { it.productType == "ITEM" && !StickerCatalog.contains(it.itemId) }
+                .associate { it.itemId to it.quantity },
+        )
+        StickerInventoryStore(appContext, AccountStorage.accountKey(userId)).replaceCounts(
+            catalog.products.filter { it.productType == "ITEM" && StickerCatalog.contains(it.itemId) }
                 .associate { it.itemId to it.quantity },
         )
     }
 
+    private suspend fun recoverStickerPlacements(session: AuthSession) {
+        recoverPendingStickers(
+            StickerInventoryStore(appContext, AccountStorage.accountKey(session.userId)),
+            RetrofitStickerRemote(session.authorization.removePrefix("Bearer ")),
+        ) { SessionManager.getUserId() == session.userId }
+        ensureCurrent(session)
+    }
+
     private suspend fun initializeServerWallet(session: AuthSession): Int {
-        val response = ApiClient.api.initializePointWallet(
+        val response = api.initializePointWallet(
             session.authorization,
             LegacyPointBalanceRequest(
                 PointPrefs.getLegacyPointForMigration(appContext, session.userId)

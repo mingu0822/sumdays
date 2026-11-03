@@ -192,6 +192,9 @@ class DiaryStickerDeviceTest {
     }
 
     private inner class FakeRemote(private val actor: Int) : StickerRemote {
+        override suspend fun inventory() = com.example.sumdays.shop.StickerCatalog.items.associate {
+            it.id to StickerInventoryStore(context, "user_$actor").count(it.id)
+        }
         var gate: CompletableDeferred<Unit>? = null
         @Volatile var forbidden = false
         override suspend fun list(owner: Int, date: String): List<DiarySticker> {

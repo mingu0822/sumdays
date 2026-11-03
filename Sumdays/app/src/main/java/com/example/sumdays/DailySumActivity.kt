@@ -31,6 +31,7 @@ import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.Memo
 import com.example.sumdays.data.dao.UserStyleDao
 import com.example.sumdays.data.repository.AnalysisRepository
+import com.example.sumdays.data.sync.BackupSyncRunner
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.settings.prefs.DiaryPermissionPrefs
 import com.example.sumdays.settings.prefs.UserStatsPrefs
@@ -247,13 +248,11 @@ class DailySumActivity : AppCompatActivity() {
     private fun resolvePermissionAndFinish() {
         when (DiaryPermissionPrefs.getMode(this)) {
             DiaryPermissionPrefs.MODE_DEFAULT_TRUE -> {
-                viewModel.updatePermission(date, true)
-                moveToReadActivity()
+                savePermissionAndFinish(true)
             }
 
             DiaryPermissionPrefs.MODE_DEFAULT_FALSE -> {
-                viewModel.updatePermission(date, false)
-                moveToReadActivity()
+                savePermissionAndFinish(false)
             }
 
             else -> showPermissionDialog()
@@ -266,15 +265,33 @@ class DailySumActivity : AppCompatActivity() {
             .setTitle("일기 공개 설정")
             .setMessage("이 일기를 소셜 친구에게 공개할까요?\n(일기 화면의 자물쇠 버튼으로 언제든 바꿀 수 있어요)")
             .setPositiveButton("공개") { _, _ ->
-                viewModel.updatePermission(date, true)
-                moveToReadActivity()
+                savePermissionAndFinish(true)
             }
             .setNegativeButton("비공개") { _, _ ->
-                viewModel.updatePermission(date, false)
-                moveToReadActivity()
+                savePermissionAndFinish(false)
             }
             .setCancelable(false)
             .show()
+    }
+
+    private fun savePermissionAndFinish(isAllowed: Boolean) {
+        showLoading(true)
+        lifecycleScope.launch {
+            try {
+                viewModel.updateEntryNow(date, isAllowed = isAllowed)
+                val sync = BackupSyncRunner.syncNow(applicationContext)
+                if (!sync.success) {
+                    Toast.makeText(this@DailySumActivity,
+                        "일기는 기기에 저장했어요. 서버 저장은 자동으로 재시도합니다.", Toast.LENGTH_LONG).show()
+                }
+                moveToReadActivity()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                showLoading(false)
+                Toast.makeText(this@DailySumActivity, "일기 저장을 완료하지 못했어요. 다시 시도해 주세요.", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun moveToReadActivity() {
@@ -295,7 +312,7 @@ class DailySumActivity : AppCompatActivity() {
         val todayStr = getTodayDate()
         StreakPrefs.onDiarySaved(this, todayStr)
 
-        viewModel.updateEntry(date = date, diary = mergedResult)
+        viewModel.updateEntryNow(date = date, diary = mergedResult)
         AnalysisRepository.requestAnalysis(
             date = date,
             diary = mergedResult,
@@ -326,20 +343,24 @@ class DailySumActivity : AppCompatActivity() {
         }
 
         btnSave.setOnClickListener {
+            if (!btnSave.isEnabled) return@setOnClickListener
+            btnSave.isEnabled = false
             showLoading(true)
             lifecycleScope.launch {
                 try {
                     val text = memoMergeAdapter.getMemoContent(0)
-                    val mood = memoMergeAdapter.generateMood(text)
-                    saveDiary(text, mood)
-                } catch (e: CancellationException) {
-                    // 분석/mood 취소됐어도 일기 텍스트는 이미 저장됨, 그냥 넘어감
-                } catch (e: Exception) {
-                    Log.w("DailySumActivity", "팝업 저장 중 오류 (일기 텍스트는 저장됨): ${e.message}")
-                } finally {
+                    saveDiary(text)
                     sheet.dismiss()
+                    resolvePermissionAndFinish()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.w("DailySumActivity", "팝업 저장 중 오류", e)
+                    showLoading(false)
+                    Toast.makeText(this@DailySumActivity, "일기 저장을 완료하지 못했어요. 다시 시도해 주세요.", Toast.LENGTH_LONG).show()
+                } finally {
+                    btnSave.isEnabled = true
                 }
-                resolvePermissionAndFinish()
             }
         }
 

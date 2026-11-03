@@ -35,7 +35,7 @@ object AnalysisRepository {
                 val json = response.body() ?: throw IllegalStateException("Empty body")
                 val analysis = extractAnalysis(json)
 
-                viewModel.updateEntry(
+                viewModel.updateEntryNow(
                     date = date,
                     diary = analysis.diary,
                     keywords = analysis.analysis?.keywords?.joinToString(";"),

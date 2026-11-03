@@ -5,6 +5,9 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface StickerApi {
+    @GET("api/stickers/inventory")
+    suspend fun inventory(@Header("Authorization") token: String): Response<ApiResponse<List<StickerStock>>>
+
     @GET("api/stickers/{owner}/{date}")
     suspend fun list(@Header("Authorization") token: String, @Path("owner") owner: Int,
                      @Path("date") date: String): Response<ApiResponse<List<DiarySticker>>>

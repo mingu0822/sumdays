@@ -66,11 +66,14 @@ Merge the paragraphs into a complete diary entry with smooth transitions and con
         max_completion_tokens=max_tokens,
     )
 
-    for chunk in stream:
-        delta = chunk.choices[0].delta
-        text = delta.content or ""
-        if text:
-            yield chunk
+    try:
+        for chunk in stream:
+            delta = chunk.choices[0].delta
+            text = delta.content or ""
+            if text:
+                yield chunk
+    finally:
+        stream.close()
 
 def merge_paragraph_stream(memos, style_features, style_examples, length_level=1):
 
@@ -149,11 +152,14 @@ Merge the base memo and the piece memo into a single diary paragraph that follow
         max_completion_tokens=max_tokens,
     )
 
-    for chunk in stream:
-        delta = chunk.choices[0].delta
-        text = delta.content or ""
-        if text:
-            yield chunk
+    try:
+        for chunk in stream:
+            delta = chunk.choices[0].delta
+            text = delta.content or ""
+            if text:
+                yield chunk
+    finally:
+        stream.close()
 
 def generate_mood(diary: str, style_features, style_examples) -> str:
     style_features_text, style_examples_text = prep(style_features, style_examples)

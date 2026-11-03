@@ -28,6 +28,7 @@ import com.example.sumdays.ShopActivity
 import com.example.sumdays.CalendarActivity
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.data.sync.BackupSyncRunner
 import com.example.sumdays.settings.EditProfileActivity
 import com.example.sumdays.settings.prefs.ProfileImagePrefs
 import com.example.sumdays.settings.prefs.UserStatsPrefs
@@ -282,19 +283,25 @@ class SocialActivity : AppCompatActivity() {
         )
     }
 
+    private var loggingOut = false
+
     private fun logout() {
+        if (loggingOut) return
+        loggingOut = true
         lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                val db = AppDatabase.getDatabase(applicationContext)
-                db.memoDao().clearAll()
-                db.dailyEntryDao().clearAll()
-                db.userStyleDao().clearAll()
-                db.weekSummaryDao().clearAll()
+            try {
+                val result = BackupSyncRunner.syncNow(applicationContext, logoutAfterSync = true)
+                if (!result.success) {
+                    Toast.makeText(this@SocialActivity,
+                        "서버 저장을 확인하지 못해 로그아웃하지 않았어요. ${result.message.orEmpty()}", Toast.LENGTH_LONG).show()
+                    return@launch
+                }
+                val intent = Intent(this@SocialActivity, LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+            } finally {
+                loggingOut = false
             }
-            SessionManager.clearSession()
-            val intent = Intent(this@SocialActivity, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
         }
     }
 

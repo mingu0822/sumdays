@@ -9,7 +9,8 @@ data class StickerShopItem(
     override val description: String,
     override val price: Int,
     override val imageRes: Int,
-    override var isOwned: Boolean = false
+    override var isOwned: Boolean = false,
+    val purchaseEnabled: Boolean = false
 ) : ShopItem {
     override val category: String = "sticker"
 }

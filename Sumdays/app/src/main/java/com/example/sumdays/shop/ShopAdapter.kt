@@ -188,9 +188,8 @@ class ShopAdapter(
                     tvPurchasedBadge.text = context.getString(R.string.shop_sticker_owned, count)
                     tvPurchasedBadge.setBackgroundResource(R.drawable.bg_label_applied)
                     tvPurchasedBadge.setTextColor(context.getColor(android.R.color.black))
-                    // 서버 포인트 지갑에 스티커 상품이 추가될 때까지 구매를 막는다.
-                    btnShopItemAction.setText(R.string.shop_sticker_coming_soon)
-                    btnShopItemAction.isEnabled = false
+                    btnShopItemAction.text = if (item.purchaseEnabled) "구매" else "불러오는 중"
+                    btnShopItemAction.isEnabled = item.purchaseEnabled
                 }
             }
 

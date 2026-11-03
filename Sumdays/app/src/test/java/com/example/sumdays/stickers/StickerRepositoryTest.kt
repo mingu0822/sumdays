@@ -78,6 +78,7 @@ class StickerRepositoryTest {
 
     @Test fun `server failures preserve reservations and prohibit spending again until resolved`() = runBlocking {
         stock.add(1001)
+        remote.stock[1001] = 2
         remote.rejection = StickerRequestException(500, "STICKER_SERVER", "서버 오류")
         try { repository().place(202, diary.date, 1001, StickerGeometry(), null); fail() } catch (_: StickerRequestException) {}
         assertEquals(1, stock.count(1001))
@@ -166,6 +167,8 @@ class StickerRepositoryTest {
     }
 
     private class FakeRemote : StickerRemote {
+        val stock = mutableMapOf(1001 to 1)
+        override suspend fun inventory() = stock.toMap()
         val rows = linkedMapOf<String, DiarySticker>()
         val requests = mutableListOf<PendingSticker>()
         val synced = mutableListOf<DailyEntry>()
@@ -178,8 +181,13 @@ class StickerRepositoryTest {
             requests += request
             beforePlace()
             rejection?.let { throw it }
-            val result = rows.getOrPut(request.id) { with(request) { DiarySticker(id, ownerId, 101, "나", date,
-                stickerId, geometry.x, geometry.y, geometry.size, geometry.rotation) } }
+            val result = rows.getOrPut(request.id) {
+                val count = stock[request.stickerId] ?: 0
+                if (count <= 0) throw StickerRequestException(409, "STICKER_OUT_OF_STOCK", "부족")
+                stock[request.stickerId] = count - 1
+                with(request) { DiarySticker(id, ownerId, 101, "나", date,
+                    stickerId, geometry.x, geometry.y, geometry.size, geometry.rotation) }
+            }
             if (loseResponse) { loseResponse = false; throw IOException("Response lost after commit") }
             return result
         }

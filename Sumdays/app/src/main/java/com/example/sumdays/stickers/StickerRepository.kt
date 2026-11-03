@@ -7,12 +7,14 @@ import com.example.sumdays.network.apiService.ApiResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject
 import retrofit2.Response
 import java.io.IOException
 import java.util.UUID
 
 interface StickerRemote {
+    suspend fun inventory(): Map<Int, Int>
     suspend fun list(owner: Int, date: String): List<DiarySticker>
     suspend fun place(request: PendingSticker): DiarySticker
     suspend fun update(sticker: DiarySticker, geometry: StickerGeometry): DiarySticker
@@ -32,6 +34,7 @@ class RetrofitStickerRemote(token: String) : StickerRemote {
             error?.optString("message")?.takeIf { it.isNotBlank() } ?: "스티커를 불러오지 못했어요. 다시 시도해 주세요.")
     }
 
+    override suspend fun inventory() = read(ApiClient.stickerApi.inventory(authorization)).associate { it.stickerId to it.quantity }
     override suspend fun list(owner: Int, date: String) = read(ApiClient.stickerApi.list(authorization, owner, date))
     override suspend fun place(request: PendingSticker) = read(ApiClient.stickerApi.place(authorization,
         request.ownerId, request.date, request.id, PlaceStickerBody(request)))
@@ -50,6 +53,27 @@ class RetrofitStickerRemote(token: String) : StickerRemote {
     }
 }
 
+/** Caller holds operationMutex so a catalog refresh cannot overwrite an unresolved debit. */
+internal suspend fun recoverPendingStickers(inventory: StickerInventoryStore, remote: StickerRemote,
+                                           isCurrentAccount: () -> Boolean) {
+    for (request in inventory.pending()) {
+        check(isCurrentAccount()) { "계정이 변경되었어요." }
+        try { sendReservedSticker(inventory, remote, request) } catch (error: StickerRequestException) {
+            if (!error.definitelyRejected) throw error
+        }
+    }
+}
+
+private suspend fun sendReservedSticker(inventory: StickerInventoryStore, remote: StickerRemote,
+                                       request: PendingSticker): DiarySticker = withContext(NonCancellable) {
+    try {
+        remote.place(request).also { inventory.finish(request.id, accepted = true) }
+    } catch (error: StickerRequestException) {
+        if (error.definitelyRejected) inventory.finish(request.id, accepted = false)
+        throw error
+    }
+}
+
 class StickerRepository(
     private val inventory: StickerInventoryStore,
     private val remote: StickerRemote,
@@ -58,20 +82,18 @@ class StickerRepository(
     private fun requireAccount() { check(isCurrentAccount()) { "계정이 변경되었어요. 일기를 다시 열어 주세요." } }
 
     suspend fun load(owner: Int, date: String): List<DiarySticker> = withContext(Dispatchers.IO) {
+      StickerInventoryStore.operationMutex.withLock {
         requireAccount()
-        // Resolve receipts before allowing another purchase to be spent, even after app restart.
-        for (request in inventory.pending()) {
-            requireAccount()
-            try { sendReserved(request) } catch (error: StickerRequestException) {
-                if (!error.definitelyRejected) throw error
-            }
-        }
+        recoverPendingStickers(inventory, remote, isCurrentAccount)
+        refreshInventory()
         requireAccount()
         remote.list(owner, date).filter { it.active && it.geometry().isValid() }
+      }
     }
 
     suspend fun place(owner: Int, date: String, stickerId: Int, geometry: StickerGeometry,
                       ownEntry: DailyEntry?): DiarySticker = withContext(Dispatchers.IO) {
+      StickerInventoryStore.operationMutex.withLock {
         requireAccount()
         require(geometry.isValid())
         check(inventory.pending().isEmpty()) { "이전 스티커 저장을 확인하고 있어요. 잠시 후 다시 시도해 주세요." }
@@ -80,23 +102,19 @@ class StickerRepository(
             remote.syncOwnDiary(ownEntry)
         }
         requireAccount()
+        refreshInventory()
         val request = PendingSticker(UUID.randomUUID().toString(), owner, date, stickerId, geometry)
         withContext(NonCancellable) {
             check(inventory.reserve(request)) { "보유한 스티커가 부족해요." }
-            sendReserved(request)
+            sendReservedSticker(inventory, remote, request)
         }
+      }
     }
 
-    private suspend fun sendReserved(request: PendingSticker): DiarySticker = withContext(NonCancellable) {
-        try {
-            val result = remote.place(request)
-            inventory.finish(request.id, accepted = true)
-            result
-        } catch (error: StickerRequestException) {
-            if (error.definitelyRejected) inventory.finish(request.id, accepted = false)
-            throw error
-        }
-        // Timeouts, cancellation and server failures retain the same request ID and reservation.
+    private suspend fun refreshInventory() {
+        val counts = remote.inventory()
+        requireAccount()
+        inventory.replaceCounts(counts)
     }
 
     suspend fun update(sticker: DiarySticker, geometry: StickerGeometry) = withContext(Dispatchers.IO) {

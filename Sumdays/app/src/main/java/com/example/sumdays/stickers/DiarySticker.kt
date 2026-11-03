@@ -40,8 +40,10 @@ data class PlaceStickerBody(val stickerId: Int, val x: Float, val y: Float, val 
         pending.geometry.y, pending.geometry.size, pending.geometry.rotation)
 }
 
+data class StickerStock(val stickerId: Int, val quantity: Int)
+
 class StickerRequestException(val status: Int, val code: String, message: String) : Exception(message) {
     // These responses are returned only before a placement is committed (or for a conflicting ID).
     val definitelyRejected: Boolean get() = code in setOf("STICKER_INVALID", "STICKER_DIARY_MISSING",
-        "STICKER_FORBIDDEN", "STICKER_CONFLICT", "STICKER_LIMIT") && status in 400..499
+        "STICKER_FORBIDDEN", "STICKER_CONFLICT", "STICKER_LIMIT", "STICKER_OUT_OF_STOCK") && status in 400..499
 }

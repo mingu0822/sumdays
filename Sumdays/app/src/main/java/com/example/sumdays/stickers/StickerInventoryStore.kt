@@ -5,6 +5,7 @@ import com.example.sumdays.auth.AccountStorage
 import com.example.sumdays.shop.StickerCatalog
 import com.google.gson.Gson
 import java.io.IOException
+import kotlinx.coroutines.sync.Mutex
 
 /** A reservation and its debit share one durable preferences transaction. Captures the account. */
 class StickerInventoryStore(context: Context, account: String = AccountStorage.accountKey()) {
@@ -15,6 +16,22 @@ class StickerInventoryStore(context: Context, account: String = AccountStorage.a
 
     fun add(id: Int) = synchronized(lock) {
         prefs.edit().putInt(id.toString(), count(id) + 1).apply()
+    }
+
+    fun setCount(id: Int, quantity: Int) = synchronized(lock) {
+        require(StickerCatalog.contains(id) && quantity >= 0)
+        check(pending().isEmpty()) { "이전 스티커 저장을 확인하고 있어요." }
+        if (!prefs.edit().putInt(id.toString(), quantity).commit()) {
+            throw IOException("스티커 보관함을 저장하지 못했어요.")
+        }
+    }
+
+    fun replaceCounts(counts: Map<Int, Int>) = synchronized(lock) {
+        check(pending().isEmpty()) { "이전 스티커 저장을 확인하고 있어요." }
+        require(counts.values.all { it >= 0 })
+        val edit = prefs.edit()
+        StickerCatalog.items.forEach { edit.putInt(it.id.toString(), counts[it.id] ?: 0) }
+        if (!edit.commit()) throw IOException("스티커 보관함을 저장하지 못했어요.")
     }
 
     fun pending(): List<PendingSticker> = synchronized(lock) {
@@ -48,6 +65,8 @@ class StickerInventoryStore(context: Context, account: String = AccountStorage.a
     }
 
     companion object {
+        // Serialize network snapshots, purchases and placement reservations across repositories.
+        val operationMutex = Mutex()
         private val lock = Any()
         private const val PREFIX = "pending:"
     }

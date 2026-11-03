@@ -33,10 +33,14 @@ function serialize(row) {
 }
 
 function createStickerService(pool) {
-  async function transaction(actor, action) {
+  async function transaction(actor, action, lockWallet = false) {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
+      // Purchases lock the wallet before inventory; placement must use the same order.
+      if (lockWallet) {
+        await connection.query('SELECT user_id FROM point_wallets WHERE user_id = ? FOR UPDATE', [actor]);
+      }
       // Serializes an author's retries, including retries for different diary targets.
       const [users] = await connection.query('SELECT id FROM users WHERE id = ? FOR UPDATE', [actor]);
       if (!users.length) reject(401, 'STICKER_LOGIN', '다시 로그인해 주세요.');
@@ -75,6 +79,16 @@ function createStickerService(pool) {
   }
 
   return {
+    async inventory(actor) {
+      return transaction(actor, async connection => {
+        const [rows] = await connection.query(
+          `SELECT item_id AS stickerId, quantity FROM user_shop_inventory
+           WHERE user_id = ? AND product_type = 'ITEM' AND item_id IN (?)`,
+          [actor, [...stickerIds]]);
+        return rows.map(row => ({ stickerId: Number(row.stickerId), quantity: Number(row.quantity) }));
+      });
+    },
+
     async list(actor, owner, date) {
       validateTarget(owner, date);
       return transaction(actor, async connection => {
@@ -106,12 +120,17 @@ function createStickerService(pool) {
         const [[{ count }]] = await connection.query(
           'SELECT COUNT(*) AS count FROM diary_stickers WHERE daily_entry_id = ? AND removed = 0', [diary.id]);
         if (count >= 50) reject(409, 'STICKER_LIMIT', '한 일기에 스티커를 최대 50개까지 붙일 수 있어요.');
+        const [spent] = await connection.query(
+          `UPDATE user_shop_inventory SET quantity = quantity - 1
+           WHERE user_id = ? AND product_type = 'ITEM' AND item_id = ? AND quantity > 0`,
+          [actor, body.stickerId]);
+        if (spent.affectedRows !== 1) reject(409, 'STICKER_OUT_OF_STOCK', '보유한 스티커가 부족해요. 상점에서 구매해 주세요.');
         await connection.query(
           `INSERT INTO diary_stickers (id, daily_entry_id, owner_id, author_id, diary_date, sticker_id, x, y, size, rotation, initial_geometry)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [id, diary.id, owner, actor, date, body.stickerId, geometry.x, geometry.y, geometry.size, geometry.rotation, JSON.stringify(geometry)]);
         return serialize(await find(connection, id));
-      });
+      }, true);
     },
 
     async update(actor, owner, date, id, body) {

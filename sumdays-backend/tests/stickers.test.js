@@ -15,10 +15,20 @@ function fixture() {
   ]);
   const friends = new Set(['1:2', '2:3']);
   const rows = new Map();
+  const stock = new Map([[1, 10], [2, 10], [3, 10]]);
+  let savedStock;
   const connection = {
-    beginTransaction: jest.fn().mockResolvedValue(), commit: jest.fn().mockResolvedValue(),
-    rollback: jest.fn().mockResolvedValue(), release: jest.fn(),
+    beginTransaction: jest.fn(async () => { savedStock = new Map(stock); }), commit: jest.fn().mockResolvedValue(),
+    rollback: jest.fn(async () => { stock.clear(); savedStock.forEach((v, k) => stock.set(k, v)); }), release: jest.fn(),
     query: jest.fn(async (sql, p) => {
+      if (sql.startsWith('SELECT user_id FROM point_wallets')) return [[{ user_id: p[0] }]];
+      if (sql.startsWith('SELECT item_id AS stickerId')) return [[{ stickerId: 1001, quantity: stock.get(p[0]) || 0 }]];
+      if (sql.startsWith('UPDATE user_shop_inventory')) {
+        const quantity = stock.get(p[0]) || 0;
+        if (quantity < 1 || p[1] !== 1001) return [{ affectedRows: 0 }];
+        stock.set(p[0], quantity - 1);
+        return [{ affectedRows: 1 }];
+      }
       if (sql.startsWith('SELECT id FROM users')) return [[{ id: p[0] }]];
       if (sql.startsWith('SELECT id, diary')) return [[diaries.get(`${p[0]}:${p[1]}`)].filter(Boolean)];
       if (sql.includes('FROM friendship')) return [[...(friends.has(`${p[0]}:${p[1]}`) || friends.has(`${p[1]}:${p[0]}`) ? [{ id: 1 }] : [])]];
@@ -47,12 +57,13 @@ function fixture() {
   app.use('/stickers', requireLogin, createStickerRouter(service));
   const put = (owner = 2, actor = 1, id = randomUUID(), body = geometry) =>
     request(app).put(`/stickers/${owner}/2026-10-11/${id}`).set('x-test-user', String(actor)).send(body);
-  return { app, put, rows, diaries, friends, connection, pool, service };
+  return { app, put, rows, diaries, friends, connection, pool, service, stock };
 }
 const geometry = { stickerId: 1001, x: 0.3, y: 0.7, size: 0.18, rotation: -25 };
 
 test('all sticker endpoints require login', async () => {
   const { app, pool } = fixture();
+  expect((await request(app).get('/stickers/inventory')).status).toBe(401);
   expect((await request(app).get('/stickers/2/2026-10-11')).status).toBe(401);
   expect((await request(app).put(`/stickers/2/2026-10-11/${randomUUID()}`).send(geometry)).status).toBe(401);
   expect(pool.getConnection).not.toHaveBeenCalled();
@@ -191,5 +202,44 @@ test('database failures roll back, release connections, and return retryable err
   expect(result.body.code).toBe('STICKER_SERVER');
   expect(f.connection.rollback).toHaveBeenCalledTimes(1);
   expect(f.connection.release).toHaveBeenCalledTimes(1);
+  console.error.mockRestore();
+});
+
+test('inventory is scoped to the authenticated account', async () => {
+  const f = fixture();
+  f.stock.set(1, 2);
+  f.stock.set(2, 5);
+  const result = await request(f.app).get('/stickers/inventory?userId=2').set('x-test-user', '1');
+  expect(result.status).toBe(200);
+  expect(result.body.data).toEqual([{ stickerId: 1001, quantity: 2 }]);
+});
+
+test('placement spends one server sticker and retry, movement and removal never spend again', async () => {
+  const f = fixture();
+  f.stock.set(1, 1);
+  const id = randomUUID();
+  expect((await f.put(2, 1, id)).status).toBe(200);
+  expect(f.stock.get(1)).toBe(0);
+  expect((await f.put(2, 1, id)).status).toBe(200);
+  expect((await f.put()).body.code).toBe('STICKER_OUT_OF_STOCK');
+  await request(f.app).patch(`/stickers/2/2026-10-11/${id}`).set('x-test-user', '1').send({ ...geometry, x: 0.8 });
+  await request(f.app).delete(`/stickers/2/2026-10-11/${id}`).set('x-test-user', '1');
+  expect((await f.put(2, 1, id)).status).toBe(200);
+  expect(f.stock.get(1)).toBe(0);
+  expect(f.rows.size).toBe(1);
+});
+
+test('failed placement does not spend inventory', async () => {
+  const f = fixture();
+  f.stock.set(1, 1);
+  const original = f.connection.query.getMockImplementation();
+  f.connection.query.mockImplementation(async (sql, p) => {
+    if (sql.startsWith('INSERT INTO diary_stickers')) throw new Error('Insert failed');
+    return original(sql, p);
+  });
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+  expect((await f.put()).status).toBe(500);
+  expect(f.stock.get(1)).toBe(1);
+  expect(f.rows.size).toBe(0);
   console.error.mockRestore();
 });

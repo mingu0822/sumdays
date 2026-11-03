@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 import os
-load_dotenv(dotenv_path="../.env")
+from pathlib import Path
+
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env")
 
 from flask import Flask, jsonify
 from services.analysis.routes import analysis_bp

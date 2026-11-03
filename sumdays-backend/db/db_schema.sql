@@ -524,7 +524,13 @@ VALUES
   ('ITEM', 401, 200, 1),
   ('ITEM', 402, 200, 1),
   ('ITEM', 404, 200, 1),
-  ('ITEM', 405, 200, 1);
+  ('ITEM', 405, 200, 1),
+  ('ITEM', 1001, 100, 1),
+  ('ITEM', 1002, 100, 1),
+  ('ITEM', 1003, 150, 1),
+  ('ITEM', 1004, 150, 1),
+  ('ITEM', 1005, 150, 1),
+  ('ITEM', 1006, 200, 1);
 
 INSERT INTO merge_ticket_products (pack_id, ticket_count, point_price, is_active)
 VALUES

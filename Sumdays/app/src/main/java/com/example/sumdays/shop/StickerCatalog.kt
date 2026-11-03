@@ -3,6 +3,7 @@ package com.example.sumdays.shop
 import com.example.sumdays.R
 
 object StickerCatalog {
+    fun contains(id: Int): Boolean = items.any { it.id == id }
     // Stable IDs for purchased inventory and future diary placements.
     val items: List<StickerShopItem> = listOf(
         StickerShopItem(1001, "마음 한 조각", "따뜻한 마음을 담은 하트", 100, R.drawable.sticker_heart),
