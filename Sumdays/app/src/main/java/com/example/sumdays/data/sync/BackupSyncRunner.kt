@@ -14,6 +14,11 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import android.net.Uri
+import com.google.gson.Gson
+import okhttp3.MultipartBody
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
 data class BackupSyncResult(
     val success: Boolean,
@@ -58,11 +63,58 @@ object BackupSyncRunner {
                 val deletedEntries = dailyEntryDao.getDeletedEntries()
                 val deletedEntryDates = deletedEntries.map { it.date }
                 val editedEntries = dailyEntryDao.getEditedEntries()
+
+
+
+                // 사진
+                val dailyPhotosPayloads = mutableListOf<DailyPhotosPayload>()
+                val photoParts = mutableListOf<MultipartBody.Part>()
+                editedEntries.forEach { entry ->
+                    val photos = entry.photoUrls
+                        ?.split(",")
+                        ?.filter { it.isNotBlank() }
+                        ?: emptyList()
+
+                    val serverPhotos = photos.filter {
+                        it.startsWith("http://") || it.startsWith("https://")
+                    }
+
+                    val localPhotos = photos.filter {
+                        it.startsWith("content://") || it.startsWith("file://")
+                    }
+
+                    val uploadKeys = mutableListOf<String>()
+
+                    localPhotos.forEachIndexed { index, uriString ->
+                        val uploadKey = "${entry.date}_${index}.jpg"
+                        uploadKeys.add(uploadKey)
+
+                        photoParts.add(
+                            uriToMultipart(context.applicationContext, uriString, uploadKey)
+                        )
+                    }
+
+                    dailyPhotosPayloads.add(
+                        DailyPhotosPayload(
+                            date = entry.date,
+                            serverPhotoUrls = serverPhotos
+                                .takeIf { it.isNotEmpty() }
+                                ?.joinToString(","),
+                            uploadKeys = uploadKeys
+                                .takeIf { it.isNotEmpty() }
+                        )
+                    )
+                }
+
+
+
+
                 val deletedSummaries = weekSummaryDao.getDeletedSummaries()
                 val deletedSummaryStartDates = deletedSummaries.map { it.startDate }
                 val editedSummaryEntities = weekSummaryDao.getEditedSummaries()
                 val editedSummaries = editedSummaryEntities.map { it.weekSummary }
 
+                var syncedPhotos: List<SyncedDailyPhotoUrlsPayload>? = null
                 val request = buildSyncRequest(
                     deletedMemoIds,
                     deletedStyleIds,
@@ -72,6 +124,7 @@ object BackupSyncRunner {
                     editedStyles,
                     editedEntries,
                     editedSummaries,
+                    dailyPhotosPayloads
                 )
                 if (
                     SessionManager.getUserId() != userId ||
@@ -84,7 +137,17 @@ object BackupSyncRunner {
                     )
                 }
                 if (request.edited != null || request.deleted != null) {
-                    val response = api.syncData("Bearer $token", request)
+                    val syncJson = Gson().toJson(request)
+
+                    val syncRequestBody = syncJson.toRequestBody(
+                        "application/json".toMediaTypeOrNull()
+                    )
+
+                    val response = api.syncData(
+                        "Bearer $token",
+                        syncRequestBody,
+                        photoParts
+                    )
                     val body = response.body()
                     if (!response.isSuccessful || body?.status != "success") {
                         return@withContext BackupSyncResult(
@@ -93,6 +156,7 @@ object BackupSyncRunner {
                             body?.message ?: "서버 응답 없음 (${response.code()})",
                         )
                     }
+                    syncedPhotos = body.dailyPhotos
                 }
 
                 if (
@@ -114,6 +178,11 @@ object BackupSyncRunner {
                         throw AccountChangedException()
                     }
 
+                    val unchangedEntryDates = dailyEntryDao.getEditedEntries()
+                        .filter { it in editedEntries }
+                        .map { it.date }
+                        .toSet()
+
                     // Only acknowledge the exact snapshots uploaded. A newer
                     // local edit/deletion must remain pending for the next run.
                     memoDao.resetDeletedFlags(memoDao.getDeletedMemos().filter { it in deletedMemos }.map { it.id })
@@ -121,9 +190,18 @@ object BackupSyncRunner {
                     userStyleDao.resetDeletedFlags(userStyleDao.getDeletedStyles().filter { it in deletedStyles }.map { it.styleId })
                     userStyleDao.resetEditedFlags(userStyleDao.getEditedStyles().filter { it in editedStyles }.map { it.styleId })
                     dailyEntryDao.resetDeletedFlags(dailyEntryDao.getDeletedEntries().filter { it in deletedEntries }.map { it.date })
-                    dailyEntryDao.resetEditedFlags(dailyEntryDao.getEditedEntries().filter { it in editedEntries }.map { it.date })
+                    dailyEntryDao.resetEditedFlags(unchangedEntryDates.toList())
                     weekSummaryDao.resetDeletedFlags(weekSummaryDao.getDeletedSummaries().filter { it in deletedSummaries }.map { it.startDate })
                     weekSummaryDao.resetEditedFlags(weekSummaryDao.getEditedSummaries().filter { it in editedSummaryEntities }.map { it.startDate })
+
+                    syncedPhotos?.forEach { photo ->
+                        if (photo.date in unchangedEntryDates) {
+                            dailyEntryDao.updatePhotoUrls(
+                                photo.date,
+                                photo.photoUrls
+                            )
+                        }
+                    }
 
                     if (
                         SessionManager.getUserId() != userId ||
@@ -168,10 +246,38 @@ object BackupSyncRunner {
 
     private suspend fun hasPendingChanges(db: AppDatabase): Boolean =
         db.dailyEntryDao().getEditedEntries().isNotEmpty() || db.dailyEntryDao().getDeletedEntries().isNotEmpty() ||
-            db.memoDao().getEditedMemos().isNotEmpty() || db.memoDao().getDeletedMemos().isNotEmpty() ||
-            db.userStyleDao().getEditedStyles().isNotEmpty() || db.userStyleDao().getDeletedStyles().isNotEmpty() ||
-            db.weekSummaryDao().getEditedSummaries().isNotEmpty() || db.weekSummaryDao().getDeletedSummaries().isNotEmpty()
+                db.memoDao().getEditedMemos().isNotEmpty() || db.memoDao().getDeletedMemos().isNotEmpty() ||
+                db.userStyleDao().getEditedStyles().isNotEmpty() || db.userStyleDao().getDeletedStyles().isNotEmpty() ||
+                db.weekSummaryDao().getEditedSummaries().isNotEmpty() || db.weekSummaryDao().getDeletedSummaries().isNotEmpty()
 
     private class PendingChangesException : IllegalStateException()
     private class AccountChangedException : IllegalStateException()
+}
+
+private fun uriToMultipart(
+    context: Context,
+    uriString: String,
+    uploadKey: String
+): MultipartBody.Part {
+
+    val uri = Uri.parse(uriString)
+
+    val bytes = context.contentResolver
+        .openInputStream(uri)
+        ?.use { it.readBytes() }
+        ?: throw IllegalArgumentException("사진을 읽을 수 없습니다: $uri")
+
+    val mimeType =
+        context.contentResolver.getType(uri)
+            ?: "image/jpeg"
+
+    val requestBody = bytes.toRequestBody(
+        mimeType.toMediaTypeOrNull()
+    )
+
+    return MultipartBody.Part.createFormData(
+        "photos",
+        uploadKey,
+        requestBody
+    )
 }

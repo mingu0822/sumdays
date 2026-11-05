@@ -152,10 +152,16 @@ interface ApiService {
     ): Response<UpdateProfileImageResponse>
 
     // 백업 
+    @Multipart
     @POST("/api/db/sync")
     suspend fun syncData(
         @Header("Authorization") token: String,
-        @Body body: SyncRequest
+
+        @Part("syncRequest")
+        syncRequest: RequestBody,
+
+        @Part
+        photos: List<MultipartBody.Part>
     ): Response<SyncResponse>
     
     // 동기화

@@ -120,6 +120,11 @@ interface DailyEntryDao {
     @Query("UPDATE daily_entry SET isEdited = 0, isDeleted = 0 WHERE date IN (:dates)")
     suspend fun resetEditedFlags(dates: List<String>)
 
+    @Query("UPDATE daily_entry SET photoUrls = :photoUrls WHERE date = :date")
+    suspend fun updatePhotoUrls(
+        date: String,
+        photoUrls: String
+    )
     @Query("""
         SELECT * FROM daily_entry
         WHERE isDeleted = 0

@@ -8,7 +8,7 @@ class WeekSummaryRepository (
     private val dao: WeekSummaryDao
 ) {
     // 주간 통계 데이터를 데이터베이스에 저장하거나 업데이트합
-    suspend fun upsertWeekSummary(summary: WeekSummary, fromServer: Boolean = false) {
+    suspend fun upsertWeekSummary(summary: WeekSummary, fromServer: Boolean = true) {
         dao.upsert(summary, fromServer)
     }
 

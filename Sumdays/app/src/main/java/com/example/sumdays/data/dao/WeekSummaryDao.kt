@@ -15,7 +15,7 @@ interface WeekSummaryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertEntity(entity: WeekSummaryEntity)
 
-    suspend fun upsert(summary: WeekSummary, fromServer: Boolean = false) {
+    suspend fun upsert(summary: WeekSummary, fromServer: Boolean = true) {
         val entity = WeekSummaryEntity(
             startDate = summary.startDate,
             weekSummary = summary,
