@@ -18,7 +18,8 @@ import com.example.sumdays.theme.ThemeRepository
 class PhotoGalleryAdapter(
     private val onPhotoClick: (String) -> Unit,
     private val onDeleteClick: (Int) -> Unit,
-    private val onAddClick: () -> Unit
+    private val onAddClick: () -> Unit,
+    private val isReadOnly: Boolean = false
 ) : ListAdapter<GalleryItem, RecyclerView.ViewHolder>(GalleryDiffCallback()) {
 
     companion object {
@@ -54,7 +55,8 @@ class PhotoGalleryAdapter(
                     url = item.url,
                     position = position,
                     onClick = onPhotoClick,
-                    onDeleteClick = onDeleteClick
+                    onDeleteClick = onDeleteClick,
+                    isReadOnly = isReadOnly
                 )
             }
             is GalleryItem.Add -> {
@@ -72,7 +74,9 @@ class PhotoGalleryAdapter(
             url: String,
             position: Int,
             onClick: (String) -> Unit,
-            onDeleteClick: (Int) -> Unit
+            onDeleteClick: (Int) -> Unit,
+            isReadOnly: Boolean
+
         ) {
             applyTheme()
 
@@ -106,6 +110,7 @@ class PhotoGalleryAdapter(
             }
 
             imageView.setOnClickListener { onClick(url) }
+            deleteButton.visibility = if (isReadOnly) View.GONE else View.VISIBLE
             deleteButton.setOnClickListener { onDeleteClick(position) }
         }
 

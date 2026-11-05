@@ -296,6 +296,16 @@ class SocialActivity : AppCompatActivity() {
                         "서버 저장을 확인하지 못해 로그아웃하지 않았어요. ${result.message.orEmpty()}", Toast.LENGTH_LONG).show()
                     return@launch
                 }
+
+                withContext(Dispatchers.IO) {
+                    val db = AppDatabase.getDatabase(applicationContext)
+                    db.memoDao().clearAll()
+                    db.dailyEntryDao().clearAll()
+                    db.userStyleDao().clearAll()
+                    db.weekSummaryDao().clearAll()
+                }
+                SessionManager.clearSession()
+
                 val intent = Intent(this@SocialActivity, LoginActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
