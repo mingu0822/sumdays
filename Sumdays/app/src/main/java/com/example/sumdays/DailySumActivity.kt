@@ -200,8 +200,11 @@ class DailySumActivity : AppCompatActivity() {
     }
 
     private fun applyThemeModeSettings() {
+        ThemeRepository.updateOwned()
         val themeKey = ThemePrefs.getTheme(this)
-        val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
+        val currentTheme = ThemeRepository.ownedThemes[themeKey]
+            ?: ThemeRepository.allThemeMap[themeKey]
+            ?: return
 
         val rootView = findViewById<View>(R.id.sum_layout)
         val memoListView = findViewById<RecyclerView>(R.id.memo_list_view)

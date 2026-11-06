@@ -1,11 +1,15 @@
 package com.example.sumdays
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -24,16 +28,18 @@ import com.example.sumdays.mission.MissionRepository
 import com.example.sumdays.mission.MissionRepositoryFactory
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.shop.PointPrefs
+import com.example.sumdays.theme.Theme
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import com.example.sumdays.utils.setupEdgeToEdge
-import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.launch
 
 class MissionActivity : AppCompatActivity() {
     private lateinit var repository: MissionRepository
     private lateinit var adapter: MissionAdapter
-    private lateinit var adCard: MaterialCardView
+    private lateinit var adCard: View
     private lateinit var adDescription: TextView
     private lateinit var rewardedAdController: RewardedAdController
     private lateinit var questTab: TextView
@@ -45,6 +51,8 @@ class MissionActivity : AppCompatActivity() {
     private lateinit var pointBilling: GooglePlayPointBillingManager
     private var isAdRewardSubmitting = false
     private val pendingPointTokens = mutableSetOf<String>()
+    private var isQuestTabSelected = true
+    private var tabSelectedColor: Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,10 +89,14 @@ class MissionActivity : AppCompatActivity() {
             adapter = this@MissionActivity.adapter
         }
 
-        findViewById<ImageButton>(R.id.backButton).setOnClickListener { finish() }
+        findViewById<ImageView>(R.id.backButton).setOnClickListener { finish() }
         adCard.setOnClickListener { showRewardedAd() }
         questTab.setOnClickListener { showPointTab(isQuestTab = true) }
-        purchaseTab.setOnClickListener { showPointTab(isQuestTab = false) }
+        purchaseTab.setOnClickListener {
+            showPointTab(isQuestTab = false)
+            // 탭을 열 때 맨 위(제목·광고 카드)부터 보이도록
+            purchaseContent.post { purchaseContent.scrollTo(0, 0) }
+        }
         findViewById<View>(R.id.cardPoint1000).setOnClickListener { startPointPurchase(POINT_PRODUCT_1000) }
         findViewById<View>(R.id.cardPoint3300).setOnClickListener { startPointPurchase(POINT_PRODUCT_3300) }
         findViewById<View>(R.id.cardPoint5800).setOnClickListener { startPointPurchase(POINT_PRODUCT_5800) }
@@ -94,11 +106,59 @@ class MissionActivity : AppCompatActivity() {
         NavBarController(this).setNavigationBar(NavSource.SHOP)
     }
 
+    private fun getCurrentThemeOrNull(): Theme? {
+        ThemeRepository.updateOwned()
+        val themeKey = ThemePrefs.getTheme(this)
+        return ThemeRepository.ownedThemes[themeKey]
+            ?: ThemeRepository.allThemeMap[themeKey]
+    }
+
+    private fun applyThemeModeSettings() {
+        val currentTheme = getCurrentThemeOrNull() ?: return
+        val pointColor = ContextCompat.getColor(this, currentTheme.themeColorA)
+        val basicTextColor = ContextCompat.getColor(this, currentTheme.themeTextColorBasic)
+        tabSelectedColor = pointColor
+
+        findViewById<View>(R.id.missionRoot).setBackgroundResource(currentTheme.backgroundColor)
+        findViewById<View>(R.id.topBar).setBackgroundResource(currentTheme.backgroundColor)
+        findViewById<View>(R.id.pointCenterTabs).setBackgroundResource(currentTheme.backgroundColor)
+        questIndicator.setBackgroundColor(pointColor)
+        purchaseIndicator.setBackgroundColor(pointColor)
+
+        // 광고 카드는 강조(활성) 블록, 포인트 상품 카드는 기본 블록
+        adCard.setBackgroundResource(currentTheme.blockStyleD)
+        findViewById<ImageView>(R.id.ivAdMissionIcon).imageTintList = ColorStateList.valueOf(pointColor)
+
+        POINT_CARD_IDS.forEach { id ->
+            findViewById<View>(id).setBackgroundResource(currentTheme.blockStyleA)
+        }
+
+        applyTaggedTextColors(purchaseContent, basicTextColor, pointColor)
+        showPointTab(isQuestTabSelected)
+        adapter.setTheme(currentTheme)
+    }
+
+    // 구매 탭 카드의 반복 텍스트는 id 대신 layout의 android:tag로 구분한다
+    private fun applyTaggedTextColors(view: View, basicTextColor: Int, pointColor: Int) {
+        if (view is TextView) {
+            when (view.tag) {
+                TAG_TEXT_BASIC -> view.setTextColor(basicTextColor)
+                TAG_TEXT_ACCENT -> view.setTextColor(pointColor)
+            }
+        }
+        if (view is ViewGroup) {
+            for (index in 0 until view.childCount) {
+                applyTaggedTextColors(view.getChildAt(index), basicTextColor, pointColor)
+            }
+        }
+    }
+
     private fun showPointTab(isQuestTab: Boolean) {
+        isQuestTabSelected = isQuestTab
         missionList.visibility = if (isQuestTab) View.VISIBLE else View.GONE
         purchaseContent.visibility = if (isQuestTab) View.GONE else View.VISIBLE
 
-        val selectedColor = getColor(R.color.foxrange)
+        val selectedColor = tabSelectedColor ?: getColor(R.color.foxrange)
         val unselectedColor = getColor(android.R.color.darker_gray)
         questTab.setTextColor(if (isQuestTab) selectedColor else unselectedColor)
         purchaseTab.setTextColor(if (isQuestTab) unselectedColor else selectedColor)
@@ -289,6 +349,8 @@ class MissionActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // 다른 화면에서 테마를 바꾸고 돌아와도 반영되도록 매번 적용
+        applyThemeModeSettings()
         if (::pointBilling.isInitialized) pointBilling.refreshPurchases()
         if (::repository.isInitialized && ::adapter.isInitialized) {
             lifecycleScope.launch {
@@ -326,5 +388,14 @@ class MissionActivity : AppCompatActivity() {
         const val POINT_PRODUCT_3300 = "sumdays_points_3300"
         const val POINT_PRODUCT_5800 = "sumdays_points_5800"
         const val POINT_PRODUCT_12000 = "sumdays_points_12000"
+
+        const val TAG_TEXT_BASIC = "theme_text_basic"
+        const val TAG_TEXT_ACCENT = "theme_text_accent"
+        val POINT_CARD_IDS = listOf(
+            R.id.cardPoint1000,
+            R.id.cardPoint3300,
+            R.id.cardPoint5800,
+            R.id.cardPoint12000,
+        )
     }
 }

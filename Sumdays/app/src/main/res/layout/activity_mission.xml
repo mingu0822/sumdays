@@ -25,14 +25,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageButton
+        <!-- 일기 화면(activity_sum.xml back_icon)과 같은 ImageView 설정 -->
+        <ImageView
             android:id="@+id/backButton"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:layout_marginStart="16dp"
-            android:background="@android:color/transparent"
+            android:layout_marginStart="13dp"
             android:contentDescription="뒤로가기"
-            android:src="@drawable/ic_shop_back" />
+            android:src="@drawable/ic_arrow_back_grey" />
     </LinearLayout>
 
     <LinearLayout
@@ -105,46 +105,58 @@
         </LinearLayout>
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvMissions"
+    <!-- 옷장(activity_customize.xml customizeViewport)과 같은 구조: 스크롤 내용이 이 틀 밖(네비바 위 24dp,
+         네비바 주변)으로 그려지지 않게 잘라서 그 영역은 배경색으로 보이게 한다. -->
+    <FrameLayout
+        android:id="@+id/missionViewport"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginBottom="24dp"
+        android:clipChildren="true"
+        app:layout_constraintTop_toBottomOf="@id/pointCenterTabs"
+        app:layout_constraintBottom_toTopOf="@id/navigation_bar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMissions"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:clipToPadding="false"
         android:paddingStart="20dp"
         android:paddingTop="16dp"
         android:paddingEnd="20dp"
         android:paddingBottom="20dp"
-        app:layout_constraintBottom_toTopOf="@id/navigation_bar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pointCenterTabs"
         tools:itemCount="4"
         tools:listitem="@layout/item_mission" />
 
     <ScrollView
         android:id="@+id/pointPurchaseContent"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingStart="20dp"
+        android:paddingStart="12dp"
         android:paddingTop="16dp"
-        android:paddingEnd="20dp"
+        android:paddingEnd="12dp"
         android:paddingBottom="20dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/navigation_bar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pointCenterTabs">
+        android:visibility="gone">
 
+        <!-- ScrollView가 이 LinearLayout을 자기 경계로 잘라내므로, 카드 그림자가 들어갈 좌우 여백(8dp)을
+             여기 안쪽에 두고 clipToPadding=false로 그 여백에 그림자가 그려지게 한다.
+             카드 위치는 ScrollView 12dp + 8dp = 20dp로 기존과 같다. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:paddingHorizontal="8dp"
+            android:paddingBottom="8dp"
             android:orientation="vertical">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="포인트 구매"
+                android:tag="theme_text_basic"
                 android:textColor="#2D2A26"
                 android:textSize="22sp"
                 android:textStyle="bold" />
@@ -158,19 +170,16 @@
                 android:textColor="#7A726A"
                 android:textSize="13sp" />
 
-            <com.google.android.material.card.MaterialCardView
+            <FrameLayout
+                android:background="@drawable/blockstyle_d_basic"
+                android:elevation="2dp"
                 android:id="@+id/cardAdMission"
                 android:layout_width="match_parent"
                 android:layout_height="112dp"
                 android:layout_marginBottom="16dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="2dp"
-                app:strokeColor="@color/foxrange"
-                app:strokeWidth="2dp">
+                android:foreground="?attr/selectableItemBackground">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -182,6 +191,7 @@
                     <ImageView
                         android:layout_width="52dp"
                         android:layout_height="52dp"
+                        android:id="@+id/ivAdMissionIcon"
                         android:contentDescription="광고 재생"
                         android:padding="8dp"
                         android:src="@android:drawable/ic_media_play"
@@ -198,6 +208,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="광고 보고 포인트!"
+                            android:tag="theme_text_basic"
                             android:textColor="#2D2A26"
                             android:textSize="21sp"
                             android:textStyle="bold" />
@@ -212,21 +223,18 @@
                             android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
 
-            <com.google.android.material.card.MaterialCardView
+            <FrameLayout
+                android:background="@drawable/bg_image_drawer_rounded_light"
+                android:elevation="2dp"
                 android:id="@+id/cardPoint1000"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="1dp"
-                app:strokeColor="#E8E2DA"
-                app:strokeWidth="1dp">
+                android:foreground="?attr/selectableItemBackground">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -253,6 +261,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="1,000P"
+                            android:tag="theme_text_basic"
                             android:textColor="#2D2A26"
                             android:textSize="22sp"
                             android:textStyle="bold" />
@@ -262,25 +271,23 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="₩1,100"
+                        android:tag="theme_text_accent"
                         android:textColor="@color/foxrange"
                         android:textSize="17sp"
                         android:textStyle="bold" />
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
 
-            <com.google.android.material.card.MaterialCardView
+            <FrameLayout
+                android:background="@drawable/bg_image_drawer_rounded_light"
+                android:elevation="2dp"
                 android:id="@+id/cardPoint3300"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="1dp"
-                app:strokeColor="#E8E2DA"
-                app:strokeWidth="1dp">
+                android:foreground="?attr/selectableItemBackground">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -307,6 +314,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="3,300P"
+                            android:tag="theme_text_basic"
                             android:textColor="#2D2A26"
                             android:textSize="22sp"
                             android:textStyle="bold" />
@@ -316,25 +324,23 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="₩3,300"
+                        android:tag="theme_text_accent"
                         android:textColor="@color/foxrange"
                         android:textSize="17sp"
                         android:textStyle="bold" />
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
 
-            <com.google.android.material.card.MaterialCardView
+            <FrameLayout
+                android:background="@drawable/bg_image_drawer_rounded_light"
+                android:elevation="2dp"
                 android:id="@+id/cardPoint5800"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="1dp"
-                app:strokeColor="#E8E2DA"
-                app:strokeWidth="1dp">
+                android:foreground="?attr/selectableItemBackground">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -361,6 +367,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="5,800P"
+                            android:tag="theme_text_basic"
                             android:textColor="#2D2A26"
                             android:textSize="22sp"
                             android:textStyle="bold" />
@@ -370,24 +377,22 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="₩5,500"
+                        android:tag="theme_text_accent"
                         android:textColor="@color/foxrange"
                         android:textSize="17sp"
                         android:textStyle="bold" />
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
 
-            <com.google.android.material.card.MaterialCardView
+            <FrameLayout
+                android:background="@drawable/bg_image_drawer_rounded_light"
+                android:elevation="2dp"
                 android:id="@+id/cardPoint12000"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clickable="true"
                 android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="1dp"
-                app:strokeColor="#E8E2DA"
-                app:strokeWidth="1dp">
+                android:foreground="?attr/selectableItemBackground">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -414,6 +419,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="12,000P"
+                            android:tag="theme_text_basic"
                             android:textColor="#2D2A26"
                             android:textSize="22sp"
                             android:textStyle="bold" />
@@ -423,11 +429,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="₩11,000"
+                        android:tag="theme_text_accent"
                         android:textColor="@color/foxrange"
                         android:textSize="17sp"
                         android:textStyle="bold" />
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
 
             <TextView
                 android:layout_width="match_parent"
@@ -439,6 +446,7 @@
                 android:textSize="12sp" />
         </LinearLayout>
     </ScrollView>
+    </FrameLayout>
 
     <include
         android:id="@+id/navigation_bar"

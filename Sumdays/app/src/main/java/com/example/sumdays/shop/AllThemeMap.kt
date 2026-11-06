@@ -57,7 +57,7 @@ object AllThemeMap {
             blockStyleA = R.drawable.bg_image_drawer_rounded_light,
             blockStyleB = R.drawable.bg_image_drawer_rounded_light_alpha80,
             blockStyleC = R.drawable.theme_forest_block,
-            blockStyleD = R.drawable.theme_default_background,
+            blockStyleD = R.drawable.blockstyle_d_forest,
             blockStyleFox = R.drawable.blockstyle_b_basic_nine,
             themePreviewImage = R.drawable.nav_fox_button,
             backgroundColor = R.color.theme_forest_bg,
