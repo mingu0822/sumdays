@@ -11,12 +11,18 @@ exports.syncData = async (req, res) => {
     connection = await pool.getConnection();
     await connection.beginTransaction();
 
-    console.log(JSON.stringify(req.body, null, 2));
-    const {deleted, edited } = req.body;
-    const userId = req.user.userId
+    console.log("req.body:", req.body);
+    console.log("req.files:", req.files);
+
+    const syncRequest = JSON.parse(req.body.syncRequest);
+    const { deleted, edited } = syncRequest;
+    const userId = req.user.userId;
 
     let diaryChanged = false;
     let weekSummaryChanged = false;
+
+    const syncedDailyPhotoUrls = [];
+    const filesToDeleteAfterCommit = [];
 
 
      /** ------------------------------
@@ -71,12 +77,78 @@ exports.syncData = async (req, res) => {
         if (deleted.memo) {
             await deleteIfExists('memo', 'room_id', deleted.memo);
         }
-        if (deleted.dailyEntry) {
-            const actuallyDeleted = await deleteIfExists('daily_entry', 'date', deleted.dailyEntry);
-            if (actuallyDeleted) {
-              diaryChanged = true;
+        
+        if (deleted.dailyEntry?.length > 0) {
+          // 1. 삭제될 일기들의 photoUrls 먼저 조회
+          const placeholders = deleted.dailyEntry.map(() => '?').join(',');
+          const [rows] = await connection.query(
+            `
+              SELECT date, photoUrls
+              FROM daily_entry
+              WHERE user_id = ?
+                AND date IN (${placeholders})
+            `,
+            [userId, ...deleted.dailyEntry]
+          );
+
+          // 2. 실제 사진 파일 삭제
+          for (const row of rows) {
+            if (!row.photoUrls) continue;
+
+            const photoUrls = row.photoUrls
+              .split(',')
+              .map(url => url.trim())
+              .filter(Boolean);
+
+            for (const photoUrl of photoUrls) {
+              try {
+                let relativePath = photoUrl;
+
+                if (
+                  photoUrl.startsWith('http://') ||
+                  photoUrl.startsWith('https://')
+                ) {
+                  const parsedUrl = new URL(photoUrl);
+                  relativePath = parsedUrl.pathname;
+                }
+
+                relativePath = relativePath.replace(/^\/+/, '');
+
+                const filePath = path.join(
+                  process.cwd(),
+                  relativePath
+                );
+
+                if (fs.existsSync(filePath)) {
+                  filesToDeleteAfterCommit.push(filePath);
+
+                  console.log(
+                    `🗑️ 일기 삭제에 따른 사진 삭제 완료: ${filePath}`
+                  );
+                }
+              } catch (fileDeleteError) {
+                console.error(
+                  `❌ 일기 사진 삭제 실패: ${photoUrl}`,
+                  fileDeleteError
+                );
+
+                throw fileDeleteError;
+              }
             }
+          }
+
+          // 3. 실제 DB row 삭제
+          const actuallyDeleted = await deleteIfExists(
+            'daily_entry',
+            'date',
+            deleted.dailyEntry
+          );
+
+          if (actuallyDeleted) {
+            diaryChanged = true;
+          }
         }
+
         if (deleted.userStyle) {
             await deleteIfExists('user_style', 'styleId', deleted.userStyle);
         }
@@ -102,10 +174,203 @@ exports.syncData = async (req, res) => {
         const actuallyCreated = await upsert(
           'daily_entry',
           edited.dailyEntry,
-          ['date', 'diary', 'keywords', 'aiComment', 'emotionScore', 'emotionIcon', 'themeIcon', 'photoUrls', 'is_allowed']
+          ['date', 'diary', 'keywords', 'aiComment', 'emotionScore', 'emotionIcon', 'themeIcon', 'is_allowed']
         );
         if (actuallyCreated) {
           diaryChanged = true;
+        }
+      }
+
+            
+      if (edited.dailyPhotos) {
+        for (const photoData of edited.dailyPhotos) {
+          const {date, serverPhotoUrls, uploadKeys} = photoData;
+
+          // 1. 해당 date의 기존 photoUrls 조회
+          const [rows] = await connection.query(
+            `
+              SELECT photoUrls
+              FROM daily_entry
+              WHERE user_id = ? AND date = ?
+            `,
+            [userId, date]
+          );
+
+          const existingPhotoUrls = rows.length > 0 && rows[0].photoUrls
+            ? rows[0].photoUrls
+                .split(',')
+                .map(url => url.trim())
+                .filter(Boolean)
+            : [];
+
+          // 클라이언트가 "유지하겠다"고 보낸 서버 URL들
+          const keepPhotoUrls = serverPhotoUrls
+            ? serverPhotoUrls
+                .split(',')
+                .map(url => url.trim())
+                .filter(Boolean)
+            : [];
+
+          // -----------------------------------------
+          // 2. 삭제된 서버 사진 찾기
+          // -----------------------------------------
+          const deletedPhotoUrls = existingPhotoUrls.filter(
+            oldUrl => !keepPhotoUrls.includes(oldUrl)
+          );
+
+          // -----------------------------------------
+          // 3. 삭제된 사진 실제 파일 삭제
+          // -----------------------------------------
+          for (const deletedUrl of deletedPhotoUrls) {
+            try {
+              let relativePath = deletedUrl;
+
+              // 완전한 URL이면 pathname만 추출
+              if (
+                deletedUrl.startsWith('http://') ||
+                deletedUrl.startsWith('https://')
+              ) {
+                const parsedUrl = new URL(deletedUrl);
+                relativePath = parsedUrl.pathname;
+              }
+
+              relativePath = relativePath.replace(/^\/+/, '');
+
+              const filePath = path.join(
+                process.cwd(),
+                relativePath
+              );
+
+              if (fs.existsSync(filePath)) {
+                filesToDeleteAfterCommit.push(filePath);
+
+                console.log(
+                  `🗑️ 사진 삭제 완료: ${filePath}`
+                );
+              }
+            } catch (fileDeleteError) {
+              console.error(
+                `❌ 사진 삭제 실패: ${deletedUrl}`,
+                fileDeleteError
+              );
+              throw fileDeleteError;
+            }
+          }
+
+          // -----------------------------------------
+          // 4. 새 사진들이 들어갈 최종 폴더 준비
+          // -----------------------------------------
+          const finalDir = path.join(
+            process.cwd(),
+            'storage',
+            'diaries',
+            String(userId)
+          );
+
+          await fs.promises.mkdir(
+            finalDir,
+            { recursive: true }
+          );
+          const newPhotoUrls = [];
+
+          // -----------------------------------------
+          // 5. uploadKeys와 req.files 매칭
+          // -----------------------------------------
+          if (Array.isArray(uploadKeys)) {
+            for (const uploadKey of uploadKeys) {
+
+              const matchedFile = (req.files || []).find(
+                file => file.originalname === uploadKey
+              );
+
+              if (!matchedFile) {
+                throw new Error(
+                  `업로드 파일을 찾을 수 없습니다: ${uploadKey}`
+                );
+              }
+
+              // 실제 저장 파일명
+              const ext = path.extname(uploadKey) || '.jpg';
+
+              const finalFileName =
+                `diary_${userId}_${Date.now()}_${Math.random()
+                  .toString(36)
+                  .substring(2, 10)}${ext}`;
+
+              const finalPath = path.join(
+                finalDir,
+                finalFileName
+              );
+
+              // -----------------------------------------
+              // 6. temp → 최종 폴더로 이동
+              // -----------------------------------------
+              await fs.promises.rename(
+                matchedFile.path,
+                finalPath
+              );
+
+              // 서버 DB에 저장할 URL
+              const baseUrl = `${req.protocol}://${req.get('host')}`;
+              const newPhotoUrl = `${baseUrl}/storage/diaries/${userId}/${finalFileName}`;
+
+
+              newPhotoUrls.push(newPhotoUrl);
+
+              console.log(
+                `✅ 새 사진 저장: ${newPhotoUrl}`
+              );
+            }
+          }
+
+          // -----------------------------------------
+          // 7. 최종 URL 구성
+          // 기존 유지 사진 + 신규 사진
+          // -----------------------------------------
+          const finalPhotoUrls = [
+            ...keepPhotoUrls,
+            ...newPhotoUrls
+          ];
+
+          const finalPhotoUrlsString =
+            finalPhotoUrls.length > 0
+              ? finalPhotoUrls.join(',')
+              : '';
+
+          // -----------------------------------------
+          // 8. daily_entry photoUrls UPDATE
+          // -----------------------------------------
+          await connection.query(
+            `
+              UPDATE daily_entry
+              SET photoUrls = ?
+              WHERE user_id = ? AND date = ?
+            `,
+            [
+              finalPhotoUrlsString,
+              userId,
+              date
+            ]
+          );
+
+          // -----------------------------------------
+          // 9. 클라이언트에 반환할 최종 결과 저장
+          // -----------------------------------------
+          syncedDailyPhotoUrls.push({
+            date,
+            photoUrls: finalPhotoUrlsString
+          });
+
+          console.log(
+            `📷 사진 동기화 완료 [${date}]`,
+            {
+              existing: existingPhotoUrls,
+              keep: keepPhotoUrls,
+              deleted: deletedPhotoUrls,
+              added: newPhotoUrls,
+              final: finalPhotoUrls
+            }
+          );
         }
       }
 
@@ -153,11 +418,25 @@ exports.syncData = async (req, res) => {
     await connection.commit();
     connection.release();
     connection = null;
-  
+    
+    for (const filePath of filesToDeleteAfterCommit) {
+      try {
+        if (fs.existsSync(filePath)) {
+          await fs.promises.unlink(filePath);
+          console.log(`🗑️ 사진 삭제 완료: ${filePath}`);
+        }
+      } catch (fileDeleteError) {
+        console.error(
+          `❌ commit 이후 사진 삭제 실패: ${filePath}`,
+          fileDeleteError
+        );
+      }
+    }
 
     res.json({
       status: 'success',
       message: 'Sync completed successfully.',
+      dailyPhotos: syncedDailyPhotoUrls
     });
 
     if (diaryChanged) {
@@ -260,7 +539,7 @@ function safeParse(str, fallback) {
   }
 }
 
-// 2. server to local (아직 코드 미완성)
+// 2. server to local (현재 사용안함)
 exports.fetchServerData = async (req, res) => {
   try {
     const userId = req.user.userId
