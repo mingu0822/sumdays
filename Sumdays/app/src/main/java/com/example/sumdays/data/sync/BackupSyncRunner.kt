@@ -194,7 +194,6 @@ object BackupSyncRunner {
                     weekSummaryDao.resetDeletedFlags(weekSummaryDao.getDeletedSummaries().filter { it in deletedSummaries }.map { it.startDate })
                     weekSummaryDao.resetEditedFlags(weekSummaryDao.getEditedSummaries().filter { it in editedSummaryEntities }.map { it.startDate })
 
-
                     syncedPhotos?.forEach { photo ->
                         if (photo.date in unchangedEntryDates) {
                             dailyEntryDao.updatePhotoUrls(

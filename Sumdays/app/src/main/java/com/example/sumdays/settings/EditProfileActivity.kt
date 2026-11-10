@@ -242,50 +242,66 @@ class EditProfileActivity : AppCompatActivity() {
                     return
                 }
 
+                binding.btnSaveProfileImage.isEnabled = false
+
                 lifecycleScope.launch {
-                    // 1. 임시 파일 준비
-                    val tempFile = prepareTempFile(this@EditProfileActivity, path)
-                    if (tempFile == null) {
-                        Toast.makeText(this@EditProfileActivity, "파일을 읽을 수 없습니다.", Toast.LENGTH_SHORT).show()
-                        return@launch
-                    }
+                    try {
+                        // 1. 임시 파일 준비
+                        val tempFile = prepareTempFile(this@EditProfileActivity, path)
+                        if (tempFile == null) {
+                            Toast.makeText(
+                                this@EditProfileActivity,
+                                "파일을 읽을 수 없습니다.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            return@launch
+                        }
 
-                    // 2. ⭐️ 사진(File)을 인자로 넘겨 서버 저장 함수 호출
-                    val isSuccess = uploadProfileImageToServer(tempFile)
+                        // 2. 사진(File)을 인자로 넘겨 서버 저장 함수 호출
+                        val isSuccess = uploadProfileImageToServer(tempFile)
 
-                    if (isSuccess) {
-                        // 3. 서버 성공 시에만 로컬 영구 파일로 저장
-                        val dest = File(filesDir, "profile_photo.jpg")
-                        tempFile.copyTo(dest, overwrite = true)
-                        tempFile.delete()
+                        if (isSuccess) {
+                            // 3. 서버 성공 시에만 로컬 영구 파일로 저장
+                            val dest = File(filesDir, "profile_photo.jpg")
+                            tempFile.copyTo(dest, overwrite = true)
+                            tempFile.delete()
 
-                        // 4. 로컬 상태 갱신 및 화면 종료
-                        ProfileImagePrefs.setPhotoUri(this@EditProfileActivity, dest.absolutePath)
-                        ProfileImagePrefs.setMode(this@EditProfileActivity, "PHOTO")
+                            // 4. 로컬 상태 갱신 및 화면 종료
+                            ProfileImagePrefs.setPhotoUri(this@EditProfileActivity, dest.absolutePath)
+                            ProfileImagePrefs.setMode(this@EditProfileActivity, "PHOTO")
 
-                        Toast.makeText(this@EditProfileActivity, "프로필이 저장되었습니다.", Toast.LENGTH_SHORT).show()
-                        finish()
-                    } else {
-                        tempFile.delete()
-                        Toast.makeText(this@EditProfileActivity, "서버 저장 실패. 다시 시도해 주세요.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this@EditProfileActivity,
+                                "프로필이 저장되었습니다.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            finish()
+                        } else {
+                            tempFile.delete()
+                            Toast.makeText(
+                                this@EditProfileActivity,
+                                "서버 저장 실패. 다시 시도해 주세요.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } finally {
+                        binding.btnSaveProfileImage.isEnabled = true
                     }
                 }
-
-
             }
+
             ProfileMode.AVATAR -> {
                 ProfileImagePrefs.setProfileIds(
                     context = this,
-                    face  = curFaceId,
-                    eyes  = curEyesId,
+                    face = curFaceId,
+                    eyes = curEyesId,
                     mouth = curMouthId,
-                    acc   = curAccId
+                    acc = curAccId
                 )
                 ProfileImagePrefs.setMode(this, "AVATAR")
+                Toast.makeText(this, "아바타 서버 저장 구현 x", Toast.LENGTH_SHORT).show()
+                finish()
             }
         }
-
-        Toast.makeText(this, "프로필이 저장되었습니다.", Toast.LENGTH_SHORT).show()
-        finish()
     }
 }
