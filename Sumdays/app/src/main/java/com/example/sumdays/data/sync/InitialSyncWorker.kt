@@ -23,6 +23,7 @@ import com.example.sumdays.data.WeekSummaryEntity
 import com.example.sumdays.data.style.StylePrompt
 import com.example.sumdays.mission.MissionConfig
 import com.example.sumdays.network.ApiClient
+import com.example.sumdays.settings.prefs.ProfileImagePrefs
 import com.example.sumdays.shop.PointWalletRepository
 import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
@@ -217,6 +218,22 @@ class InitialSyncWorker(
             if (SessionManager.getUserId() != expectedUserId) {
                 return@withContext Result.failure()
             }
+
+            // 4) pref 초기화
+            // TODO : 다른 pref 초기화
+            ProfileImagePrefs.clear(applicationContext)
+            ProfileImagePrefs.saveBase64Image(
+                applicationContext,
+                serverData.profileImage
+            )
+            val file = java.io.File(applicationContext.filesDir, "profile_image.jpg")
+            Log.d(
+                "ProfileDebug",
+                "exists=${file.exists()}, " +
+                        "size=${file.length()}, " +
+                        "mode=${ProfileImagePrefs.getMode(applicationContext)}, " +
+                        "uri=${ProfileImagePrefs.getPhotoUri(applicationContext)}"
+            )
 
             if (MissionConfig.USE_SERVER_MISSIONS) {
                 runCatching {

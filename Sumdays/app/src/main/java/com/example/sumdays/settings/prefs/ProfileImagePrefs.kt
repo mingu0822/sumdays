@@ -47,4 +47,35 @@ object ProfileImagePrefs {
     fun getPhotoUri(context: Context): String? {
         return getPrefs(context).getString(KEY_PHOTO_URI, null)
     }
+    fun clear(context: Context) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit {
+                clear()
+            }
+    }
+    fun saveBase64Image(context: Context, base64: String?) {
+        val file = java.io.File(context.filesDir, "profile_image.jpg")
+
+        // 기존 프로필 사진 초기화
+        getPrefs(context).edit {
+            remove(KEY_PHOTO_URI)
+        }
+
+        if (base64.isNullOrBlank()) {
+            file.delete()
+            return
+        }
+
+        val bytes = android.util.Base64.decode(
+            base64.substringAfter("base64,"),
+            android.util.Base64.DEFAULT
+        )
+
+        // 파일 저장
+        file.writeBytes(bytes)
+
+        // URI 저장
+        setPhotoUri(context, file.absolutePath)
+        setMode(context, "PHOTO")
+    }
 }

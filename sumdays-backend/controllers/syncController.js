@@ -539,10 +539,11 @@ function safeParse(str, fallback) {
   }
 }
 
-// 2. server to local (현재 사용안함)
+// 2. server to local
+
 exports.fetchServerData = async (req, res) => {
   try {
-    const userId = req.user.userId
+    const userId = req.user.userId;
 
     const [memo] = await pool.query(
       `SELECT * FROM memo WHERE user_id=?`, [userId]
@@ -559,18 +560,55 @@ exports.fetchServerData = async (req, res) => {
     const [userStyle] = await pool.query(
       `SELECT * FROM user_style WHERE user_id=?`, [userId]
     );
-    
+
+    // 프로필 사진 URL 조회
+    const [users] = await pool.query(
+      `SELECT profile_image_url FROM users WHERE id=?`,
+      [userId]
+    );
+
+    let profileImage = null;
+    const profileImageUrl = users[0]?.profile_image_url;
+
+    if (profileImageUrl) {
+      // URL에서 경로만 추출
+      const urlPath = new URL(
+        profileImageUrl,
+        `${req.protocol}://${req.get('host')}`
+      ).pathname;
+
+      const relativePath = decodeURIComponent(urlPath).replace(/^\/+/, '');
+      const storageRoot = path.resolve(process.cwd(), 'storage');
+      const filePath = path.resolve(process.cwd(), relativePath);
+
+      // storage 폴더 밖 파일 접근 방지
+      if (!filePath.startsWith(storageRoot + path.sep)) {
+        throw new Error('Invalid profile image path');
+      }
+
+      try {
+        const imageBuffer = await fs.promises.readFile(filePath);
+        profileImage = imageBuffer.toString('base64');
+      } catch (err) {
+        if (err.code !== 'ENOENT') throw err;
+        console.warn('프로필 사진 파일 없음:', filePath);
+      }
+    }
 
     res.json({
       memo,
       dailyEntry,
       weekSummary,
-      userStyle
+      userStyle,
+      profileImage
     });
 
   } catch (e) {
-    res.status(500).json({ status: "error", message: e.message });
+    console.error('[fetchServerData] Error:', e);
+    res.status(500).json({
+      status: 'error',
+      message: e.message
+    });
   }
 };
-
 

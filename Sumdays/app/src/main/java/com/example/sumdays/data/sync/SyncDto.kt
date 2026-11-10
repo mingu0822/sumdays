@@ -16,7 +16,8 @@ data class SyncFetchResponse(
     val memo: List<MemoPayload>,
     val dailyEntry: List<DailyEntryPayload>,
     val weekSummary: List<WeekSummaryPayload>,
-    val userStyle: List<UserStylePayload>
+    val userStyle: List<UserStylePayload>,
+    val profileImage: String? = null
 )
 
 // ------------------ 삭제 데이터 (ID 리스트만) ------------------
