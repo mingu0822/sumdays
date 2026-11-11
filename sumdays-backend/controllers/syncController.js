@@ -550,6 +550,7 @@ exports.fetchServerData = async (req, res) => {
   try {
     const userId = req.user.userId;
 
+    
     const [memo] = await pool.query(
       `SELECT * FROM memo WHERE user_id=?`, [userId]
     );
