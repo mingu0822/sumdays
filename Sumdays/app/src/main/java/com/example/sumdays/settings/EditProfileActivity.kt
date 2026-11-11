@@ -25,6 +25,7 @@ import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.io.copyTo
+import com.example.sumdays.image.uploadProfileAvatarToServer
 
 class EditProfileActivity : AppCompatActivity() {
 
@@ -291,16 +292,51 @@ class EditProfileActivity : AppCompatActivity() {
             }
 
             ProfileMode.AVATAR -> {
-                ProfileImagePrefs.setProfileIds(
-                    context = this,
-                    face = curFaceId,
-                    eyes = curEyesId,
-                    mouth = curMouthId,
-                    acc = curAccId
-                )
-                ProfileImagePrefs.setMode(this, "AVATAR")
-                Toast.makeText(this, "아바타 서버 저장 구현 x", Toast.LENGTH_SHORT).show()
-                finish()
+                binding.btnSaveProfileImage.isEnabled = false
+
+                lifecycleScope.launch {
+                    try {
+                        // 1. 서버에 아바타 저장
+                        val isSuccess = uploadProfileAvatarToServer(
+                            faceId = curFaceId,
+                            eyesId = curEyesId,
+                            mouthId = curMouthId,
+                            accessoryId = curAccId
+                        )
+
+                        if (isSuccess) {
+                            // 2. 서버 저장 성공 시 로컬 상태 갱신
+                            ProfileImagePrefs.setProfileIds(
+                                context = this@EditProfileActivity,
+                                face = curFaceId,
+                                eyes = curEyesId,
+                                mouth = curMouthId,
+                                acc = curAccId
+                            )
+
+                            ProfileImagePrefs.setMode(
+                                this@EditProfileActivity,
+                                "AVATAR"
+                            )
+
+                            Toast.makeText(
+                                this@EditProfileActivity,
+                                "프로필이 저장되었습니다.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                            finish()
+                        } else {
+                            Toast.makeText(
+                                this@EditProfileActivity,
+                                "서버 저장 실패. 다시 시도해 주세요.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } finally {
+                        binding.btnSaveProfileImage.isEnabled = true
+                    }
+                }
             }
         }
     }

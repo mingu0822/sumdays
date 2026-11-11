@@ -17,7 +17,16 @@ data class SyncFetchResponse(
     val dailyEntry: List<DailyEntryPayload>,
     val weekSummary: List<WeekSummaryPayload>,
     val userStyle: List<UserStylePayload>,
-    val profileImage: String? = null
+    val profile: ProfilePayload? = null
+)
+
+data class ProfilePayload(
+    val mode: String, // "AVATAR" or "PHOTO"
+    val faceId: Int? = null,
+    val eyesId: Int? = null,
+    val mouthId: Int? = null,
+    val accessoryId: Int? = null,
+    val image: String? = null
 )
 
 // ------------------ 삭제 데이터 (ID 리스트만) ------------------

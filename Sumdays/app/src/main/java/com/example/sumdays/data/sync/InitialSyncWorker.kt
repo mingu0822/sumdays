@@ -221,11 +221,41 @@ class InitialSyncWorker(
 
             // 4) pref 초기화
             // TODO : 다른 pref 초기화
+            // 4) 프로필 초기 동기화
             ProfileImagePrefs.clear(applicationContext)
-            ProfileImagePrefs.saveBase64Image(
-                applicationContext,
-                serverData.profileImage
-            )
+            val profile = serverData.profile
+
+            if (profile != null) {
+                when (profile.mode) {
+                    "AVATAR" -> {
+                        ProfileImagePrefs.setProfileIds(
+                            context = applicationContext,
+                            face = profile.faceId ?: -1,
+                            eyes = profile.eyesId ?: -1,
+                            mouth = profile.mouthId ?: -1,
+                            acc = profile.accessoryId ?: -1
+                        )
+                        ProfileImagePrefs.setMode(applicationContext, "AVATAR")
+                    }
+
+                    "PHOTO" -> {
+                        if (!profile.image.isNullOrBlank()) {
+                            ProfileImagePrefs.saveBase64Image(
+                                applicationContext,
+                                profile.image
+                            )
+                        } else {
+                            ProfileImagePrefs.saveBase64Image(applicationContext, null)
+                            ProfileImagePrefs.setMode(applicationContext, "PHOTO")
+                        }
+                    }
+
+                    else -> {
+                        Log.w("InitialSyncWorker", "Unknown profile mode: ${profile.mode}")
+                    }
+                }
+            }
+
             val file = java.io.File(applicationContext.filesDir, "profile_image.jpg")
             Log.d(
                 "ProfileDebug",

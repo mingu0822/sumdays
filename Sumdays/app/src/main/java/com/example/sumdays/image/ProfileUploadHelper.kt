@@ -10,6 +10,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import android.net.Uri
 import java.io.FileOutputStream
+import com.example.sumdays.network.apiService.UpdateProfileAvatarRequest
 
 /**
  * 이미지 파일을 서버에 전송하는 단독 함수
@@ -32,6 +33,43 @@ suspend fun uploadProfileImageToServer(imageFile: File): Boolean = withContext(D
     }
 }
 
+
+/**
+ * 아바타 설정을 서버에 저장
+ * @return 저장 성공 여부
+ */
+suspend fun uploadProfileAvatarToServer(
+    faceId: Int,
+    eyesId: Int,
+    mouthId: Int,
+    accessoryId: Int
+): Boolean = withContext(Dispatchers.IO) {
+    try {
+        val rawToken = SessionManager.getToken()
+            ?: return@withContext false
+
+        val token = if (rawToken.startsWith("Bearer ")) {
+            rawToken
+        } else {
+            "Bearer $rawToken"
+        }
+
+        val request = UpdateProfileAvatarRequest(
+            faceId = faceId,
+            eyesId = eyesId,
+            mouthId = mouthId,
+            accessoryId = accessoryId
+        )
+
+        val response = ApiClient.api.updateProfileAvatar(token, request)
+
+        response.isSuccessful && response.body()?.success == true
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+        false
+    }
+}
 fun prepareTempFile(context: Context, sourcePath: String): File? {
     return try {
         // 캐시 디렉터리에 타임스탬프 기반 임시 파일 생성
