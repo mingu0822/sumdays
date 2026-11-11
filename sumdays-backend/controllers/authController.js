@@ -401,7 +401,7 @@ exports.updateProfileImage = async (req, res) => {
 
         // 4️⃣ DB에 새 상대 경로 UPDATE
         await pool.query(
-            "UPDATE users SET profile_image_url = ? WHERE id = ?", 
+            "UPDATE users SET profile_image_url = ?, profile_mode = 'PHOTO' WHERE id = ?", 
             [newImageUrl, userId]
         );
         
@@ -414,6 +414,61 @@ exports.updateProfileImage = async (req, res) => {
 
     } catch (err) {
         console.error("[서버 오류] 프로필 이미지 업로드 중 에러:", err);
+        return res.status(500).json({
+            success: false,
+            message: "서버 내부 오류가 발생했습니다."
+        });
+    }
+};
+
+
+exports.updateProfileAvatar = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+
+        const {
+            faceId,
+            eyesId,
+            mouthId,
+            accessoryId
+        } = req.body;
+
+        // 모든 값이 정수인지 확인
+        const ids = [faceId, eyesId, mouthId, accessoryId];
+
+        if (!ids.every(Number.isInteger)) {
+            return res.status(400).json({
+                success: false,
+                message: "아바타 ID는 모두 정수여야 합니다."
+            });
+        }
+
+        const [result] = await pool.query(
+            `UPDATE users
+             SET profile_mode = 'AVATAR',
+                 avatar_face_id = ?,
+                 avatar_eyes_id = ?,
+                 avatar_mouth_id = ?,
+                 avatar_accessory_id = ?
+             WHERE id = ?`,
+            [faceId, eyesId, mouthId, accessoryId, userId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "사용자를 찾을 수 없습니다."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "아바타가 저장되었습니다."
+        });
+
+    } catch (err) {
+        console.error("[아바타 저장 오류]", err);
+
         return res.status(500).json({
             success: false,
             message: "서버 내부 오류가 발생했습니다."

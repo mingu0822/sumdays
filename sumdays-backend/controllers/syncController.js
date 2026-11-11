@@ -4,6 +4,11 @@ const process = require("process");
 const fs = require("fs");
 
 
+/*
+room 관련 내용은 syncdata, fetchServerData 모두 포함
+프로필 사진은 fetchServerData (다른 pref 초기화하는 거 추가할 떄 따로 뺴야될 지 고민 필요)
+*/
+
 // 1. local to server
 exports.syncData = async (req, res) => {
   let connection;
@@ -562,45 +567,69 @@ exports.fetchServerData = async (req, res) => {
     );
 
     // 프로필 사진 URL 조회
-    const [users] = await pool.query(
-      `SELECT profile_image_url FROM users WHERE id=?`,
+    const [userProfile] = await pool.query(
+      `SELECT
+          profile_mode,
+          profile_image_url,
+          avatar_face_id,
+          avatar_eyes_id,
+          avatar_mouth_id,
+          avatar_accessory_id
+      FROM users
+      WHERE id = ?`,
       [userId]
     );
 
-    let profileImage = null;
-    const profileImageUrl = users[0]?.profile_image_url;
+    let profile;
+    if (userProfile[0]?.profile_mode === "AVATAR") {
+      profile = {
+          mode: 'AVATAR',
+          faceId: userProfile[0].avatar_face_id,
+          eyesId: userProfile[0].avatar_eyes_id,
+          mouthId: userProfile[0].avatar_mouth_id,
+          accessoryId: userProfile[0].avatar_accessory_id
+      };
+  } else {
+      let profileImage = null;
+      const profileImageUrl = userProfile[0]?.profile_image_url;
 
-    if (profileImageUrl) {
-      // URL에서 경로만 추출
-      const urlPath = new URL(
-        profileImageUrl,
-        `${req.protocol}://${req.get('host')}`
-      ).pathname;
+      if (profileImageUrl) {
+        // URL에서 경로만 추출
+        const urlPath = new URL(
+          profileImageUrl,
+          `${req.protocol}://${req.get('host')}`
+        ).pathname;
 
-      const relativePath = decodeURIComponent(urlPath).replace(/^\/+/, '');
-      const storageRoot = path.resolve(process.cwd(), 'storage');
-      const filePath = path.resolve(process.cwd(), relativePath);
+        const relativePath = decodeURIComponent(urlPath).replace(/^\/+/, '');
+        const storageRoot = path.resolve(process.cwd(), 'storage');
+        const filePath = path.resolve(process.cwd(), relativePath);
 
-      // storage 폴더 밖 파일 접근 방지
-      if (!filePath.startsWith(storageRoot + path.sep)) {
-        throw new Error('Invalid profile image path');
+        // storage 폴더 밖 파일 접근 방지
+        if (!filePath.startsWith(storageRoot + path.sep)) {
+          throw new Error('Invalid profile image path');
+        }
+
+        try {
+          const imageBuffer = await fs.promises.readFile(filePath);
+          profileImage = imageBuffer.toString('base64');
+        } catch (err) {
+          if (err.code !== 'ENOENT') throw err;
+          console.warn('프로필 사진 파일 없음:', filePath);
+        }
       }
 
-      try {
-        const imageBuffer = await fs.promises.readFile(filePath);
-        profileImage = imageBuffer.toString('base64');
-      } catch (err) {
-        if (err.code !== 'ENOENT') throw err;
-        console.warn('프로필 사진 파일 없음:', filePath);
-      }
+      profile = {
+        mode: 'PHOTO',
+        image: profileImage
+      };
     }
-
+    
     res.json({
       memo,
       dailyEntry,
       weekSummary,
       userStyle,
-      profileImage
+      profile
     });
 
   } catch (e) {
