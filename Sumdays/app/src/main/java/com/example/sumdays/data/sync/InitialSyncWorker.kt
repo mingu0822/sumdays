@@ -23,6 +23,7 @@ import com.example.sumdays.data.WeekSummaryEntity
 import com.example.sumdays.data.style.StylePrompt
 import com.example.sumdays.mission.MissionConfig
 import com.example.sumdays.network.ApiClient
+import com.example.sumdays.settings.prefs.ProfileImagePrefs
 import com.example.sumdays.shop.PointWalletRepository
 import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
@@ -217,6 +218,45 @@ class InitialSyncWorker(
             if (SessionManager.getUserId() != expectedUserId) {
                 return@withContext Result.failure()
             }
+
+            // 4) pref 초기화
+            // TODO : 다른 pref 초기화
+            // 4) 프로필 초기 동기화
+            ProfileImagePrefs.clear(applicationContext)
+            val profile = serverData.profile
+
+            if (profile != null) {
+                when (profile.mode) {
+                    "AVATAR" -> {
+                        ProfileImagePrefs.setProfileIds(
+                            context = applicationContext,
+                            face = profile.faceId ?: -1,
+                            eyes = profile.eyesId ?: -1,
+                            mouth = profile.mouthId ?: -1,
+                            acc = profile.accessoryId ?: -1
+                        )
+                        ProfileImagePrefs.setMode(applicationContext, "AVATAR")
+                    }
+
+                    "PHOTO" -> {
+                        ProfileImagePrefs.setImageUrl(
+                            applicationContext,
+                            profile.imageUrl
+                        )
+                        ProfileImagePrefs.setMode(applicationContext, "PHOTO")
+                    }
+
+                    else -> {
+                        Log.w("InitialSyncWorker", "Unknown profile mode: ${profile.mode}")
+                    }
+                }
+            }
+
+            Log.d(
+                "ProfileDebug",
+                "mode=${ProfileImagePrefs.getMode(applicationContext)}, " +
+                        "imageUrl=${ProfileImagePrefs.getImageUrl(applicationContext)}"
+            )
 
             if (MissionConfig.USE_SERVER_MISSIONS) {
                 runCatching {

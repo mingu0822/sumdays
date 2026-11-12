@@ -1,10 +1,13 @@
+
 package com.example.sumdays.settings.prefs
 
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.example.sumdays.network.ApiClient
 
 object ProfileImagePrefs {
+
     private const val PREF_NAME = "profile_image_prefs"
 
     private const val KEY_FACE_ID = "face_id"
@@ -12,7 +15,7 @@ object ProfileImagePrefs {
     private const val KEY_MOUTH_ID = "mouth_id"
     private const val KEY_ACC_ID = "acc_id"
     private const val KEY_MODE = "profile_mode"
-    private const val KEY_PHOTO_URI = "photo_uri"
+    private const val KEY_IMAGE_URL = "image_url"
 
     private const val DEFAULT_ID = -1
 
@@ -29,22 +32,48 @@ object ProfileImagePrefs {
         }
     }
 
-    fun getFaceId(context: Context): Int = getPrefs(context).getInt(KEY_FACE_ID, DEFAULT_ID)
-    fun getEyesId(context: Context): Int = getPrefs(context).getInt(KEY_EYES_ID, DEFAULT_ID)
-    fun getMouthId(context: Context): Int = getPrefs(context).getInt(KEY_MOUTH_ID, DEFAULT_ID)
-    fun getAccId(context: Context): Int = getPrefs(context).getInt(KEY_ACC_ID, DEFAULT_ID)
+    fun getFaceId(context: Context): Int =
+        getPrefs(context).getInt(KEY_FACE_ID, DEFAULT_ID)
+
+    fun getEyesId(context: Context): Int =
+        getPrefs(context).getInt(KEY_EYES_ID, DEFAULT_ID)
+
+    fun getMouthId(context: Context): Int =
+        getPrefs(context).getInt(KEY_MOUTH_ID, DEFAULT_ID)
+
+    fun getAccId(context: Context): Int =
+        getPrefs(context).getInt(KEY_ACC_ID, DEFAULT_ID)
 
     fun setMode(context: Context, mode: String) {
-        getPrefs(context).edit { putString(KEY_MODE, mode) }
+        getPrefs(context).edit {
+            putString(KEY_MODE, mode)
+        }
     }
+
     fun getMode(context: Context): String {
         return getPrefs(context).getString(KEY_MODE, "AVATAR") ?: "AVATAR"
     }
 
-    fun setPhotoUri(context: Context, uri: String) {
-        getPrefs(context).edit { putString(KEY_PHOTO_URI, uri) }
+    fun setImageUrl(context: Context, url: String?) {
+        getPrefs(context).edit {
+            putString(KEY_IMAGE_URL, url)
+        }
     }
-    fun getPhotoUri(context: Context): String? {
-        return getPrefs(context).getString(KEY_PHOTO_URI, null)
+
+    fun getImageUrl(context: Context): String? {
+        val url = getPrefs(context).getString(KEY_IMAGE_URL, null)
+        if (url.isNullOrBlank()) return null
+
+        return if (url.startsWith("http://") || url.startsWith("https://")) {
+            url
+        } else {
+            ApiClient.BASE_URL.trimEnd('/') + "/" + url.trimStart('/')
+        }
+    }
+
+    fun clear(context: Context) {
+        getPrefs(context).edit {
+            clear()
+        }
     }
 }

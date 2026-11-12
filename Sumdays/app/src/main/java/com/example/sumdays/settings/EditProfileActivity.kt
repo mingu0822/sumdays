@@ -9,9 +9,12 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.example.sumdays.R
 import com.example.sumdays.databinding.ActivityProfileEditBinding
+import com.example.sumdays.image.uploadProfileImageToServer
 import com.example.sumdays.settings.prefs.ProfileImagePrefs
 import com.example.sumdays.settings.profileimage.CategoryAdapter
 import com.example.sumdays.settings.profileimage.ProfileImageCategory
@@ -19,7 +22,10 @@ import com.example.sumdays.settings.profileimage.ProfileImageItem
 import com.example.sumdays.settings.profileimage.ProfileImageItemType
 import com.example.sumdays.settings.profileimage.ProfileMode
 import com.yalantis.ucrop.UCrop
+import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.io.copyTo
+import com.example.sumdays.image.uploadProfileAvatarToServer
 
 class EditProfileActivity : AppCompatActivity() {
 
@@ -89,10 +95,12 @@ class EditProfileActivity : AppCompatActivity() {
                 binding.previewPhoto.visibility = View.VISIBLE
 
                 // 이전에 선택/저장된 사진 복원
-                val path = pendingPhotoPath ?: ProfileImagePrefs.getPhotoUri(this)
-                if (path != null) {
-                    binding.previewPhoto.setImageURI(Uri.fromFile(File(path)))
-                }
+                val imageSource = pendingPhotoPath?.let { File(it) }
+                    ?: ProfileImagePrefs.getImageUrl(this)
+
+                Glide.with(this)
+                    .load(imageSource)
+                    .into(binding.previewPhoto)
             }
             ProfileMode.AVATAR -> {
                 binding.photoModeContainer.visibility = View.GONE
@@ -227,33 +235,131 @@ class EditProfileActivity : AppCompatActivity() {
 
     // ── 저장 ─────────────────────────────────────────────
 
+
+
+
     private fun save() {
         when (currentMode) {
             ProfileMode.PHOTO -> {
-                val path = pendingPhotoPath ?: ProfileImagePrefs.getPhotoUri(this)
+                val path = pendingPhotoPath
+
                 if (path == null) {
-                    Toast.makeText(this, "사진을 먼저 선택해 주세요.", Toast.LENGTH_SHORT).show()
+                    if (
+                        ProfileImagePrefs.getMode(this) == "PHOTO" &&
+                        ProfileImagePrefs.getImageUrl(this) != null
+                    ) {
+                        finish()
+                    } else {
+                        Toast.makeText(
+                            this,
+                            "사진을 먼저 선택해 주세요.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                     return
                 }
-                val dest = File(filesDir, "profile_photo.jpg")
-                File(path).copyTo(dest, overwrite = true)
 
-                ProfileImagePrefs.setPhotoUri(this, dest.absolutePath)
-                ProfileImagePrefs.setMode(this, "PHOTO")
+                // uCrop이 생성한 파일 직접 사용
+                val imageFile = File(path)
+
+                if (!imageFile.isFile) {
+                    Toast.makeText(
+                        this,
+                        "파일을 읽을 수 없습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return
+                }
+
+                binding.btnSaveProfileImage.isEnabled = false
+
+                lifecycleScope.launch {
+                    try {
+                        // 서버 업로드 + Prefs 저장은 Helper에서 처리
+                        val isSuccess = uploadProfileImageToServer(
+                            this@EditProfileActivity,
+                            imageFile
+                        )
+
+                        if (isSuccess) {
+                            Toast.makeText(
+                                this@EditProfileActivity,
+                                "프로필이 저장되었습니다.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            finish()
+                        } else {
+                            Toast.makeText(
+                                this@EditProfileActivity,
+                                "서버 저장 실패. 다시 시도해 주세요.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        Toast.makeText(
+                            this@EditProfileActivity,
+                            "프로필 저장 중 오류가 발생했습니다.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } finally {
+                        binding.btnSaveProfileImage.isEnabled = true
+                    }
+                }
             }
+
             ProfileMode.AVATAR -> {
-                ProfileImagePrefs.setProfileIds(
-                    context = this,
-                    face  = curFaceId,
-                    eyes  = curEyesId,
-                    mouth = curMouthId,
-                    acc   = curAccId
-                )
-                ProfileImagePrefs.setMode(this, "AVATAR")
+                binding.btnSaveProfileImage.isEnabled = false
+
+                lifecycleScope.launch {
+                    try {
+                        val isSuccess = uploadProfileAvatarToServer(
+                            faceId = curFaceId,
+                            eyesId = curEyesId,
+                            mouthId = curMouthId,
+                            accessoryId = curAccId
+                        )
+
+                        if (isSuccess) {
+                            ProfileImagePrefs.setProfileIds(
+                                context = this@EditProfileActivity,
+                                face = curFaceId,
+                                eyes = curEyesId,
+                                mouth = curMouthId,
+                                acc = curAccId
+                            )
+
+                            ProfileImagePrefs.setMode(
+                                this@EditProfileActivity,
+                                "AVATAR"
+                            )
+
+                            Toast.makeText(
+                                this@EditProfileActivity,
+                                "프로필이 저장되었습니다.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            finish()
+                        } else {
+                            Toast.makeText(
+                                this@EditProfileActivity,
+                                "서버 저장 실패. 다시 시도해 주세요.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        Toast.makeText(
+                            this@EditProfileActivity,
+                            "프로필 저장 중 오류가 발생했습니다.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } finally {
+                        binding.btnSaveProfileImage.isEnabled = true
+                    }
+                }
             }
         }
-
-        Toast.makeText(this, "프로필이 저장되었습니다.", Toast.LENGTH_SHORT).show()
-        finish()
     }
+
 }

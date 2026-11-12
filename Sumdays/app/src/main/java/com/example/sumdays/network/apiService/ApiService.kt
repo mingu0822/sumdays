@@ -151,11 +151,23 @@ interface ApiService {
         @Part profileImage: MultipartBody.Part
     ): Response<UpdateProfileImageResponse>
 
+    @POST("/api/auth/profile-avatar")
+    suspend fun updateProfileAvatar(
+        @Header("Authorization") token: String,
+        @Body request: UpdateProfileAvatarRequest
+    ): Response<UpdateProfileAvatarResponse>
+
     // 백업 
+    @Multipart
     @POST("/api/db/sync")
     suspend fun syncData(
         @Header("Authorization") token: String,
-        @Body body: SyncRequest
+
+        @Part("syncRequest")
+        syncRequest: RequestBody,
+
+        @Part
+        photos: List<MultipartBody.Part>
     ): Response<SyncResponse>
     
     // 동기화
@@ -212,4 +224,14 @@ data class UpdateProfileImageResponse(
     val success: Boolean,
     val profileImageUrl: String?
 )
+data class UpdateProfileAvatarRequest(
+    val faceId: Int,
+    val eyesId: Int,
+    val mouthId: Int,
+    val accessoryId: Int
+)
 
+data class UpdateProfileAvatarResponse(
+    val success: Boolean,
+    val message: String?
+)

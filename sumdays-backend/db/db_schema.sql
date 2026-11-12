@@ -38,7 +38,17 @@ CREATE TABLE users (
   google_sub VARCHAR(255) NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   nickname VARCHAR(50) UNIQUE NOT NULL,
+  
+   -- 프로필
+  profile_mode ENUM('AVATAR', 'PHOTO') NOT NULL DEFAULT 'AVATAR',
   profile_image_url VARCHAR(500) NULL,
+
+  -- 아바타 구성
+  avatar_face_id INT NOT NULL DEFAULT -1,
+  avatar_eyes_id INT NOT NULL DEFAULT -1,
+  avatar_mouth_id INT NOT NULL DEFAULT -1,
+  avatar_accessory_id INT NOT NULL DEFAULT -1,
+
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

@@ -16,7 +16,17 @@ data class SyncFetchResponse(
     val memo: List<MemoPayload>,
     val dailyEntry: List<DailyEntryPayload>,
     val weekSummary: List<WeekSummaryPayload>,
-    val userStyle: List<UserStylePayload>
+    val userStyle: List<UserStylePayload>,
+    val profile: ProfilePayload? = null
+)
+
+data class ProfilePayload(
+    val mode: String, // "AVATAR" or "PHOTO"
+    val faceId: Int? = null,
+    val eyesId: Int? = null,
+    val mouthId: Int? = null,
+    val accessoryId: Int? = null,
+    val imageUrl: String? = null
 )
 
 // ------------------ 삭제 데이터 (ID 리스트만) ------------------
@@ -32,6 +42,7 @@ data class EditedPayload(
     val memo: List<MemoPayload>?,
     val userStyle: List<UserStylePayload>?,
     val dailyEntry: List<DailyEntryPayload>?,
+    val dailyPhotos: List<DailyPhotosPayload>?,
     val weekSummary: List<WeekSummaryPayload>?
 )
 
@@ -58,6 +69,12 @@ data class DailyEntryPayload(
     val is_allowed: Int?
 )
 
+// ------------------ DailyPhotos 데이터 ------------------
+data class DailyPhotosPayload(
+    val date: String,
+    val serverPhotoUrls: String?,
+    val uploadKeys: List<String>?
+)
 // ------------------ WeekSummary 데이터 ------------------
 data class WeekSummaryPayload(
     val startDate: String,
@@ -82,7 +99,12 @@ data class UserStylePayload(
 // ------------------ 서버 응답 ------------------
 data class SyncResponse(
     val status: String,
-    val message: String
+    val message: String,
+    val dailyPhotos: List<SyncedDailyPhotoUrlsPayload>?
+)
+data class SyncedDailyPhotoUrlsPayload(
+    val date: String,
+    val photoUrls: String
 )
 
 
@@ -97,7 +119,8 @@ fun buildSyncRequest(
     editedMemos: List<Memo>,                    // ← Room Memo
     editedStyles: List<UserStyle>,              // ← Room UserStyle
     editedEntries: List<DailyEntry>,            // ← Room DailyEntry
-    editedSummaries: List<WeekSummary>          // ← Room WeekSummary
+    editedSummaries: List<WeekSummary>,          // ← Room WeekSummary
+    dailyPhotosPayloads: List<DailyPhotosPayload>
 ): SyncRequest {
 
     val deletedPayload = DeletedPayload(
@@ -139,7 +162,7 @@ fun buildSyncRequest(
             emotionScore = it.emotionScore,
             emotionIcon = it.emotionIcon,
             themeIcon = it.themeIcon,
-            photoUrls = it.photoUrls,
+            photoUrls = "", // dailyPhotosPayloads에서 따로 처리
             is_allowed = if (it.isAllowed == true) 1 else 0,
         )
     }
@@ -160,6 +183,7 @@ fun buildSyncRequest(
         memo = memoPayloads.ifEmpty { null },
         userStyle = stylePayloads.ifEmpty { null },
         dailyEntry = entryPayloads.ifEmpty { null },
+        dailyPhotos = dailyPhotosPayloads.ifEmpty { null },
         weekSummary = summaryPayloads.ifEmpty { null }
     )
 
@@ -176,7 +200,8 @@ fun buildSyncRequest(
             editedMemos.isEmpty() &&
             editedStyles.isEmpty() &&
             editedEntries.isEmpty() &&
-            editedSummaries.isEmpty()
+            editedSummaries.isEmpty() &&
+            dailyPhotosPayloads.isEmpty()
         ) null else editedPayload
     )
 }

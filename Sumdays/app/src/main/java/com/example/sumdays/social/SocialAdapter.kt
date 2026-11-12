@@ -16,6 +16,8 @@ import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.FriendInfo
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
+import android.util.Log
+
 
 class SocialAdapter(
     private val friendList: MutableList<FriendInfo>,
@@ -60,14 +62,29 @@ class SocialAdapter(
                 )
         }
 
-        val fullUrl = "${ApiClient.BASE_URL.removeSuffix("/")}${friendInfo.profileImageUrl}"
-        Glide.with(context)
-            .load(fullUrl)
-            .placeholder(R.drawable.loading_animation) // 로딩 중에 보여줄 이미지
-            .error(R.drawable.ic_account_circle)             // 로드 실패 시 보여줄 이미지
-            .circleCrop()                                   // 사진을 동그랗게 깎아줌! (꿀팁)
-            .transition(DrawableTransitionOptions.withCrossFade()) // 부드럽게 나타나게
-            .into(holder.ivProfile) // ImageView에 꽂아넣기
+        val imageUrl = friendInfo.profileImageUrl
+            ?.takeIf { it.isNotBlank() }
+            ?.let { path ->
+                if (path.startsWith("http://") || path.startsWith("https://")) {
+                    path
+                } else {
+                    "${ApiClient.BASE_URL.trimEnd('/')}/${path.trimStart('/')}"
+                }
+            }
+
+        Log.d(
+            "SocialProfile",
+            "friendId=${friendInfo.id}, rawUrl=${friendInfo.profileImageUrl}, imageUrl=$imageUrl"
+        )
+
+
+        Glide.with(holder.itemView)
+            .load(imageUrl)
+            .placeholder(R.drawable.ic_account_circle)
+            .error(R.drawable.ic_account_circle)
+            .fallback(R.drawable.ic_account_circle)
+            .circleCrop()
+            .into(holder.ivProfile)
 
         holder.tvUserName.text = friendInfo.nickname
         holder.tvUserInfo.text = "🔥 ${friendInfo.streak}  🍃 ${

@@ -21,12 +21,20 @@ import java.util.Calendar
 import java.util.Locale
 import androidx.core.content.IntentCompat
 import com.example.sumdays.auth.InventoryOwner
+import com.example.sumdays.image.GalleryItem
+import com.example.sumdays.image.PhotoGalleryAdapter
 import com.example.sumdays.stickers.DiaryStickerController
+import androidx.recyclerview.widget.LinearLayoutManager
+import android.app.Dialog
+import android.widget.ImageView
+import com.bumptech.glide.Glide
+import android.net.Uri
+import android.util.Base64
 
 class SocialDailyReadActivity : AppCompatActivity() {
     private lateinit var inventoryOwner: InventoryOwner
     private lateinit var stickerController: DiaryStickerController
-
+    private lateinit var photoGalleryAdapter: PhotoGalleryAdapter
     private lateinit var binding: ActivitySocialDailyReadBinding
     private lateinit var btnBack: ImageButton
     private var dailyEntry: DailyEntry? = null
@@ -51,6 +59,7 @@ class SocialDailyReadActivity : AppCompatActivity() {
             finish()
             return
         }
+        setupPhotoGallery()
 
         MissionEventReporter.recordFriendDiaryView(
             context = this,
@@ -79,7 +88,21 @@ class SocialDailyReadActivity : AppCompatActivity() {
     private fun initUi(){
         binding.dateText.text = dailyEntry?.date
         binding.diaryContentTextView.text = dailyEntry?.diary
+        val photos = dailyEntry?.photoUrls
+            .orEmpty()
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+
+        // GalleryItem.Add를 넣지 않으므로 추가 버튼 없음
+        photoGalleryAdapter.submitList(
+            photos.map { GalleryItem.Photo(it) }
+        )
+
+        binding.photoGalleryRecyclerView.visibility =
+            if (photos.isEmpty()) View.GONE else View.VISIBLE
     }
+
 
     private fun applyThemeModeSettings() {
 
@@ -117,6 +140,71 @@ class SocialDailyReadActivity : AppCompatActivity() {
         ThemeRepository.updateOwned()
         FoxRepository.updateOwned()
     }
+    private fun setupPhotoGallery() {
+        photoGalleryAdapter = PhotoGalleryAdapter(
+            onPhotoClick = { photoString ->
+                showPhotoDialog(photoString)
+            },
+            onDeleteClick = {},
+            onAddClick = {},
+            isReadOnly = true
+        )
+
+        binding.photoGalleryRecyclerView.apply {
+            layoutManager = LinearLayoutManager(
+                this@SocialDailyReadActivity,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
+            adapter = photoGalleryAdapter
+        }
+    }
+
+    private fun showPhotoDialog(photoString: String) {
+        val dialog = Dialog(
+            this,
+            android.R.style.Theme_Black_NoTitleBar_Fullscreen
+        )
+
+        val imageView = ImageView(this).apply {
+            setBackgroundColor(getColor(android.R.color.black))
+            scaleType = ImageView.ScaleType.FIT_CENTER
+        }
+
+        val isUriOrPath = photoString.startsWith("content://") ||
+                photoString.startsWith("file://") ||
+                photoString.startsWith("http://") ||
+                photoString.startsWith("https://") ||
+                photoString.startsWith("/")
+
+        try {
+            if (isUriOrPath) {
+                Glide.with(this)
+                    .load(Uri.parse(photoString))
+                    .error(android.R.drawable.ic_menu_report_image)
+                    .into(imageView)
+            } else {
+                val imageBytes = Base64.decode(photoString, Base64.DEFAULT)
+                Glide.with(this)
+                    .load(imageBytes)
+                    .error(android.R.drawable.ic_menu_report_image)
+                    .into(imageView)
+            }
+        } catch (_: IllegalArgumentException) {
+            Toast.makeText(
+                this,
+                "이미지를 불러올 수 없습니다.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+
+        imageView.setOnClickListener { dialog.dismiss() }
+        dialog.setContentView(imageView)
+        dialog.show()
+    }
+
+
 
     override fun onResume() {
         super.onResume()

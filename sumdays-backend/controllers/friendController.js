@@ -1,11 +1,17 @@
 const { pool } = require('../db/db');
 const moment = require('moment-timezone');
 const { success, fail } = require('../utils/response');
+const { buildProfilePayload } = require('../dto/profilePayload');
+
 
 async function getFriendInfo(friendId) {
   const [friendRows] = await pool.query(`
-    SELECT u.id, u.nickname, u.profile_image_url, ui.streak, ui.count_weekly_summaries,
-           ui.count_diaries, u.created_at, ui.last_diary_update_date
+    SELECT u.id, u.nickname, u.profile_image_url,
+       u.profile_mode,
+       u.avatar_face_id, u.avatar_eyes_id,
+       u.avatar_mouth_id, u.avatar_accessory_id,
+       ui.streak, ui.count_weekly_summaries,
+       ui.count_diaries, u.created_at, ui.last_diary_update_date
     FROM users u
     JOIN user_info ui ON u.id = ui.user_id
     WHERE u.id = ?
@@ -28,7 +34,7 @@ async function getFriendInfo(friendId) {
   return {
     id: friend.id,
     nickname: friend.nickname,
-    profileImageUrl: friend.profile_image_url,
+    profile: buildProfilePayload(friend),
     createdAt: moment(friend.created_at).format('YYYY-MM-DD'),
     countDiaries: friend.count_diaries,
     streak: finalStreak,
@@ -75,7 +81,10 @@ const friendController = {
 
     try {
       const [users] = await pool.query(
-        'SELECT id, nickname, profile_image_url FROM users WHERE email = ?', 
+        `SELECT id, nickname, profile_image_url, profile_mode,
+                avatar_face_id, avatar_eyes_id,
+                avatar_mouth_id, avatar_accessory_id
+        FROM users WHERE email = ?`,
         [receiverEmail]
       );
 
@@ -139,7 +148,7 @@ const friendController = {
       const friendInfo = {
         id: users[0].id,                
         nickname: users[0].nickname,     
-        profileImageUrl: users[0].profile_image_url, 
+        profile: buildProfilePayload(users[0]),
       };
       console.log(`[requestFriend success]`, friendInfo);
       return success(res, "REQUEST_SENT", "친구 요청 완료", friendInfo, 201);
@@ -225,6 +234,7 @@ const friendController = {
     }
   },
 
+  
   getPendingRequests: async (req, res) => {
     const myId = req.user.userId;
 
@@ -233,36 +243,47 @@ const friendController = {
     try {
       const [receivedRows, sentRows] = await Promise.all([
         pool.query(
-          `SELECT u.id AS userId, u.nickname, u.profile_image_url 
-          FROM friendship f 
-          JOIN users u ON f.requester_id = u.id 
+          `SELECT u.id AS userId, u.nickname,
+                  u.profile_image_url, u.profile_mode,
+                  u.avatar_face_id, u.avatar_eyes_id,
+                  u.avatar_mouth_id, u.avatar_accessory_id
+          FROM friendship f
+          JOIN users u ON f.requester_id = u.id
           WHERE f.receiver_id = ? AND f.status = "PENDING"`,
           [myId]
         ),
         pool.query(
-          `SELECT u.id AS userId, u.nickname, u.profile_image_url 
-          FROM friendship f 
-          JOIN users u ON f.receiver_id = u.id 
+          `SELECT u.id AS userId, u.nickname,
+                  u.profile_image_url, u.profile_mode,
+                  u.avatar_face_id, u.avatar_eyes_id,
+                  u.avatar_mouth_id, u.avatar_accessory_id
+          FROM friendship f
+          JOIN users u ON f.receiver_id = u.id
           WHERE f.requester_id = ? AND f.status = "PENDING"`,
           [myId]
         )
       ]);
 
-    const received = receivedRows[0];
-    const sent = sentRows[0];
+      const received = receivedRows[0].map(user => ({
+        userId: user.userId,
+        nickname: user.nickname,
+        profile: buildProfilePayload(user)
+      }));
 
-    const data = {
-      received,
-      sent
-    };
+      const sent = sentRows[0].map(user => ({
+        userId: user.userId,
+        nickname: user.nickname,
+        profile: buildProfilePayload(user)
+      }));
 
-    // 👉 여기 변경
-    const receivedIds = received.map(u => u.userId);
-    const sentIds = sent.map(u => u.userId);
+      const data = {
+        received,
+        sent
+      };
 
-    console.log(
-      `[getPendingRequests] receivedIds=${JSON.stringify(receivedIds)}, sentIds=${JSON.stringify(sentIds)}`
-    );
+      console.log(
+        `[getPendingRequests] receivedIds=${JSON.stringify(received.map(u => u.userId))}, sentIds=${JSON.stringify(sent.map(u => u.userId))}`
+      );
 
       return success(res, "REQUEST_LIST_FETCHED", "요청 목록 조회 성공", data);
 
@@ -272,6 +293,7 @@ const friendController = {
     }
   },
 
+
   getMyFriends: async (req, res) => {
     const myId = req.user.userId;
     console.log(`[getMyFriends] myId=${myId}`);
@@ -279,7 +301,11 @@ const friendController = {
     try {
       const [friends] = await pool.query(`
         SELECT u.id, u.nickname, u.profile_image_url, u.created_at,
-        ui.count_diaries, ui.streak, ui.count_weekly_summaries, ui.last_diary_update_date
+          u.profile_mode,
+          u.avatar_face_id, u.avatar_eyes_id,
+          u.avatar_mouth_id, u.avatar_accessory_id,
+          ui.count_diaries, ui.streak,
+          ui.count_weekly_summaries, ui.last_diary_update_date
         FROM friendship f
         JOIN users u ON (f.requester_id = u.id OR f.receiver_id = u.id)
         JOIN user_info ui ON u.id = ui.user_id
@@ -302,7 +328,7 @@ const friendController = {
         return {
           id: friend.id,
           nickname: friend.nickname,
-          profileImageUrl: friend.profile_image_url,
+          profile: buildProfilePayload(friend),
           streak: finalStreak,
           countWeeklySummaries: friend.count_weekly_summaries,
           createdAt: moment(friend.created_at).format('YYYY-MM-DD'),

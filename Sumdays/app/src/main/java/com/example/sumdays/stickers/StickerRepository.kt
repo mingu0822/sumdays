@@ -4,10 +4,13 @@ import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.data.sync.buildSyncRequest
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.ApiResponse
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.withLock
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import retrofit2.Response
 import java.io.IOException
@@ -44,9 +47,21 @@ class RetrofitStickerRemote(token: String) : StickerRemote {
         read(ApiClient.stickerApi.remove(authorization, sticker.ownerId, sticker.date, sticker.id))
     }
     override suspend fun syncOwnDiary(entry: DailyEntry) {
-        val request = buildSyncRequest(emptyList(), emptyList(), emptyList(), emptyList(),
-            emptyList(), emptyList(), listOf(entry), emptyList())
-        val result = ApiClient.api.syncData(authorization, request)
+        val request = buildSyncRequest(
+            emptyList(), emptyList(), emptyList(),
+            emptyList(), emptyList(), emptyList(),
+            listOf(entry), emptyList(), emptyList()
+        )
+
+        val requestBody = Gson()
+            .toJson(request)
+            .toRequestBody("application/json".toMediaType())
+
+        val result = ApiClient.api.syncData(
+            authorization,
+            requestBody,
+            emptyList()
+        )
         if (!result.isSuccessful || result.body()?.status != "success") {
             throw IOException("일기를 서버에 저장하지 못했어요. 연결을 확인하고 다시 시도해 주세요.")
         }

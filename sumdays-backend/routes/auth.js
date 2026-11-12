@@ -19,5 +19,6 @@ router.use(requireLogin);
 router.put('/password', authController.changePassword);
 router.put('/nickname', authController.changeNickname);
 router.post('/profile-image', authController.updateProfileImage);
+router.post('/profile-avatar', authController.updateProfileAvatar);
 
 module.exports = router;
