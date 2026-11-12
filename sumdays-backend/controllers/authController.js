@@ -363,64 +363,128 @@ exports.changeNickname = async (req, res) => {
     }
 };
 
+
 exports.updateProfileImage = async (req, res) => {
+    let newFilePath = null;
+
     try {
-        // 1️⃣ Multer를 통한 파일 업로드 대기 (storage/profile/{userId}/ 에 저장)
+        // 1. Multer를 통해 새 프로필 사진 업로드
         await uploadProfilePromise(req, res);
 
         if (!req.file) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "업로드할 파일이 없습니다." 
+            return res.status(400).json({
+                success: false,
+                message: "업로드할 파일이 없습니다."
             });
         }
 
+        newFilePath = req.file.path;
+
         const userId = req.user.userId;
-        // 🌟 변수명 통일: newImageUrl
-        const newImageUrl = `/storage/profile/${userId}/${req.file.filename}`;
-        
-        // 2️⃣ 기존 프로필 사진 경로 조회
+        const newImageUrl =
+            `/storage/profile/${userId}/${req.file.filename}`;
+
+        // 2. 기존 프로필 사진 URL 조회
         const [rows] = await pool.query(
-            "SELECT profile_image_url FROM users WHERE id = ?", 
+            "SELECT profile_image_url FROM users WHERE id = ?",
             [userId]
         );
-        const oldImageUrl = rows[0]?.profile_image_url;
 
-        // 3️⃣ 기존 파일이 존재하고, 새 파일과 주소가 다르면 안전하게 물리 파일 삭제
-        if (oldImageUrl && oldImageUrl !== newImageUrl) {
+        if (rows.length === 0) {
+            await fs.unlink(newFilePath).catch(() => {});
+
+            return res.status(404).json({
+                success: false,
+                message: "사용자를 찾을 수 없습니다."
+            });
+        }
+
+        const oldImageUrl = rows[0].profile_image_url;
+
+        // 3. DB에 새 프로필 사진 URL 저장
+        await pool.query(
+            `UPDATE users
+             SET profile_image_url = ?,
+                 profile_mode = 'PHOTO'
+             WHERE id = ?`,
+            [newImageUrl, userId]
+        );
+
+        // DB 저장 성공 이후에는 새 파일을 유지
+        newFilePath = null;
+
+        // 4. 기존 프로필 사진 삭제
+        // 해당 사용자의 프로필 디렉터리에 있는 파일만 삭제
+        if (
+            oldImageUrl &&
+            oldImageUrl !== newImageUrl &&
+            oldImageUrl.startsWith(`/storage/profile/${userId}/`)
+        ) {
             try {
-                const relativePath = oldImageUrl.replace(/^\//, ''); // 앞의 '/' 제거
-                const oldFilePath = path.join(__dirname, '..', relativePath);
+                const profileDir = path.resolve(
+                    __dirname,
+                    '..',
+                    'storage',
+                    'profile',
+                    String(userId)
+                );
 
-                await fs.unlink(oldFilePath);
-                console.log(`[안전 삭제 성공] 기존 프로필 파일 삭제 완료: ${oldFilePath}`);
+                const oldFilePath = path.resolve(
+                    __dirname,
+                    '..',
+                    oldImageUrl.replace(/^\/+/, '')
+                );
+
+                if (path.dirname(oldFilePath) === profileDir) {
+                    await fs.unlink(oldFilePath);
+
+                    console.log(
+                        `[기존 프로필 삭제 성공] ${oldFilePath}`
+                    );
+                }
             } catch (fileErr) {
-                console.warn("[기존 파일 삭제 패스] 파일이 없거나 이미 지워짐:", fileErr.message);
+                console.warn(
+                    "[기존 프로필 삭제 실패]",
+                    fileErr.message
+                );
             }
         }
 
-        // 4️⃣ DB에 새 상대 경로 UPDATE
-        await pool.query(
-            "UPDATE users SET profile_image_url = ?, profile_mode = 'PHOTO' WHERE id = ?", 
-            [newImageUrl, userId]
+        // 5. Android에 새 프로필 이미지 URL 반환
+        console.log(
+            `[프로필 이미지 변경 성공] userId=${userId} → ${newImageUrl}`
         );
-        
-        console.log(`[프로필 이미지 변경 성공] userId=${userId} → ${newImageUrl}`);
-        return res.status(200).json({ 
-            success: true, 
+
+        return res.status(200).json({
+            success: true,
             message: "프로필 이미지가 변경되었습니다.",
-            profileImageUrl: newImageUrl 
+            profileImageUrl: newImageUrl
         });
 
     } catch (err) {
-        console.error("[서버 오류] 프로필 이미지 업로드 중 에러:", err);
+        // DB 저장 등에서 오류 발생 시 새로 업로드한 파일 정리
+        if (newFilePath) {
+            try {
+                await fs.unlink(newFilePath);
+            } catch (cleanupErr) {
+                console.warn(
+                    "[신규 프로필 파일 정리 실패]",
+                    cleanupErr.message
+                );
+            }
+        }
+
+        console.error(
+            "[서버 오류] 프로필 이미지 업로드 중 에러:",
+            err
+        );
+
         return res.status(500).json({
             success: false,
             message: "서버 내부 오류가 발생했습니다."
         });
     }
 };
-
 
 exports.updateProfileAvatar = async (req, res) => {
     try {

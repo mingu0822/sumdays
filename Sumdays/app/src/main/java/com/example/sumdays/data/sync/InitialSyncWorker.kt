@@ -239,15 +239,11 @@ class InitialSyncWorker(
                     }
 
                     "PHOTO" -> {
-                        if (!profile.image.isNullOrBlank()) {
-                            ProfileImagePrefs.saveBase64Image(
-                                applicationContext,
-                                profile.image
-                            )
-                        } else {
-                            ProfileImagePrefs.saveBase64Image(applicationContext, null)
-                            ProfileImagePrefs.setMode(applicationContext, "PHOTO")
-                        }
+                        ProfileImagePrefs.setImageUrl(
+                            applicationContext,
+                            profile.imageUrl
+                        )
+                        ProfileImagePrefs.setMode(applicationContext, "PHOTO")
                     }
 
                     else -> {
@@ -256,13 +252,10 @@ class InitialSyncWorker(
                 }
             }
 
-            val file = java.io.File(applicationContext.filesDir, "profile_image.jpg")
             Log.d(
                 "ProfileDebug",
-                "exists=${file.exists()}, " +
-                        "size=${file.length()}, " +
-                        "mode=${ProfileImagePrefs.getMode(applicationContext)}, " +
-                        "uri=${ProfileImagePrefs.getPhotoUri(applicationContext)}"
+                "mode=${ProfileImagePrefs.getMode(applicationContext)}, " +
+                        "imageUrl=${ProfileImagePrefs.getImageUrl(applicationContext)}"
             )
 
             if (MissionConfig.USE_SERVER_MISSIONS) {

@@ -7,8 +7,8 @@ package com.example.sumdays
 // import androidx.work.workDataOf
 // import com.example.sumdays.statistics.WeekSummaryWorker
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import com.bumptech.glide.Glide
+import com.example.sumdays.network.ApiClient
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -160,24 +160,23 @@ class SettingActivity : AppCompatActivity() {
     }
 
     private fun showPhotoMode() {
-        // 사진 레이어 표시
         binding.imgPhoto.visibility = View.VISIBLE
-        // 아바타 레이어 숨김
+
         binding.imgBase.visibility = View.GONE
         binding.imgMouth.visibility = View.GONE
         binding.imgEyes.visibility = View.GONE
         binding.imgAccessory.visibility = View.GONE
 
-        val path = ProfileImagePrefs.getPhotoUri(this)
-        if (path != null) {
-            val bitmap: Bitmap? = BitmapFactory.decodeFile(path)
-            binding.imgPhoto.setImageBitmap(bitmap)
-        }
+        Glide.with(this)
+            .load(ProfileImagePrefs.getImageUrl(this))
+            .into(binding.imgPhoto)
     }
 
     private fun showAvatarMode() {
         // 사진 레이어 숨김
         binding.imgPhoto.visibility = View.GONE
+        Glide.with(this).clear(binding.imgPhoto)
+
         // 아바타 레이어 표시
         binding.imgBase.visibility = View.VISIBLE
         binding.imgMouth.visibility = View.VISIBLE

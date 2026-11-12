@@ -2,7 +2,7 @@ const {pool} = require('../db/db');
 const path = require("path");
 const process = require("process");
 const fs = require("fs");
-
+const { buildProfilePayload } = require('../dto/profilePayload');
 
 /*
 room 관련 내용은 syncdata, fetchServerData 모두 포함
@@ -581,49 +581,10 @@ exports.fetchServerData = async (req, res) => {
       [userId]
     );
 
-    let profile;
-    if (userProfile[0]?.profile_mode === "AVATAR") {
-      profile = {
-          mode: 'AVATAR',
-          faceId: userProfile[0].avatar_face_id,
-          eyesId: userProfile[0].avatar_eyes_id,
-          mouthId: userProfile[0].avatar_mouth_id,
-          accessoryId: userProfile[0].avatar_accessory_id
-      };
-  } else {
-      let profileImage = null;
-      const profileImageUrl = userProfile[0]?.profile_image_url;
+    const profile = userProfile[0]
+    ? buildProfilePayload(userProfile[0])
+    : null;
 
-      if (profileImageUrl) {
-        // URL에서 경로만 추출
-        const urlPath = new URL(
-          profileImageUrl,
-          `${req.protocol}://${req.get('host')}`
-        ).pathname;
-
-        const relativePath = decodeURIComponent(urlPath).replace(/^\/+/, '');
-        const storageRoot = path.resolve(process.cwd(), 'storage');
-        const filePath = path.resolve(process.cwd(), relativePath);
-
-        // storage 폴더 밖 파일 접근 방지
-        if (!filePath.startsWith(storageRoot + path.sep)) {
-          throw new Error('Invalid profile image path');
-        }
-
-        try {
-          const imageBuffer = await fs.promises.readFile(filePath);
-          profileImage = imageBuffer.toString('base64');
-        } catch (err) {
-          if (err.code !== 'ENOENT') throw err;
-          console.warn('프로필 사진 파일 없음:', filePath);
-        }
-      }
-
-      profile = {
-        mode: 'PHOTO',
-        image: profileImage
-      };
-    }
     
     res.json({
       memo,

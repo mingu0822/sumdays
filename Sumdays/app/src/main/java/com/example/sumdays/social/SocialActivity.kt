@@ -3,8 +3,7 @@ package com.example.sumdays.social
 import android.app.Dialog
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import com.bumptech.glide.Glide
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
@@ -24,8 +23,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.core.graphics.toColorInt
 import com.example.sumdays.LoginActivity
 import com.example.sumdays.R
-import com.example.sumdays.ShopActivity
-import com.example.sumdays.CalendarActivity
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.sync.BackupSyncRunner
@@ -329,14 +326,14 @@ class SocialActivity : AppCompatActivity() {
             imgEyes.visibility = View.GONE
             imgAccessory.visibility = View.GONE
 
-            val path = ProfileImagePrefs.getPhotoUri(this)
-            val bitmap: Bitmap? = path?.let { BitmapFactory.decodeFile(it) }
-            if (bitmap != null) {
-                imgPhoto.setImageBitmap(bitmap)
-            } else {
-                imgPhoto.setImageResource(R.drawable.ic_account_circle)
-            }
+            Glide.with(this)
+                .load(ProfileImagePrefs.getImageUrl(this))
+                .placeholder(R.drawable.ic_account_circle)
+                .error(R.drawable.ic_account_circle)
+                .into(imgPhoto)
         } else {
+            Glide.with(this).clear(imgPhoto)
+
             imgPhoto.visibility = View.GONE
             imgBase.visibility = View.VISIBLE
             imgMouth.visibility = View.VISIBLE

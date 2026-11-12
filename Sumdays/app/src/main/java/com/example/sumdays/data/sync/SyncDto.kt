@@ -26,7 +26,7 @@ data class ProfilePayload(
     val eyesId: Int? = null,
     val mouthId: Int? = null,
     val accessoryId: Int? = null,
-    val image: String? = null
+    val imageUrl: String? = null
 )
 
 // ------------------ 삭제 데이터 (ID 리스트만) ------------------

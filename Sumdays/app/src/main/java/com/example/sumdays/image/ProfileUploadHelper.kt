@@ -8,31 +8,51 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
-import android.net.Uri
-import java.io.FileOutputStream
 import com.example.sumdays.network.apiService.UpdateProfileAvatarRequest
+import com.example.sumdays.settings.prefs.ProfileImagePrefs
 
-/**
- * 이미지 파일을 서버에 전송하는 단독 함수
- * @param imageFile 전송할 File 객체
- * @return 업로드 성공 여부 (Boolean)
- */
-suspend fun uploadProfileImageToServer(imageFile: File): Boolean = withContext(Dispatchers.IO) {
+suspend fun uploadProfileImageToServer(
+    context: Context,
+    imageFile: File
+): Boolean = withContext(Dispatchers.IO) {
     try {
-        val rawToken = SessionManager.getToken() ?: return@withContext false
-        val token = if (rawToken.startsWith("Bearer ")) rawToken else "Bearer $rawToken"
+        val rawToken = SessionManager.getToken()
+            ?: return@withContext false
 
-        val requestBody = imageFile.asRequestBody("image/*".toMediaTypeOrNull())
-        val part = MultipartBody.Part.createFormData("profileImage", imageFile.name, requestBody)
+        val token = if (rawToken.startsWith("Bearer ")) {
+            rawToken
+        } else {
+            "Bearer $rawToken"
+        }
+
+        val requestBody = imageFile.asRequestBody(
+            "image/*".toMediaTypeOrNull()
+        )
+
+        val part = MultipartBody.Part.createFormData(
+            "profileImage",
+            imageFile.name,
+            requestBody
+        )
 
         val response = ApiClient.api.updateProfileImage(token, part)
-        response.isSuccessful && response.body()?.success == true
+
+        if (response.isSuccessful && response.body()?.success == true) {
+            val imageUrl = response.body()?.profileImageUrl
+                ?: return@withContext false
+
+            ProfileImagePrefs.setImageUrl(context, imageUrl)
+            ProfileImagePrefs.setMode(context, "PHOTO")
+
+            true
+        } else {
+            false
+        }
     } catch (e: Exception) {
         e.printStackTrace()
         false
     }
 }
-
 
 /**
  * 아바타 설정을 서버에 저장
@@ -68,29 +88,5 @@ suspend fun uploadProfileAvatarToServer(
     } catch (e: Exception) {
         e.printStackTrace()
         false
-    }
-}
-fun prepareTempFile(context: Context, sourcePath: String): File? {
-    return try {
-        // 캐시 디렉터리에 타임스탬프 기반 임시 파일 생성
-        val tempFile = File(context.cacheDir, "profile_upload_${System.currentTimeMillis()}.jpg")
-
-        if (sourcePath.startsWith("content://")) {
-            // 갤러리 URI인 경우 ContentResolver를 사용해 복사
-            val uri = Uri.parse(sourcePath)
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                FileOutputStream(tempFile).use { output ->
-                    input.copyTo(output)
-                }
-            }
-        } else {
-            // 크롭 후 생성된 일반 로컬 파일 경로인 경우 바로 복사
-            File(sourcePath).copyTo(tempFile, overwrite = true)
-        }
-
-        tempFile
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
     }
 }

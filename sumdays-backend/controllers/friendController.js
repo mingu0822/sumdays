@@ -1,23 +1,8 @@
 const { pool } = require('../db/db');
 const moment = require('moment-timezone');
 const { success, fail } = require('../utils/response');
+const { buildProfilePayload } = require('../dto/profilePayload');
 
-function buildFriendProfile(user) {
-  if (user.profile_mode === 'PHOTO') {
-    return {
-      mode: 'PHOTO',
-      imageUrl: user.profile_image_url
-    };
-  }
-
-  return {
-    mode: 'AVATAR',
-    faceId: user.avatar_face_id,
-    eyesId: user.avatar_eyes_id,
-    mouthId: user.avatar_mouth_id,
-    accessoryId: user.avatar_accessory_id
-  };
-}
 
 async function getFriendInfo(friendId) {
   const [friendRows] = await pool.query(`
@@ -49,7 +34,7 @@ async function getFriendInfo(friendId) {
   return {
     id: friend.id,
     nickname: friend.nickname,
-    profile: buildFriendProfile(friend),
+    profile: buildProfilePayload(friend),
     createdAt: moment(friend.created_at).format('YYYY-MM-DD'),
     countDiaries: friend.count_diaries,
     streak: finalStreak,
@@ -163,7 +148,7 @@ const friendController = {
       const friendInfo = {
         id: users[0].id,                
         nickname: users[0].nickname,     
-        profile: buildFriendProfile(users[0]),
+        profile: buildProfilePayload(users[0]),
       };
       console.log(`[requestFriend success]`, friendInfo);
       return success(res, "REQUEST_SENT", "친구 요청 완료", friendInfo, 201);
@@ -282,13 +267,13 @@ const friendController = {
       const received = receivedRows[0].map(user => ({
         userId: user.userId,
         nickname: user.nickname,
-        profile: buildFriendProfile(user)
+        profile: buildProfilePayload(user)
       }));
 
       const sent = sentRows[0].map(user => ({
         userId: user.userId,
         nickname: user.nickname,
-        profile: buildFriendProfile(user)
+        profile: buildProfilePayload(user)
       }));
 
       const data = {
@@ -343,7 +328,7 @@ const friendController = {
         return {
           id: friend.id,
           nickname: friend.nickname,
-          profile: buildFriendProfile(friend),
+          profile: buildProfilePayload(friend),
           streak: finalStreak,
           countWeeklySummaries: friend.count_weekly_summaries,
           createdAt: moment(friend.created_at).format('YYYY-MM-DD'),
