@@ -310,7 +310,7 @@ const friendController = {
         JOIN users u ON (f.requester_id = u.id OR f.receiver_id = u.id)
         JOIN user_info ui ON u.id = ui.user_id
         WHERE (f.requester_id = ? OR f.receiver_id = ?) 
-          AND f.status = "ACCEPTED" AND u.id != ?`, 
+          ANDf.status = "ACCEPTED" AND u.id != ?`, 
         [myId, myId, myId]
       );
       

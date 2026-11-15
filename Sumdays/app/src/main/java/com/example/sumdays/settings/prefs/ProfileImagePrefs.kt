@@ -4,6 +4,7 @@ package com.example.sumdays.settings.prefs
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.example.sumdays.data.sync.ProfilePayload
 import com.example.sumdays.network.ApiClient
 
 object ProfileImagePrefs {
@@ -59,9 +60,7 @@ object ProfileImagePrefs {
             putString(KEY_IMAGE_URL, url)
         }
     }
-
-    fun getImageUrl(context: Context): String? {
-        val url = getPrefs(context).getString(KEY_IMAGE_URL, null)
+    fun parseImageUrl(url: String?): String? {
         if (url.isNullOrBlank()) return null
 
         return if (url.startsWith("http://") || url.startsWith("https://")) {
@@ -69,6 +68,21 @@ object ProfileImagePrefs {
         } else {
             ApiClient.BASE_URL.trimEnd('/') + "/" + url.trimStart('/')
         }
+    }
+    fun getImageUrl(context: Context): String? {
+        val url = getPrefs(context).getString(KEY_IMAGE_URL, null)
+        return parseImageUrl(url)
+    }
+
+    fun getMyProfilePayload(context: Context): ProfilePayload {
+        return ProfilePayload(
+            mode = getMode(context),
+            faceId = getFaceId(context),
+            eyesId = getEyesId(context),
+            mouthId = getMouthId(context),
+            accessoryId = getAccId(context),
+            imageUrl = getImageUrl(context)
+        )
     }
 
     fun clear(context: Context) {

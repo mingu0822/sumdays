@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.sync.BackupSyncRunner
 import com.example.sumdays.databinding.ActivitySettingMainBinding
+import com.example.sumdays.image.ProfileRenderer
 import com.example.sumdays.settings.AccountSettingsActivity
 import com.example.sumdays.settings.DiaryStyleSettingsActivity
 import com.example.sumdays.settings.EditProfileActivity
@@ -63,7 +64,7 @@ class SettingActivity : AppCompatActivity() {
         super.onResume()
         // 프로필 편집 후 돌아왔을 때 최신 상태로 갱신
         updateAuthUI()
-        updateProfileImagePreview()
+        renderMyProfile()
     }
 
     private fun setSettingsBtnListener() = with(binding) {
@@ -149,62 +150,12 @@ class SettingActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateProfileImagePreview() {
-        val mode = ProfileImagePrefs.getMode(this)
-
-        if (mode == "PHOTO") {
-            showPhotoMode()
-        } else {
-            showAvatarMode()
-        }
-    }
-
-    private fun showPhotoMode() {
-        binding.imgPhoto.visibility = View.VISIBLE
-
-        binding.imgBase.visibility = View.GONE
-        binding.imgMouth.visibility = View.GONE
-        binding.imgEyes.visibility = View.GONE
-        binding.imgAccessory.visibility = View.GONE
-
-        Glide.with(this)
-            .load(ProfileImagePrefs.getImageUrl(this))
-            .into(binding.imgPhoto)
-    }
-
-    private fun showAvatarMode() {
-        // 사진 레이어 숨김
-        binding.imgPhoto.visibility = View.GONE
-        Glide.with(this).clear(binding.imgPhoto)
-
-        // 아바타 레이어 표시
-        binding.imgBase.visibility = View.VISIBLE
-        binding.imgMouth.visibility = View.VISIBLE
-        binding.imgEyes.visibility = View.VISIBLE
-        binding.imgAccessory.visibility = View.VISIBLE
-
-        val faceId = ProfileImagePrefs.getFaceId(this)
-        val eyesId = ProfileImagePrefs.getEyesId(this)
-        val mouthId = ProfileImagePrefs.getMouthId(this)
-        val accId = ProfileImagePrefs.getAccId(this)
-
-        // TODO: 더미 데이터 에셋과 json으로 바꾸기
-        val items = listOf(
-            ProfileImageItem(1, ProfileImageItemType.FACE, R.drawable.nav_fox_button),
-            ProfileImageItem(2, ProfileImageItemType.FACE, R.drawable.dailyread_fox_face_level_5),
-            ProfileImageItem(3, ProfileImageItemType.FACE, 0),
-            ProfileImageItem(4, ProfileImageItemType.EYES, R.drawable.loading_animation),
-            ProfileImageItem(5, ProfileImageItemType.EYES, 0)
+    private fun renderMyProfile() {
+        ProfileRenderer.render(
+            root = binding.myProfile.root,
+            profile = ProfileImagePrefs.getMyProfilePayload(this),
+            isMine = true
         )
-
-        binding.imgBase.setImageResource(items.find { it.id == faceId }?.resId ?: 0)
-        binding.imgBase.setColorFilter("#FFE0BD".toColorInt())
-        binding.imgEyes.setImageResource(items.find { it.id == eyesId }?.resId ?: 0)
-        binding.imgEyes.setColorFilter(Color.BLACK)
-        binding.imgMouth.setImageResource(items.find { it.id == mouthId }?.resId ?: 0)
-        binding.imgMouth.setColorFilter(Color.CYAN)
-        binding.imgAccessory.setImageResource(items.find { it.id == accId }?.resId ?: 0)
-        binding.imgAccessory.setColorFilter(Color.YELLOW)
     }
 
     // 일기 생성 시 소셜 공개 기본값 선택

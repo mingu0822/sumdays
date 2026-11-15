@@ -72,44 +72,11 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <FrameLayout
+            <include
                 android:id="@+id/myProfileImageContainer"
+                layout="@layout/view_profile"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/background">
-
-                <ImageView
-                    android:id="@+id/imgMyPhoto"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:visibility="gone" />
-
-                <ImageView
-                    android:id="@+id/imgMyBase"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerInside" />
-
-                <ImageView
-                    android:id="@+id/imgMyMouth"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerInside" />
-
-                <ImageView
-                    android:id="@+id/imgMyEyes"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerInside" />
-
-                <ImageView
-                    android:id="@+id/imgMyAccessory"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerInside" />
-
-            </FrameLayout>
+                android:layout_height="match_parent" />
 
         </androidx.cardview.widget.CardView>
 

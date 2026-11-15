@@ -111,7 +111,7 @@ class AddFriendDialog() : DialogFragment() {
                         val parsedRequest = FriendRequest(
                             userId = friendInfo.id,
                             nickname = friendInfo.nickname,
-                            profile_image_url = friendInfo.profileImageUrl
+                            profile = friendInfo.profile
                         )
 
                         if (body.code == "AUTO_ACCEPTED") {

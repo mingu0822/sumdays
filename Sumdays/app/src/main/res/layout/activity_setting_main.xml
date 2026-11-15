@@ -2,9 +2,9 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/setting_main_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/setting_main_root"
     android:fitsSystemWindows="true"
     android:background="@color/background"
     tools:context=".CalendarActivity">
@@ -85,40 +85,13 @@
                         android:background="@color/background"
                         android:clickable="true"
                         android:focusable="true"
-                        android:foreground="?attr/selectableItemBackground"
-                        app:cornerRadius="12dp">
+                        android:foreground="?attr/selectableItemBackground">
 
-                        <!-- 사진 모드-->
-                        <ImageView
-                            android:id="@+id/imgPhoto"
+                        <include
+                            android:id="@+id/myProfile"
+                            layout="@layout/view_profile"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:scaleType="centerCrop"
-                            android:visibility="gone" />
-                        <!-- 아바타 모드 -->
-                        <ImageView
-                            android:id="@+id/imgBase"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:scaleType="centerInside" />
-
-                        <ImageView
-                            android:id="@+id/imgMouth"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:scaleType="centerInside" />
-
-                        <ImageView
-                            android:id="@+id/imgEyes"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:scaleType="centerInside" />
-
-                        <ImageView
-                            android:id="@+id/imgAccessory"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:scaleType="centerInside" />
+                            android:layout_height="match_parent" />
 
                     </FrameLayout>
                 </RelativeLayout>
@@ -261,6 +234,5 @@
 
         </LinearLayout>
     </ScrollView>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
@@ -16,9 +15,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.sumdays.R
+import com.example.sumdays.image.ProfileRenderer
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.FriendInfo
 import com.example.sumdays.social.diary.SocialCalendarActivity
@@ -36,7 +34,7 @@ class SocialDetailActivity : AppCompatActivity() {
     private lateinit var btnOpenDiary: Button
 
     private lateinit var tvDetailTitle: TextView
-    private lateinit var ivProfile: ImageView
+    private lateinit var friendProfile: View
     private lateinit var cardTotalDiary: LinearLayout
     private lateinit var cardJoinDate: LinearLayout
     private lateinit var cardPublicDiary: LinearLayout
@@ -65,7 +63,7 @@ class SocialDetailActivity : AppCompatActivity() {
         btnOpenDiary = findViewById(R.id.btnOpenDiary)
 
         tvDetailTitle = findViewById(R.id.tvDetailTitle)
-        ivProfile = findViewById(R.id.ivProfile)
+        friendProfile = findViewById(R.id.friendProfile)
         cardTotalDiary = findViewById(R.id.cardTotalDiary)
         cardJoinDate = findViewById(R.id.cardJoinDate)
         cardPublicDiary = findViewById(R.id.cardPublicDiary)
@@ -91,7 +89,7 @@ class SocialDetailActivity : AppCompatActivity() {
         val strongPointColor = ContextCompat.getColor(this, currentTheme.themeColorD)
 
         rootLayout.setBackgroundResource(currentTheme.backgroundColor)
-        ivProfile.setBackgroundResource(currentTheme.blockStyleA)
+        friendProfile.setBackgroundResource(currentTheme.blockStyleA)
         listOf(cardTotalDiary, cardJoinDate, cardPublicDiary, cardRecentWrite).forEach {
             it.setBackgroundResource(currentTheme.blockStyleA)
         }
@@ -116,15 +114,11 @@ class SocialDetailActivity : AppCompatActivity() {
         tvPublicDiaryCount.text = friend.countDiaries.toString()
         tvRecentWriteDate.text = friend.lastDiaryUpdateDate
 
-        val fullUrl = "${ApiClient.BASE_URL.removeSuffix("/")}${friend.profileImageUrl}"
-        Glide.with(this)
-            .load(fullUrl)
-            .placeholder(R.drawable.loading_animation) // 로딩 중에 보여줄 이미지
-            .error(R.drawable.ic_account_circle)             // 로드 실패 시 보여줄 이미지
-            .circleCrop()                                   // 사진을 동그랗게 깎아줌! (꿀팁)
-            .transition(DrawableTransitionOptions.withCrossFade()) // 부드럽게 나타나게
-            .into(ivProfile) // ImageView에 꽂아넣기
-
+        ProfileRenderer.render(
+            root = friendProfile,
+            profile = friend.profile,
+            isMine = false
+        )
     }
 
     private fun setupListeners() {

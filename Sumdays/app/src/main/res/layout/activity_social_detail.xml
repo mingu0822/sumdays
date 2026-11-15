@@ -65,15 +65,13 @@
             android:paddingEnd="20dp"
             android:paddingBottom="24dp">
 
-            <ImageView
-                android:id="@+id/ivProfile"
-                android:layout_width="88dp"
-                android:layout_height="88dp"
-                android:layout_gravity="center_horizontal"
-                android:gravity="center"
-                android:background="#EFEAE2"
-                android:textSize="36sp"
-                android:src="@drawable/ic_account_circle"/>
+            <include
+            android:id="@+id/friendProfile"
+            layout="@layout/view_profile"
+            android:layout_width="88dp"
+            android:layout_height="88dp"
+            android:layout_gravity="center_horizontal"
+            android:background="#EFEAE2" />
 
 
             <LinearLayout
