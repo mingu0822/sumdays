@@ -2,6 +2,7 @@ package com.example.sumdays.network.apiService
 
 import android.os.Parcelable
 import com.example.sumdays.data.sync.DailyEntryPayload
+import com.example.sumdays.data.sync.ProfilePayload
 import kotlinx.parcelize.Parcelize
 import retrofit2.Response
 import retrofit2.http.Body
@@ -93,7 +94,7 @@ data class FriendRequestData(
 data class FriendRequest(
     val userId: Int,
     val nickname: String,
-    val profile_image_url: String?
+    val profile: ProfilePayload,
 )
 
 data class FriendDiaryDatesResponse(
@@ -109,7 +110,7 @@ data class FriendMonthlyDiariesResponse(
 data class FriendInfo(
     val id: Int,
     val nickname: String,
-    val profileImageUrl: String?,
+    val profile: ProfilePayload,
     val streak: Int,
     val countWeeklySummaries: Int,
 

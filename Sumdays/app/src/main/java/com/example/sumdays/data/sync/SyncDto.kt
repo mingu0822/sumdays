@@ -4,6 +4,8 @@ import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.data.Memo
 import com.example.sumdays.data.UserStyle
 import com.example.sumdays.data.WeekSummary
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
 // ------------------ 최상위 Request ------------------
 data class SyncRequest(
@@ -19,7 +21,7 @@ data class SyncFetchResponse(
     val userStyle: List<UserStylePayload>,
     val profile: ProfilePayload? = null
 )
-
+@Parcelize
 data class ProfilePayload(
     val mode: String, // "AVATAR" or "PHOTO"
     val faceId: Int? = null,
@@ -27,8 +29,7 @@ data class ProfilePayload(
     val mouthId: Int? = null,
     val accessoryId: Int? = null,
     val imageUrl: String? = null
-)
-
+): Parcelable
 // ------------------ 삭제 데이터 (ID 리스트만) ------------------
 data class DeletedPayload(
     val memo: List<Int>?,

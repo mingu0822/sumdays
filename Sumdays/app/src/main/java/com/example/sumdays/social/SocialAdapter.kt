@@ -4,19 +4,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.sumdays.R
-import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.apiService.FriendInfo
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
-import android.util.Log
+import com.example.sumdays.image.ProfileRenderer
 
 
 class SocialAdapter(
@@ -28,7 +24,7 @@ class SocialAdapter(
     // 원소 1개
     class SocialViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardRoot: CardView = itemView.findViewById(R.id.cardSocialRoot)
-        val ivProfile: ImageView = itemView.findViewById(R.id.ivProfile)
+        val friendProfile: View = itemView.findViewById(R.id.friendProfile)
         val tvUserName: TextView = itemView.findViewById(R.id.tvUserName)
         val tvUserInfo: TextView = itemView.findViewById(R.id.tvUserInfo)
         val btnFriend: ImageButton = itemView.findViewById(R.id.btnFriend)
@@ -53,7 +49,7 @@ class SocialAdapter(
 
         currentTheme?.let { theme ->
             holder.cardRoot.setBackgroundResource(theme.blockStyleA)
-            holder.ivProfile.setBackgroundResource(theme.blockStyleA)
+            holder.friendProfile.setBackgroundResource(theme.blockStyleA)
             holder.tvUserName.setTextColor(ContextCompat.getColor(context, theme.themeTextColorBasic))
             holder.tvUserInfo.setTextColor(ContextCompat.getColor(context, theme.themeColorD))
             holder.btnFriend.imageTintList =
@@ -62,29 +58,11 @@ class SocialAdapter(
                 )
         }
 
-        val imageUrl = friendInfo.profileImageUrl
-            ?.takeIf { it.isNotBlank() }
-            ?.let { path ->
-                if (path.startsWith("http://") || path.startsWith("https://")) {
-                    path
-                } else {
-                    "${ApiClient.BASE_URL.trimEnd('/')}/${path.trimStart('/')}"
-                }
-            }
-
-        Log.d(
-            "SocialProfile",
-            "friendId=${friendInfo.id}, rawUrl=${friendInfo.profileImageUrl}, imageUrl=$imageUrl"
+        ProfileRenderer.render(
+            root = holder.friendProfile,
+            profile = friendInfo.profile,
+            isMine = false
         )
-
-
-        Glide.with(holder.itemView)
-            .load(imageUrl)
-            .placeholder(R.drawable.ic_account_circle)
-            .error(R.drawable.ic_account_circle)
-            .fallback(R.drawable.ic_account_circle)
-            .circleCrop()
-            .into(holder.ivProfile)
 
         holder.tvUserName.text = friendInfo.nickname
         holder.tvUserInfo.text = "🔥 ${friendInfo.streak}  🍃 ${

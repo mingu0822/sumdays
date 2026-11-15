@@ -48,37 +48,14 @@
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground">
 
-                    <ImageView
-                        android:id="@+id/imgPhoto"
+                    <include
+                        android:id="@+id/dialogProfile"
+                        layout="@layout/view_profile"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerCrop"
-                        android:visibility="gone" />
+                        android:layout_height="match_parent" />
 
-                    <ImageView
-                        android:id="@+id/imgBase"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerInside" />
-
-                    <ImageView
-                        android:id="@+id/imgMouth"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerInside" />
-
-                    <ImageView
-                        android:id="@+id/imgEyes"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerInside" />
-
-                    <ImageView
-                        android:id="@+id/imgAccessory"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerInside" />
                 </FrameLayout>
+
             </androidx.cardview.widget.CardView>
         </RelativeLayout>
 
