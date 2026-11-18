@@ -7,12 +7,17 @@ const path = require('path');
 const fs = require('fs').promises;
 const crypto = require('crypto');
 const { verifyGoogleIdToken } = require('../services/googleIdToken');
+const { getInitialData } = require('../services/initialDataService');
+
 
 // =================================================================
 // ★★★ 중요: 이 비밀 키와 DB 정보는 절대로 코드에 하드코딩하면 안 됩니다. ★★★
 // 실제 프로덕션 환경에서는 .env 파일과 같은 환경 변수로 안전하게 관리해야 합니다.
 // =================================================================
-const JWT_SECRET = 'Sumdays_Project_Super_Secret_Key_!@#$%^&*()';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET 환경변수가 설정되지 않았습니다.');
+}
 
 const { pool } = require('../db/db');
 
@@ -60,6 +65,8 @@ exports.login = async (req, res) => {
 
             // JWT 생성 (유효 기간: 7일)
             const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+            
+            const initialData = await getInitialData(user.id);
 
             // 클라이언트에게 성공 응답 전송
             res.status(200).json({
@@ -67,12 +74,13 @@ exports.login = async (req, res) => {
                 message: '로그인 성공',
                 userId: user.id,
                 token: token,
-                nickname : user.nickname
+                nickname : user.nickname,
+                initialData
             });
 
         } else {
             // 비밀번호 불일치
-            console.log(`[로그인 실패] 비밀번호 불일치: ${email}, ${password}, ${user.password_hash}`);
+            console.log(`[로그인 실패] 비밀번호 불일치: ${email}`);
             return res.status(401).json({
                 success: false,
                 message: '이메일 또는 비밀번호가 올바르지 않습니다.'
@@ -105,9 +113,12 @@ exports.googleLogin = async (req, res) => {
         return res.status(401).json({ success: false, message: 'Google 계정을 확인할 수 없습니다.' });
     }
 
-    const connection = await pool.getConnection();
+    let connection;
+    let transactionActive = false;
     try {
+        connection = await pool.getConnection();
         await connection.beginTransaction();
+        transactionActive = true;
 
         const [linkedUsers] = await connection.query(
             'SELECT id, email, nickname FROM users WHERE google_sub = ? LIMIT 1',
@@ -125,6 +136,7 @@ exports.googleLogin = async (req, res) => {
             if (user) {
                 if (user.google_sub || !identity.trustedEmail) {
                     await connection.rollback();
+                    transactionActive = false;
                     return res.status(409).json({
                         success: false,
                         message: '이미 가입된 이메일입니다. 기존 계정으로 로그인해주세요.'
@@ -133,12 +145,15 @@ exports.googleLogin = async (req, res) => {
                 await connection.query('UPDATE users SET google_sub = ? WHERE id = ?', [identity.subject, user.id]);
             } else {
                 const passwordHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
-                const nicknameBase = identity.name.replace(/[\\/\\\\]/g, '').trim().slice(0, 36) || 'Google 사용자';
+                const nicknameBase = (typeof identity.name === 'string' ? identity.name : '')
+                    .replace(/[\/\\]/g, '')
+                    .trim()
+                    .slice(0, 11) || 'Google 사용자';
                 const nickname = `${nicknameBase}_${crypto.randomBytes(4).toString('hex')}`;
                 const [result] = await connection.query(
-                    `INSERT INTO users (nickname, email, password_hash, google_sub, profile_image_url)
-                     VALUES (?, ?, ?, ?, ?)`,
-                    [nickname, identity.email, passwordHash, identity.subject, identity.picture]
+                    `INSERT INTO users (nickname, email, password_hash, google_sub)
+                     VALUES (?, ?, ?, ?)`,
+                    [nickname, identity.email, passwordHash, identity.subject]
                 );
                 user = { id: result.insertId, email: identity.email, nickname };
 
@@ -153,23 +168,46 @@ exports.googleLogin = async (req, res) => {
         }
 
         await connection.commit();
+        transactionActive = false;
         const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+        
+        const initialData = await getInitialData(user.id);
+        
         return res.status(200).json({
             success: true,
             message: 'Google 로그인 성공',
             userId: user.id,
             token,
-            nickname: user.nickname
+            nickname: user.nickname,
+            initialData
         });
     } catch (error) {
-        await connection.rollback();
-        if (error.code === 'ER_DUP_ENTRY') {
-            return res.status(409).json({ success: false, message: '이미 연결된 Google 계정입니다.' });
+        if (transactionActive && connection) {
+            try {
+                await connection.rollback();
+            } catch (rollbackError) {
+                console.error('[Google 로그인 롤백 실패]', rollbackError);
+            }
         }
+
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({
+                success: false,
+                message: '이미 연결된 Google 계정입니다.'
+            });
+        }
+
         console.error('[서버 오류] Google 로그인 처리 실패:', error);
-        return res.status(500).json({ success: false, message: '서버 내부 오류가 발생했습니다.' });
+
+        return res.status(500).json({
+            success: false,
+            message: '서버 내부 오류가 발생했습니다.'
+        });
+
     } finally {
-        connection.release();
+        if (connection) {
+            connection.release();
+        }
     }
 };
 
@@ -178,32 +216,88 @@ exports.signup = async (req, res) => {
     const { nickname, email, password } = req.body;
     console.log(`[회원가입 시도] 이메일: ${email}`);
 
-    if (!nickname || !email || !password) {
+    // 1. 자료형 및 필수값 검증
+    if (
+        typeof nickname !== 'string' ||
+        typeof email !== 'string' ||
+        typeof password !== 'string' ||
+        !nickname.trim() ||
+        !email.trim() ||
+        !password
+    ) {
         return res.status(400).json({
             success: false,
-            message: '닉네임, 이메일과 비밀번호를 모두 입력해주세요.'
+            message: '올바른 닉네임, 이메일, 비밀번호를 입력해주세요.'
         });
     }
 
-    const connection = await pool.getConnection(); // 트랜잭션을 위한 커넥션 확보
+    // 2. 닉네임 길이 검증
+    const normalizedNickname = nickname.trim();
+    if (normalizedNickname.trim().length < 2 || normalizedNickname.trim().length > 20) {
+        return res.status(400).json({
+            success: false,
+            message: '닉네임은 2~20자로 입력해주세요.'
+        });
+    }
 
+    // 3. 이메일 형식 검증 (대기)
+    /*
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (
+        normalizedEmail.length > 254 ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: '올바른 이메일 형식을 입력해주세요.'
+        });
+    }
+    */
+
+    // 4. 비밀번호 길이 검증
+    if (password.length < 8 || password.length > 72) {
+        return res.status(400).json({
+            success: false,
+            message: '비밀번호는 8~72자로 입력해주세요.'
+        });
+    }
+
+    let connection;
+    let transactionActive = false;
     try {
+        connection = await pool.getConnection();
         await connection.beginTransaction(); // 트랜잭션 시작
+        transactionActive = true;
 
         // 1. 이메일 중복 확인
         const [existing] = await connection.query('SELECT id FROM users WHERE email = ?', [email]);
         if (existing.length > 0) {
             await connection.rollback();
+            transactionActive = false;
             return res.status(409).json({ success: false, message: '이미 사용 중인 이메일입니다.' });
         }
+        const [existingNickname] = await connection.query(
+            'SELECT id FROM users WHERE nickname = ?',
+            [normalizedNickname]
+        );
 
+        if (existingNickname.length > 0) {
+            await connection.rollback();
+            transactionActive = false;
+
+            return res.status(409).json({
+                success: false,
+                message: '이미 사용 중인 닉네임입니다.'
+            });
+        }
         // 2. 비밀번호 해싱
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // 3. users 테이블 삽입
         const [userResult] = await connection.query(
             'INSERT INTO users (nickname, email, password_hash) VALUES (?, ?, ?)',
-            [nickname, email, hashedPassword]
+            [normalizedNickname, email, hashedPassword]
         );
         const newUserId = userResult.insertId;
 
@@ -231,15 +325,36 @@ exports.signup = async (req, res) => {
         );
 
         await connection.commit(); // 모든 작업 확정
+        transactionActive = false;
         console.log(`[회원가입 성공] ID: ${newUserId}, 이메일: ${email}`);
         res.status(201).json({ success: true, message: '회원가입 성공!' });
 
     } catch (error) {
-        await connection.rollback(); // 에러 발생 시 롤백
-        console.error('[서버 오류] 회원가입 중 롤백됨:', error);
-        res.status(500).json({ success: false, message: '서버 내부 오류' });
+        if (transactionActive && connection) {
+            try {
+                await connection.rollback();
+            } catch (rollbackError) {
+                console.error('[회원가입 롤백 실패]', rollbackError);
+            }
+        }
+
+        console.error('[서버 오류] 회원가입 처리 실패:', error);
+
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({
+                success: false,
+                message: '이미 사용 중인 이메일 또는 닉네임입니다.'
+        });
+}
+        return res.status(500).json({
+            success: false,
+            message: '서버 내부 오류'
+        });
+
     } finally {
-        connection.release(); // 커넥션 반납
+        if (connection) {
+            connection.release();
+        }
     }
 };
 

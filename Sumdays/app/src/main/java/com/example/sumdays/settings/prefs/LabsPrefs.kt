@@ -1,6 +1,7 @@
 package com.example.sumdays.settings.prefs
 
 import android.content.Context
+import androidx.core.content.edit
 
 object LabsPrefs {
 
@@ -42,5 +43,9 @@ object LabsPrefs {
     fun getLengthLevel(context: Context): Int {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         return prefs.getInt(KEY_LENGTH_LEVEL, DEFAULT_LENGTH_LEVEL)
+    }
+    fun clear(context: Context) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit { clear() }
     }
 }

@@ -4,7 +4,7 @@ package com.example.sumdays.reminder
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-
+import androidx.core.content.edit
 class ReminderPrefs(context: Context) {
     private val prefs = context.getSharedPreferences("reminder_settings", Context.MODE_PRIVATE)
     private val gson = Gson()
@@ -26,5 +26,8 @@ class ReminderPrefs(context: Context) {
         val json = prefs.getString("alarm_times", "[]")
         val type = object : TypeToken<List<String>>() {}.type
         return gson.fromJson(json, type) ?: emptyList()
+    }
+    fun clear() {
+        prefs.edit { clear() }
     }
 }

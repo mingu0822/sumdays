@@ -545,61 +545,17 @@ function safeParse(str, fallback) {
 }
 
 // 2. server to local
+const { getInitialData } = require('../services/initialDataService');
 
 exports.fetchServerData = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-
-    
-    const [memo] = await pool.query(
-      `SELECT * FROM memo WHERE user_id=?`, [userId]
-    );
-
-    const [dailyEntry] = await pool.query(
-      `SELECT * FROM daily_entry WHERE user_id=?`, [userId]
-    );
-
-    const [weekSummary] = await pool.query(
-      `SELECT * FROM week_summary WHERE user_id=?`, [userId]
-    );
-
-    const [userStyle] = await pool.query(
-      `SELECT * FROM user_style WHERE user_id=?`, [userId]
-    );
-
-    // 프로필 사진 URL 조회
-    const [userProfile] = await pool.query(
-      `SELECT
-          profile_mode,
-          profile_image_url,
-          avatar_face_id,
-          avatar_eyes_id,
-          avatar_mouth_id,
-          avatar_accessory_id
-      FROM users
-      WHERE id = ?`,
-      [userId]
-    );
-
-    const profile = userProfile[0]
-    ? buildProfilePayload(userProfile[0])
-    : null;
-
-    
-    res.json({
-      memo,
-      dailyEntry,
-      weekSummary,
-      userStyle,
-      profile
-    });
-
-  } catch (e) {
-    console.error('[fetchServerData] Error:', e);
-    res.status(500).json({
-      status: 'error',
-      message: e.message
-    });
-  }
+    try {
+        const data = await getInitialData(req.user.userId);
+        return res.json(data);
+    } catch (error) {
+        console.error('[fetchServerData] Error:', error);
+        return res.status(500).json({
+            status: 'error',
+            message: '서버 데이터 조회 실패'
+        });
+    }
 };
-
