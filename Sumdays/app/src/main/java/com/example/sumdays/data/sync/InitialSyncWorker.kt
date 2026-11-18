@@ -16,6 +16,7 @@ import com.example.sumdays.data.EmotionAnalysis
 import com.example.sumdays.data.Highlight
 import com.example.sumdays.data.Insights
 import com.example.sumdays.data.Memo
+import com.example.sumdays.data.PrefManager
 import com.example.sumdays.data.SummaryDetails
 import com.example.sumdays.data.UserStyle
 import com.example.sumdays.data.WeekSummary
@@ -220,43 +221,11 @@ class InitialSyncWorker(
             }
 
             // 4) pref 초기화
-            // TODO : 다른 pref 초기화
-            // 4) 프로필 초기 동기화
-            ProfileImagePrefs.clear(applicationContext)
-            val profile = serverData.profile
+            PrefManager.initServerPrefs(applicationContext, serverData.prefs)
 
-            if (profile != null) {
-                when (profile.mode) {
-                    "AVATAR" -> {
-                        ProfileImagePrefs.setProfileIds(
-                            context = applicationContext,
-                            face = profile.faceId ?: -1,
-                            eyes = profile.eyesId ?: -1,
-                            mouth = profile.mouthId ?: -1,
-                            acc = profile.accessoryId ?: -1
-                        )
-                        ProfileImagePrefs.setMode(applicationContext, "AVATAR")
-                    }
 
-                    "PHOTO" -> {
-                        ProfileImagePrefs.setImageUrl(
-                            applicationContext,
-                            profile.imageUrl
-                        )
-                        ProfileImagePrefs.setMode(applicationContext, "PHOTO")
-                    }
 
-                    else -> {
-                        Log.w("InitialSyncWorker", "Unknown profile mode: ${profile.mode}")
-                    }
-                }
-            }
 
-            Log.d(
-                "ProfileDebug",
-                "mode=${ProfileImagePrefs.getMode(applicationContext)}, " +
-                        "imageUrl=${ProfileImagePrefs.getImageUrl(applicationContext)}"
-            )
 
             if (MissionConfig.USE_SERVER_MISSIONS) {
                 runCatching {

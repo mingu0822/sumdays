@@ -15,6 +15,7 @@
     import kotlinx.coroutines.withContext
     import java.io.IOException
     import android.net.Uri
+    import com.example.sumdays.data.PrefManager
     import com.example.sumdays.settings.prefs.ProfileImagePrefs
     import com.google.gson.Gson
     import okhttp3.MultipartBody
@@ -227,10 +228,8 @@
                             }
 
                             // 2. Pref 초기화
-                            // TODO : 다른 Pref 초기화해야함
-                            LocalDataOwnerPrefs.clear(context)
-                            ProfileImagePrefs.clear(context)
-                            SessionManager.clearSession()
+                            PrefManager.resetLocalPrefs(context)
+                            PrefManager.resetServerPrefs(context)
 
 
                             // 3. 미완료 작업 종료
