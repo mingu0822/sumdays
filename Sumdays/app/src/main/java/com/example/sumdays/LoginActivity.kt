@@ -13,11 +13,7 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.lifecycleScope
-import androidx.work.WorkManager
 import com.example.sumdays.auth.SessionManager
-import com.example.sumdays.data.sync.InitialSyncScheduler
-import com.example.sumdays.data.sync.InitialSyncWorker
-import com.example.sumdays.data.sync.LocalDataOwnerPrefs
 import com.example.sumdays.databinding.ActivityLoginBinding
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.GoogleLoginRequest
@@ -31,6 +27,11 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import android.view.View
+import com.bumptech.glide.Glide
+import com.example.sumdays.data.sync.LoginDataInitializer
+import kotlin.coroutines.cancellation.CancellationException
+
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -122,6 +123,12 @@ class LoginActivity : AppCompatActivity() {
                 400, 401 -> "로그인 정보를 확인해주세요."
                 else -> "로그인 실패 (에러 코드: ${response.code()})"
             }
+
+            Log.e(
+                "LoginActivity",
+                "로그인 실패 | HTTP ${response.code()} | 서버 메시지: $message | ${response.errorBody()}"
+            )
+
             Toast.makeText(this@LoginActivity, message, Toast.LENGTH_SHORT).show()
         }
 
@@ -132,27 +139,83 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun completeLogin(loginResponse: LoginResponse): Boolean {
-        val userId = loginResponse.userId ?: return false
-        val token = loginResponse.token ?: return false
         if (!loginResponse.success) return false
 
-        val previousUserId = SessionManager.getUserId()
-        if (previousUserId >= 0 && previousUserId != userId) {
-            WorkManager.getInstance(applicationContext)
-                .cancelAllWorkByTag(InitialSyncWorker.accountWorkTag(previousUserId))
+        val userId = loginResponse.userId ?: return false
+        val token = loginResponse.token ?: return false
+        val initialData = loginResponse.initialData ?: return false
+
+        // 초기화 중에는 중복 로그인 방지
+        setLoginLoading(true)
+
+        lifecycleScope.launch {
+            try {
+                if (!SessionManager.saveSession(userId, token)) {
+                    throw IllegalStateException("세션 저장 실패")
+                }
+                // 1. 데이터 초기화 하기
+                LoginDataInitializer(applicationContext).initialize(
+                    expectedUserId = userId,
+                    serverData = initialData
+                )
+
+                loginResponse.nickname?.let(userStatsPrefs::saveNickname)
+
+                // 2. 진짜 로그인 완료
+                check(SessionManager.markInitialized())
+
+                Toast.makeText(
+                    this@LoginActivity,
+                    "로그인 성공!",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                val intent = Intent(
+                    this@LoginActivity,
+                    CalendarActivity::class.java
+                )
+                intent.flags =
+                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+                startActivity(intent)
+                finish()
+
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("LoginActivity", "로그인 초기화 실패", e)
+                SessionManager.clearSession()
+                Toast.makeText(
+                    this@LoginActivity,
+                    "로그인 데이터를 준비하지 못했습니다. 다시 시도해주세요.",
+                    Toast.LENGTH_LONG
+                ).show()
+            } finally {
+                setLoginLoading(false)
+            }
         }
-        if (!SessionManager.saveSession(userId, token)) {
-            Toast.makeText(this, "로그인 정보를 저장하지 못했습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
-            return true
-        }
-        LocalDataOwnerPrefs.beginAccountSwitch(applicationContext)
-        loginResponse.nickname?.let(userStatsPrefs::saveNickname)
-        InitialSyncScheduler.ensureScheduled(applicationContext, replace = true)
-        Toast.makeText(this, "로그인 성공!", Toast.LENGTH_SHORT).show()
-        val intent = Intent(this, CalendarActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        finish()
+
         return true
+    }
+    private fun setLoginLoading(isLoading: Boolean) {
+        binding.loginButton.isEnabled = !isLoading
+        binding.googleLoginButton.isEnabled = !isLoading
+        binding.signupText.isEnabled = !isLoading
+        binding.skipText.isEnabled = !isLoading
+
+        if (isLoading) {
+            binding.loadingOverlay.visibility = View.VISIBLE
+            binding.loadingGifView.visibility = View.VISIBLE
+
+            Glide.with(this)
+                .asGif()
+                .load(R.drawable.loading_animation)
+                .into(binding.loadingGifView)
+        } else {
+            binding.loadingOverlay.visibility = View.GONE
+            binding.loadingGifView.visibility = View.GONE
+
+            Glide.with(this).clear(binding.loadingGifView)
+        }
     }
 }

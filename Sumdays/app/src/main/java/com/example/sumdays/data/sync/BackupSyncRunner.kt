@@ -15,6 +15,7 @@
     import kotlinx.coroutines.withContext
     import java.io.IOException
     import android.net.Uri
+    import com.example.sumdays.data.PrefManager
     import com.example.sumdays.settings.prefs.ProfileImagePrefs
     import com.google.gson.Gson
     import okhttp3.MultipartBody
@@ -40,12 +41,11 @@
                 val userId = SessionManager.getUserId()
                 val token = SessionManager.getToken()
                     ?: return@withContext BackupSyncResult(false, "token_error", "token이 유효하지 않음")
-                if (!LocalDataOwnerPrefs.isReadyFor(context.applicationContext, userId)) {
-                    InitialSyncScheduler.ensureScheduled(context)
+                if (userId < 0 || !SessionManager.isInitialized()) {
                     return@withContext BackupSyncResult(
                         false,
                         "account_sync_pending",
-                        "계정 데이터를 준비하고 있어요. 연결되면 자동으로 재시도합니다. 잠시 후 다시 확인해 주세요.",
+                        "로그인 데이터 초기화가 완료되지 않았습니다."
                     )
                 }
 
@@ -124,10 +124,7 @@
                         editedSummaries,
                         dailyPhotosPayloads
                     )
-                    if (
-                        SessionManager.getUserId() != userId ||
-                        !LocalDataOwnerPrefs.isReadyFor(context.applicationContext, userId)
-                    ) {
+                    if (SessionManager.getUserId() != userId) {
                         return@withContext BackupSyncResult(
                             false,
                             "account_changed",
@@ -158,8 +155,7 @@
                     }
 
                     if (
-                        SessionManager.getUserId() != userId ||
-                        !LocalDataOwnerPrefs.isReadyFor(context.applicationContext, userId)
+                        SessionManager.getUserId() != userId
                     ) {
                         return@withContext BackupSyncResult(
                             false,
@@ -169,10 +165,7 @@
                     }
 
                     db.withTransaction {
-                        if (
-                            SessionManager.getUserId() != userId ||
-                            !LocalDataOwnerPrefs.isReadyFor(context.applicationContext, userId)
-                        ) {
+                        if (SessionManager.getUserId() != userId) {
                             throw AccountChangedException()
                         }
 
@@ -201,10 +194,7 @@
                             }
                         }
 
-                        if (
-                            SessionManager.getUserId() != userId ||
-                            !LocalDataOwnerPrefs.isReadyFor(context.applicationContext, userId)
-                        ) {
+                        if (SessionManager.getUserId() != userId) {
                             throw AccountChangedException()
                         }
                     }
@@ -216,7 +206,7 @@
                         withContext(NonCancellable) {
                             // 1. Room 초기화
                             db.withTransaction {
-                                if (SessionManager.getUserId() != userId || !LocalDataOwnerPrefs.isReadyFor(context, userId)) {
+                                if (SessionManager.getUserId() != userId) {
                                     throw AccountChangedException()
                                 }
                                 if (hasPendingChanges(db)) throw PendingChangesException()
@@ -227,14 +217,13 @@
                             }
 
                             // 2. Pref 초기화
-                            // TODO : 다른 Pref 초기화해야함
-                            LocalDataOwnerPrefs.clear(context)
-                            ProfileImagePrefs.clear(context)
+                            PrefManager.resetLocalPrefs(context)
+                            PrefManager.resetServerPrefs(context)
                             SessionManager.clearSession()
 
 
                             // 3. 미완료 작업 종료
-                            WorkManager.getInstance(context).cancelAllWorkByTag(InitialSyncWorker.accountWorkTag(userId))
+                            WorkManager.getInstance(context).cancelAllWorkByTag(BackupWorker.accountWorkTag(userId))
                         }
                     }
 

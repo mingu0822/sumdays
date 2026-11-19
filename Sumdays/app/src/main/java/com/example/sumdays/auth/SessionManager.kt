@@ -36,6 +36,8 @@ object SessionManager {
     private lateinit var keyStore: KeyStore
     private var applicationContext: Context? = null
 
+    // 데이터 초기화 여부
+    private const val KEY_IS_INIT = "is_init"
     /**
      * 이 함수를 Application 클래스나 MainActivity의 onCreate에서 최초 한 번만 호출해야 함
      */
@@ -92,14 +94,17 @@ object SessionManager {
             val encryptedTokenString = Base64.encodeToString(encryptedTokenBytes, Base64.DEFAULT)
             val ivString = Base64.encodeToString(iv, Base64.DEFAULT)
 
-            sharedPreferences.edit().apply {
-                putInt(KEY_USER_ID, userId)
-                putString(ENCRYPTED_AUTH_TOKEN, encryptedTokenString)
-                putString(ENCRYPTION_IV, ivString)
-                apply()
+            val saved = sharedPreferences.edit()
+                .putInt(KEY_USER_ID, userId)
+                .putString(ENCRYPTED_AUTH_TOKEN, encryptedTokenString)
+                .putString(ENCRYPTION_IV, ivString)
+                .putBoolean(KEY_IS_INIT, false)
+                .commit()
+
+            if (saved) {
+                applicationContext?.let(AccountInventory::onSessionChanged)
             }
-            applicationContext?.let(AccountInventory::onSessionChanged)
-            true
+            saved
         } catch (e: Exception) {
             e.printStackTrace()
             false
@@ -156,6 +161,17 @@ object SessionManager {
         sharedPreferences.edit().clear().apply()
         applicationContext?.let(AccountInventory::onSessionChanged)
     }
+
+
+
+    fun isInitialized(): Boolean =
+        sharedPreferences.getBoolean(KEY_IS_INIT, false)
+
+    fun markInitialized(): Boolean =
+        sharedPreferences.edit()
+            .putBoolean(KEY_IS_INIT, true)
+            .commit()
+
 }
 /*
 ```

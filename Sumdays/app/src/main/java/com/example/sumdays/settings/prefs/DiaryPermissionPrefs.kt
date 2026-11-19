@@ -1,6 +1,7 @@
 package com.example.sumdays.settings.prefs
 
 import android.content.Context
+import androidx.core.content.edit
 
 object DiaryPermissionPrefs {
 
@@ -19,5 +20,9 @@ object DiaryPermissionPrefs {
     fun getMode(context: Context): Int {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         return prefs.getInt(KEY_DEFAULT_MODE, MODE_ASK)
+    }
+    fun clear(context: Context) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit { clear() }
     }
 }

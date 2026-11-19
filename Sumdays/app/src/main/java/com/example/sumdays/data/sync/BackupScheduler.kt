@@ -39,9 +39,9 @@ object BackupScheduler {
         val userId = SessionManager.getUserId()
         if (userId < 0) return
         val request = OneTimeWorkRequestBuilder<BackupWorker>()
-            .setInputData(workDataOf(InitialSyncWorker.KEY_EXPECTED_USER_ID to userId))
+            .setInputData(workDataOf(BackupWorker.KEY_EXPECTED_USER_ID to userId))
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
-            .addTag(InitialSyncWorker.accountWorkTag(userId))
+            .addTag(BackupWorker.accountWorkTag(userId))
             .build()
         // Appending keeps edits made during an upload from losing their next run.
         WorkManager.getInstance(context).enqueueUniqueWork(

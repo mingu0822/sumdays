@@ -10,7 +10,7 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.sync.BackupSyncRunner
-import com.example.sumdays.data.sync.InitialSyncWorker
+import com.example.sumdays.data.sync.BackupWorker
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.shop.PointPrefs
 import java.util.concurrent.TimeUnit
@@ -214,7 +214,7 @@ object MissionEventReporter {
                     .build()
             )
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
-            .addTag(InitialSyncWorker.accountWorkTag(userId))
+            .addTag(BackupWorker.accountWorkTag(userId))
             .build()
 
         WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(

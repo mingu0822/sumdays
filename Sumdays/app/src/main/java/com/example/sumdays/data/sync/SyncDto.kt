@@ -19,23 +19,25 @@ data class SyncFetchResponse(
     val dailyEntry: List<DailyEntryPayload>,
     val weekSummary: List<WeekSummaryPayload>,
     val userStyle: List<UserStylePayload>,
-    val profile: ProfilePayload? = null
+    val prefs: PreferencesPayload? = null
 )
-@Parcelize
-data class ProfilePayload(
-    val mode: String, // "AVATAR" or "PHOTO"
-    val faceId: Int? = null,
-    val eyesId: Int? = null,
-    val mouthId: Int? = null,
-    val accessoryId: Int? = null,
-    val imageUrl: String? = null
-): Parcelable
+
+
 // ------------------ 삭제 데이터 (ID 리스트만) ------------------
 data class DeletedPayload(
     val memo: List<Int>?,
     val userStyle: List<Long>?,
     val dailyEntry: List<String>?,
     val weekSummary: List<String>?
+)
+// ------------------ Memo 데이터 ------------------
+data class MemoPayload(
+    val room_id: Int,
+    val content: String?,
+    val timestamp: String?,
+    val date: String,
+    val memo_order: Int,
+    val type: String?
 )
 
 // ------------------ 수정/생성 데이터 (객체 리스트) ------------------
@@ -45,16 +47,6 @@ data class EditedPayload(
     val dailyEntry: List<DailyEntryPayload>?,
     val dailyPhotos: List<DailyPhotosPayload>?,
     val weekSummary: List<WeekSummaryPayload>?
-)
-
-// ------------------ Memo 데이터 ------------------
-data class MemoPayload(
-    val room_id: Int,
-    val content: String?,
-    val timestamp: String?,
-    val date: String,
-    val memo_order: Int,
-    val type: String?
 )
 
 // ------------------ DailyEntry 데이터 ------------------

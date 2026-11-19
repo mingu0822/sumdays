@@ -1,0 +1,3323 @@
+﻿Total files: 29
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\CalendarActivity.kt ==========
+package com.example.sumdays
+
+import android.animation.ObjectAnimator
+import android.app.Activity
+import android.content.Intent
+import android.content.SharedPreferences
+import android.os.Build
+import android.os.Bundle
+import android.view.GestureDetector
+import android.view.Gravity
+import android.view.MotionEvent
+import android.view.View
+import android.widget.Button
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.NumberPicker
+import android.widget.TextView
+import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
+import androidx.core.view.GestureDetectorCompat
+import androidx.lifecycle.LiveData
+import androidx.viewpager2.widget.ViewPager2
+import com.example.sumdays.alchemy.AlchemySelectionManager
+import com.example.sumdays.calendar.CalendarLanguage
+import com.example.sumdays.calendar.MonthAdapter
+import com.example.sumdays.customize.FoxPrefs
+import com.example.sumdays.data.sync.BackupScheduler
+import com.example.sumdays.data.viewModel.CalendarViewModel
+import com.example.sumdays.shop.AllThemeMap
+import com.example.sumdays.theme.FoxRepository
+import com.example.sumdays.theme.Theme
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
+import com.example.sumdays.ui.component.NavBarController
+import com.example.sumdays.ui.component.NavSource
+import com.example.sumdays.utils.setupEdgeToEdge
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.jakewharton.threetenabp.AndroidThreeTen
+import org.threeten.bp.LocalDate
+import org.threeten.bp.YearMonth
+import org.threeten.bp.format.DateTimeFormatter
+import org.threeten.bp.temporal.ChronoUnit
+import java.util.Locale
+import kotlin.math.abs
+
+class CalendarActivity : AppCompatActivity() {
+
+    private lateinit var calendarViewPager: ViewPager2
+    private lateinit var tvMonthYear: TextView
+    private lateinit var monthAdapter: MonthAdapter
+    private lateinit var btnPrevMonth: ImageButton
+    private lateinit var btnNextMonth: ImageButton
+    private lateinit var btnSetting: ImageButton
+
+    private lateinit var btnSearch: ImageButton
+    private lateinit var btnTemp: ImageButton
+    private lateinit var navBarController: NavBarController
+    private lateinit var rootLayout: ConstraintLayout
+
+    private lateinit var swipeUpAnimator: ObjectAnimator
+
+    private val viewModel: CalendarViewModel by viewModels()
+
+    var currentStatusMap: Map<String, Pair<Boolean, String?>> = emptyMap()
+    private var currentMonthLiveData: LiveData<Map<String, Pair<Boolean, String?>>>? = null
+    private var currentLanguage: CalendarLanguage = CalendarLanguage.KOREAN
+
+    private val today: LocalDate by lazy { LocalDate.now() }
+    private val CENTER_POSITION = Int.MAX_VALUE / 2
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        ensureDefaultOwned()
+        updateOwned()
+        setContentView(R.layout.activity_calendar)
+        AndroidThreeTen.init(this)
+
+        FoxPrefs.loadAll(this)
+        AlchemySelectionManager.restorePendingSelection(this)
+
+        calendarViewPager = findViewById(R.id.calendarViewPager)
+        tvMonthYear = findViewById(R.id.tv_month_year)
+        btnPrevMonth = findViewById(R.id.btn_prev_month)
+        btnNextMonth = findViewById(R.id.btn_next_month)
+        btnSetting = findViewById(R.id.setting_menu)
+        btnSearch = findViewById(R.id.search_btn)
+        btnTemp = findViewById(R.id.btn_temp)
+        rootLayout = findViewById(R.id.root_layout)
+
+        navBarController = NavBarController(this)
+        navBarController.setNavigationBar(NavSource.CALENDAR)
+
+        setCustomCalendar()
+        applyThemeModeSettings()
+        setupEdgeToEdge(rootLayout)
+        setupSwipeUpGesture()
+        setupSwipeUpHint()
+
+        tvMonthYear.setOnClickListener {
+            showYearMonthPicker()
+        }
+
+        btnSetting.setOnClickListener {
+            val intent = Intent(this@CalendarActivity, SettingActivity::class.java)
+            startActivity(intent)
+        }
+
+        btnSearch.setOnClickListener {
+            val intent = Intent(this@CalendarActivity, SearchActivity::class.java)
+            startActivity(intent)
+        }
+
+        btnTemp.setOnClickListener {
+            BackupScheduler.triggerManualBackup(this)
+        }
+
+
+
+
+
+
+        val pref: SharedPreferences = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE)
+        val checkFirst = pref.getBoolean("checkFirst", false)
+
+        if (!checkFirst) {
+            pref.edit().putBoolean("checkFirst", true).apply()
+            val intent = Intent(this, TutorialActivity::class.java)
+            startActivity(intent)
+        }
+    }
+
+    private fun ensureDefaultOwned() {
+
+        val themeKey = ThemePrefs.getTheme(this)
+
+        AllThemeMap.allThemeMap[themeKey]?.isOwned = true
+    }
+
+    private fun getCurrentThemeOrNull(): Theme? {
+        ThemeRepository.updateOwned()
+
+        val themeKey = ThemePrefs.getTheme(this)
+
+        return ThemeRepository.ownedThemes[themeKey]
+            ?: ThemeRepository.allThemeMap[themeKey]
+    }
+
+    fun updateOwned(){
+        ThemeRepository.updateOwned()
+        FoxRepository.updateOwned()
+    }
+
+    /**
+     * CalendarActivity 전체 화면에 테마 적용
+     */
+    fun applyThemeModeSettings() {
+        val currentTheme = getCurrentThemeOrNull() ?: return
+
+        rootLayout.setBackgroundResource(currentTheme.backgroundColor)
+
+        btnPrevMonth.setImageResource(currentTheme.backIcon)
+        btnNextMonth.setImageResource(currentTheme.forwardIcon)
+        //btnSearch.setImageResource(currentTheme.searchIcon)
+    }
+
+    /**
+     * DayAdapter에서 각 날짜 셀 배경에 테마 적용할 때 사용
+     * activity.applyThemeModeSettings(itemView) 형태로 호출
+     */
+    fun applyThemeModeSettings(targetView: View) {
+        val currentTheme = getCurrentThemeOrNull() ?: return
+        targetView.setBackgroundResource(currentTheme.backgroundColor)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun setCustomCalendar() {
+        monthAdapter = MonthAdapter(activity = this)
+        calendarViewPager.adapter = monthAdapter
+
+        val recyclerView =
+            calendarViewPager.getChildAt(0) as? androidx.recyclerview.widget.RecyclerView
+        recyclerView?.itemAnimator = null
+
+        val headerLayout = findViewById<LinearLayout>(R.id.day_of_week_header)
+        headerLayout.removeAllViews()
+
+        val dayNamesKOR = listOf("일", "월", "화", "수", "목", "금", "토")
+        val dayNamesENG = listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
+        val dayNames =
+            if (currentLanguage == CalendarLanguage.KOREAN) dayNamesKOR else dayNamesENG
+
+        val currentTheme = getCurrentThemeOrNull()
+
+        for (dayName in dayNames) {
+            val tv = TextView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1.0f
+                )
+                gravity = Gravity.CENTER
+                text = dayName
+
+                setTextColor(
+                    when (dayName) {
+                        "일", "SUN" -> ContextCompat.getColor(
+                            this@CalendarActivity,
+                            android.R.color.holo_red_dark
+                        )
+
+                        "토", "SAT" -> ContextCompat.getColor(
+                            this@CalendarActivity,
+                            android.R.color.holo_blue_dark
+                        )
+
+                        else -> currentTheme?.themeTextColorSpecialA
+                            ?: ContextCompat.getColor(
+                                this@CalendarActivity,
+                                android.R.color.black
+                            )
+                    }
+                )
+            }
+
+            //headerLayout.addView(tv)
+        }
+
+        calendarViewPager.setCurrentItem(CENTER_POSITION, false)
+
+        calendarViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                updateMonthYearTitle(position)
+                observeMonthlyData(position)
+            }
+        })
+
+        btnPrevMonth.setOnClickListener {
+            val currentItem = calendarViewPager.currentItem
+            calendarViewPager.setCurrentItem(currentItem - 1, true)
+        }
+
+        btnNextMonth.setOnClickListener {
+            val currentItem = calendarViewPager.currentItem
+            calendarViewPager.setCurrentItem(currentItem + 1, true)
+        }
+
+        updateMonthYearTitle(CENTER_POSITION)
+        observeMonthlyData(CENTER_POSITION)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun observeMonthlyData(position: Int) {
+        val targetMonth = getTargetMonthForPosition(position)
+        val fromDate = targetMonth.atDay(1).toString()
+        val toDate = targetMonth.atEndOfMonth().toString()
+
+        currentMonthLiveData?.removeObservers(this)
+        currentMonthLiveData = viewModel.getMonthlyEmojis(fromDate, toDate)
+
+        currentMonthLiveData?.observe(this) { map ->
+            currentStatusMap = map
+            monthAdapter.notifyItemChanged(calendarViewPager.currentItem)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun updateMonthYearTitle(position: Int) {
+        val targetMonth = getTargetMonthForPosition(position)
+
+        val (pattern, locale) = when (currentLanguage) {
+            CalendarLanguage.KOREAN ->
+                Pair(R.string.month_year_format, Locale.KOREAN)
+
+            CalendarLanguage.ENGLISH ->
+                Pair(R.string.month_year_format_english, Locale.US)
+        }
+
+        val formatter = DateTimeFormatter.ofPattern(getString(pattern), locale)
+        tvMonthYear.text = targetMonth.format(formatter)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun getTargetMonthForPosition(position: Int): YearMonth {
+        val baseYearMonth = YearMonth.now()
+        val monthDiff = position - CENTER_POSITION
+        return baseYearMonth.plusMonths(monthDiff.toLong())
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun showYearMonthPicker() {
+        val dialog = BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.dialog_year_month_picker, null)
+        dialog.setContentView(view)
+
+        val npYear = view.findViewById<NumberPicker>(R.id.np_year)
+        val npMonth = view.findViewById<NumberPicker>(R.id.np_month)
+        val btnConfirm = view.findViewById<Button>(R.id.btn_confirm)
+
+        val currentPosition = calendarViewPager.currentItem
+        val currentTarget = getTargetMonthForPosition(currentPosition)
+
+        npYear.minValue = 2000
+        npYear.maxValue = 2099
+        npYear.value = currentTarget.year
+        npYear.wrapSelectorWheel = false
+
+        npMonth.minValue = 1
+        npMonth.maxValue = 12
+        npMonth.value = currentTarget.monthValue
+        npMonth.wrapSelectorWheel = true
+
+        btnConfirm.setOnClickListener {
+            val selectedYear = npYear.value
+            val selectedMonth = npMonth.value
+
+            val targetYearMonth = YearMonth.of(selectedYear, selectedMonth)
+            val baseYearMonth = YearMonth.now()
+
+            val monthDiff = ChronoUnit.MONTHS.between(baseYearMonth, targetYearMonth)
+            val newPosition = CENTER_POSITION + monthDiff.toInt()
+
+            calendarViewPager.setCurrentItem(newPosition, false)
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (::swipeUpAnimator.isInitialized) swipeUpAnimator.cancel()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateOwned()
+        applyThemeModeSettings()
+        monthAdapter.notifyDataSetChanged()
+        if (::swipeUpAnimator.isInitialized) swipeUpAnimator.start()
+    }
+
+    private fun setupSwipeUpGesture() {
+        val detector = GestureDetectorCompat(this,
+            object : GestureDetector.SimpleOnGestureListener() {
+                override fun onFling(
+                    e1: MotionEvent?, e2: MotionEvent,
+                    velocityX: Float, velocityY: Float
+                ): Boolean {
+                    val start = e1 ?: return false
+                    val dy = e2.y - start.y
+                    val dx = e2.x - start.x
+                    if (dy < -100f && abs(dy) > abs(dx) * 1.5f && velocityY < -300f) {
+                        startActivity(Intent(this@CalendarActivity, StatisticsWidgetActivity::class.java))
+                        overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up)
+                        return true
+                    }
+                    return false
+                }
+
+                override fun onDown(e: MotionEvent) = true
+            })
+
+        rootLayout.setOnTouchListener { v, event ->
+            val consumed = detector.onTouchEvent(event)
+            if (!consumed) v.performClick()
+            consumed
+        }
+    }
+
+    private fun setupSwipeUpHint() {
+        val pill = findViewById<View>(R.id.swipe_up_hint_pill)
+        swipeUpAnimator = ObjectAnimator.ofFloat(pill, "translationY", 0f, -24f).apply {
+            duration = 600
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.REVERSE
+            interpolator = android.view.animation.AccelerateDecelerateInterpolator()
+        }
+        pill.postDelayed({ swipeUpAnimator.start() }, 500)
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\MyApplication.kt ==========
+package com.example.sumdays
+
+import android.app.Application
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatDelegate
+import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.data.repository.DailyEntryRepository
+import com.example.sumdays.data.repository.MemoRepository
+import com.example.sumdays.data.repository.WeekSummaryRepository
+import com.example.sumdays.data.sync.BackupScheduler
+import com.example.sumdays.data.sync.LocalDataOwnerPrefs
+import com.example.sumdays.shop.PointPrefs
+import com.example.sumdays.statistics.WeekSummaryScheduler
+import com.example.sumdays.test.TestConfig
+import com.example.sumdays.test.TestDataSeeder
+import com.jakewharton.threetenabp.AndroidThreeTen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+//데이터베이스와 저장소(Repository)를 초기화, 싱글톤 패턴을 위한 애플리케이션 클래스
+open class MyApplication : Application() {
+    // Lazy를 사용하여 데이터베이스와 리포지토리를 필요할 때만 초기화
+    internal val database by lazy { AppDatabase.getDatabase(this) }
+    val repository by lazy { MemoRepository(database.memoDao()) }
+
+    // 통계 화면용 Repository 초기화
+    val weekSummaryRepository by lazy { WeekSummaryRepository(database.weekSummaryDao()) }
+
+    val dailyEntryRepository by lazy { DailyEntryRepository(database.dailyEntryDao()) }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onCreate() {
+        super.onCreate()
+        SessionManager.init(applicationContext)
+        PointPrefs.prepareLegacyMigration(applicationContext)
+        LocalDataOwnerPrefs.prepareForCurrentSession(applicationContext)
+        com.example.sumdays.data.sync.InitialSyncScheduler.ensureScheduled(applicationContext)
+        AndroidThreeTen.init(this)
+        BackupScheduler.scheduleAutoBackup(this)
+        WeekSummaryScheduler.scheduleWeeklyTask(this)
+
+        if (TestConfig.USE_TEST_WEEK_SUMMARIES) {
+            CoroutineScope(Dispatchers.IO).launch {
+                TestDataSeeder.seed(database.weekSummaryDao())
+            }
+        }
+
+
+        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val isDark = prefs.getBoolean("dark_mode", false)
+
+        val mode = if (isDark) {
+            AppCompatDelegate.MODE_NIGHT_YES
+        } else {
+            AppCompatDelegate.MODE_NIGHT_NO
+        }
+
+        AppCompatDelegate.setDefaultNightMode(mode)
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\ads\PendingAdRewardStore.kt ==========
+package com.example.sumdays.ads
+
+import android.content.Context
+import com.example.sumdays.auth.SessionManager
+
+object PendingAdRewardStore {
+    private const val PREF_NAME = "pending_ad_reward"
+
+    fun save(context: Context, rewardId: String) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(key(), rewardId)
+            .apply()
+    }
+
+    fun get(context: Context): String? =
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getString(key(), null)
+
+    fun clear(context: Context, rewardId: String) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        if (prefs.getString(key(), null) == rewardId) {
+            prefs.edit().remove(key()).apply()
+        }
+    }
+
+    private fun key(): String = "user_${SessionManager.getUserId()}"
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\alchemy\AlchemyRepository.kt ==========
+package com.example.sumdays.alchemy
+
+import android.content.Context
+import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.customize.AllFoxMap
+import com.example.sumdays.customize.CompleteFox
+import com.example.sumdays.customize.FoxPrefs
+import com.example.sumdays.network.ApiClient
+import com.example.sumdays.shop.ItemPrefs
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import java.util.UUID
+
+data class ConsumeItemsRequest(val requestId: String, val itemIds: List<Int>)
+data class InventoryCount(val itemId: Int, val quantity: Int)
+data class ConsumeItemsResponse(val duplicate: Boolean, val items: List<InventoryCount>)
+private data class PendingAlchemy(val request: ConsumeItemsRequest, val fox: CompleteFox)
+
+/** Persist the recipe AND its resulting fox before spending materials.
+ * Recovery uses the same request/fox ID, including after process death.
+ */
+class AlchemyRepository(context: Context) {
+    private val context = context.applicationContext
+    private val prefs = this.context.getSharedPreferences("pending_alchemy", Context.MODE_PRIVATE)
+    private val gson = Gson()
+
+    fun hasPending(): Boolean = prefs.contains("user_${SessionManager.getUserId()}")
+
+    suspend fun complete(createDraft: ((Int) -> CompleteFox)? = null): CompleteFox = operationMutex.withLock {
+        val userId = SessionManager.getUserId()
+        val token = SessionManager.getToken()
+        check(userId >= 0 && token != null) { "로그인이 필요합니다." }
+        val key = "user_$userId"
+        val pending = prefs.getString(key, null)?.let { gson.fromJson(it, PendingAlchemy::class.java) }
+            ?: run {
+                val fox = withContext(Dispatchers.Main.immediate) {
+                    checkAccount(userId)
+                    // Reserve an ID across unfinished drafts too (including another test account).
+                    val reservedIds = prefs.all.values.filterIsInstance<String>().mapNotNull {
+                        runCatching { gson.fromJson(it, PendingAlchemy::class.java).fox.id }.getOrNull()
+                    }
+                    val nextId = Math.addExact((AllFoxMap.allFoxMap.keys + reservedIds).maxOrNull() ?: 0, 1)
+                    checkNotNull(createDraft) { "확인할 조합이 없습니다." }.invoke(nextId)
+                }
+                val ids = listOfNotNull(fox.glasses, fox.hat, fox.scarf, fox.accessory).sorted()
+                check(ids.isNotEmpty()) { "아이템을 선택해 주세요." }
+                PendingAlchemy(ConsumeItemsRequest(UUID.randomUUID().toString(), ids), fox).also {
+                    withContext(Dispatchers.IO) {
+                        check(prefs.edit().putString(key, gson.toJson(it)).commit()) { "조합 요청을 저장하지 못했습니다." }
+                    }
+                }
+            }
+        checkAccount(userId)
+        val response = ApiClient.api.consumeShopItems("Bearer $token", pending.request)
+        checkAccount(userId)
+        if (!response.isSuccessful) {
+            val body = runCatching { gson.fromJson(response.errorBody()?.string(), JsonObject::class.java) }.getOrNull()
+            val code = body?.get("code")?.asString
+            // Only an explicit final rejection permits a new request. Timeouts/auth/5xx keep the draft.
+            if (code in listOf("INSUFFICIENT_ITEMS", "INVALID_CONSUMPTION", "IDEMPOTENCY_KEY_CONFLICT")) {
+                withContext(Dispatchers.IO) {
+                    check(prefs.edit().remove(key).commit()) { "조합 결과를 저장하지 못했습니다." }
+                }
+            }
+            error(body?.get("message")?.asString ?: "조합 결과를 확인하지 못했어요. 솥을 눌러 다시 확인해 주세요.")
+        }
+        val result = response.body()?.data ?: error("조합 결과가 없습니다. 다시 확인해 주세요.")
+        withContext(Dispatchers.Main.immediate) {
+            checkAccount(userId)
+            ItemPrefs.replaceCounts(context, userId, result.items.associate { it.itemId to it.quantity })
+            // Durable local save first; reapplying this fox after a crash replaces the same ID.
+            FoxPrefs.save(context, pending.fox, durable = true)
+        }
+        withContext(Dispatchers.IO) {
+            check(prefs.edit().remove(key).commit()) { "조합 완료 기록을 저장하지 못했습니다. 다시 확인해 주세요." }
+        }
+        checkAccount(userId)
+        pending.fox
+    }
+
+    private fun checkAccount(userId: Int) {
+        check(SessionManager.getUserId() == userId) { "로그인 계정이 변경되었습니다." }
+    }
+
+    private companion object { val operationMutex = Mutex() }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\alchemy\AlchemySelectionManager.kt ==========
+package com.example.sumdays.alchemy
+
+import android.content.Context
+import com.example.sumdays.auth.AccountStorage
+import com.example.sumdays.shop.AllItemMap
+import com.example.sumdays.shop.FoxShopItem
+import com.example.sumdays.shop.ItemCategory
+import com.example.sumdays.shop.ItemPrefs
+
+/** Selection is UI state, not inventory. Cancel/rotation never refunds server items. */
+object AlchemySelectionManager {
+    private const val PREF_NAME = "alchemy_selection"
+    private const val KEY_SELECTED_IDS = "selected_item_ids"
+
+    private var owner: String? = null
+    private val selected = mutableMapOf<ItemCategory, FoxShopItem>()
+
+    private fun checkOwner() {
+        val current = AccountStorage.accountKey()
+        if (current != owner) {
+            selected.clear()
+            owner = current
+        }
+    }
+
+    /** Drop the previous account's in-memory draft after a session change. */
+    fun resetMemory() {
+        selected.clear()
+        owner = null
+    }
+
+    fun toggle(context: Context, item: FoxShopItem): List<FoxShopItem> {
+        checkOwner()
+        if (selected[item.itemCategory]?.id == item.id) selected.remove(item.itemCategory)
+        else if (ItemPrefs.getCount(context, item.id) > 0) selected[item.itemCategory] = item
+        saveSelection(context)
+        return getSelectedItems()
+    }
+
+    /** Restore draft selection after recreation without reserving or decrementing inventory. */
+    fun resumePendingSelection(context: Context) {
+        checkOwner()
+        removeLegacyDraft(context)
+        val ids = AccountStorage.preferences(context, PREF_NAME)
+            .getStringSet(KEY_SELECTED_IDS, emptySet()).orEmpty()
+        selected.clear()
+        ids.mapNotNull { it.toIntOrNull()?.let(AllItemMap.allItemMap::get) }
+            .forEach { selected[it.itemCategory] = it }
+    }
+
+    fun getSelectedItems(): List<FoxShopItem> {
+        checkOwner()
+        return selected.values.toList()
+    }
+
+    fun isSelected(item: FoxShopItem): Boolean {
+        checkOwner()
+        return selected[item.itemCategory]?.id == item.id
+    }
+
+    fun getSelected(category: ItemCategory): FoxShopItem? {
+        checkOwner()
+        return selected[category]
+    }
+
+    fun commit(context: Context) = clear(context)
+
+    fun clear(context: Context) {
+        checkOwner()
+        selected.clear()
+        AccountStorage.preferences(context, PREF_NAME).edit().remove(KEY_SELECTED_IDS).apply()
+        removeLegacyDraft(context)
+    }
+
+    fun restorePendingSelection(context: Context) {
+        // Old builds reserved locally. Never add that amount to authoritative server inventory.
+        clear(context)
+    }
+
+    private fun saveSelection(context: Context) {
+        AccountStorage.preferences(context, PREF_NAME)
+            .edit()
+            .putStringSet(KEY_SELECTED_IDS, selected.values.map { it.id.toString() }.toSet())
+            .apply()
+    }
+
+    /** Drafts from builds before per-account files lived in one shared file. */
+    private fun removeLegacyDraft(context: Context) {
+        val legacy = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        if (legacy.all.isNotEmpty()) legacy.edit().clear().apply()
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\auth\AccountInventory.kt ==========
+package com.example.sumdays.auth
+
+import android.content.Context
+import com.example.sumdays.alchemy.AlchemySelectionManager
+import com.example.sumdays.customize.FoxPrefs
+import com.example.sumdays.shop.AllItemMap
+import com.example.sumdays.shop.AllThemeMap
+import com.example.sumdays.shop.ItemPrefs
+import com.example.sumdays.shop.OwnedPrefs
+import com.example.sumdays.theme.FoxRepository
+import com.example.sumdays.theme.ThemeRepository
+
+/** Replaces the previous user's in-memory inventory after a session change. */
+object AccountInventory {
+    private var loadedAccount: String? = null
+
+    fun onSessionChanged(context: Context) {
+        val account = AccountStorage.accountKey()
+        if (loadedAccount == account) return
+        loadedAccount = account
+        AlchemySelectionManager.resetMemory()
+        refreshOwnership(context)
+        FoxPrefs.loadAll(context)
+    }
+
+    fun refreshOwnership(context: Context) {
+        AllThemeMap.allThemeMap.forEach { (id, theme) ->
+            theme.isOwned = OwnedPrefs.isOwned(context, id)
+        }
+        AllItemMap.allItemMap.forEach { (id, item) ->
+            item.count = ItemPrefs.getCount(context, id)
+            item.isOwned = item.count > 0
+        }
+        ThemeRepository.updateOwned()
+        FoxRepository.updateOwned()
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\auth\AccountStorage.kt ==========
+package com.example.sumdays.auth
+
+import android.content.Context
+import android.content.SharedPreferences
+import java.io.File
+
+/** Local inventory belongs to the signed-in user; guest data has its own namespace. */
+object AccountStorage {
+    fun accountKey(): String = accountKey(SessionManager.getUserId())
+
+    fun accountKey(userId: Int): String = if (userId >= 0) "user_$userId" else "guest"
+
+    fun preferences(context: Context, name: String): SharedPreferences =
+        context.getSharedPreferences("${name}__${accountKey()}", Context.MODE_PRIVATE)
+
+    /** Server sync can finish after an account switch, so it writes to the account it started for. */
+    fun preferences(context: Context, name: String, userId: Int): SharedPreferences =
+        context.getSharedPreferences("${name}__${accountKey(userId)}", Context.MODE_PRIVATE)
+
+    fun directory(context: Context, name: String): File =
+        context.getDir("${name}__${accountKey()}", Context.MODE_PRIVATE)
+
+    /** Resolve against the actual private directory, including symlinks and '..'. */
+    fun ownedFile(context: Context, directoryName: String, path: String?): File? {
+        if (path.isNullOrBlank()) return null
+        return try {
+            val file = File(path).canonicalFile
+            file.takeIf { it.parentFile == directory(context, directoryName).canonicalFile }
+        } catch (_: java.io.IOException) {
+            null
+        }
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\auth\InventoryOwner.kt ==========
+package com.example.sumdays.auth
+
+import android.app.Activity
+import android.os.Bundle
+
+/** Keeps restored screens and delayed dialog callbacks attached to their original account. */
+class InventoryOwner(state: Bundle? = null) {
+    private val account = state?.getString(STATE_KEY) ?: AccountStorage.accountKey()
+
+    val isCurrent: Boolean
+        get() = account == AccountStorage.accountKey()
+
+    fun requireCurrent(activity: Activity): Boolean {
+        if (!isCurrent) activity.finish()
+        return isCurrent && !activity.isFinishing && !activity.isDestroyed
+    }
+
+    fun saveState(state: Bundle) {
+        state.putString(STATE_KEY, account)
+    }
+
+    private companion object {
+        const val STATE_KEY = "inventory_owner"
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\auth\SessionManager.kt ==========
+package com.example.sumdays.auth
+
+import android.content.Context
+import android.content.SharedPreferences
+import android.os.Build
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
+import android.util.Base64
+import java.security.KeyStore
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
+
+/**
+ * MasterKey 및 EncryptedSharedPreferences를 전혀 사용하지 않는 새로운 세션 관리자입니다.
+ * AndroidKeyStore를 직접 사용하여 암호화 키를 관리하고, Cipher API로 데이터를 암호화/복호화합니다.
+ * 이 방식은 androidx.security:security-crypto 라이브러리에 대한 의존성이 없습니다.
+ */
+object SessionManager {
+
+    private const val PREFS_NAME = "sumdays_keystore_prefs"
+    private const val KEY_USER_ID = "user_id"
+
+    // 암호화된 데이터를 저장할 Key
+    private const val ENCRYPTED_AUTH_TOKEN = "encrypted_auth_token"
+    // 암호화에 사용된 IV(Initialization Vector)를 저장할 Key
+    private const val ENCRYPTION_IV = "encryption_iv"
+
+    // AndroidKeyStore 관련 상수
+    private const val ANDROID_KEYSTORE = "AndroidKeyStore"
+    private const val KEY_ALIAS = "SumdaysKeyAlias"
+    private const val TRANSFORMATION = "AES/GCM/NoPadding"
+
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var keyStore: KeyStore
+    private var applicationContext: Context? = null
+
+    /**
+     * 이 함수를 Application 클래스나 MainActivity의 onCreate에서 최초 한 번만 호출해야 함
+     */
+    fun init(context: Context) {
+        applicationContext = context.applicationContext
+        sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+        keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply {
+            load(null)
+        }
+
+        if (!keyStore.containsAlias(KEY_ALIAS)) {
+            generateSecretKey()
+        }
+        AccountInventory.onSessionChanged(context.applicationContext)
+    }
+
+    private fun generateSecretKey() {
+        val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
+
+        val parameterSpec = KeyGenParameterSpec.Builder(
+            KEY_ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        ).apply {
+            setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            setKeySize(256) // 256비트 AES 키
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                setUserAuthenticationRequired(false)
+            }
+        }.build()
+
+        keyGenerator.init(parameterSpec)
+        keyGenerator.generateKey()
+    }
+
+    private fun getSecretKey(): SecretKey {
+        return keyStore.getKey(KEY_ALIAS, null) as SecretKey
+    }
+
+    /**
+     * 로그인 성공 시 사용자 정보와 인증 토큰을 암호화하여 저장
+     */
+    fun saveSession(userId: Int, token: String): Boolean {
+        if (userId < 0 || token.isBlank()) return false
+        return try {
+            val secretKey = getSecretKey()
+            val cipher = Cipher.getInstance(TRANSFORMATION)
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+
+            val iv = cipher.iv
+            val encryptedTokenBytes = cipher.doFinal(token.toByteArray(Charsets.UTF_8))
+
+            val encryptedTokenString = Base64.encodeToString(encryptedTokenBytes, Base64.DEFAULT)
+            val ivString = Base64.encodeToString(iv, Base64.DEFAULT)
+
+            sharedPreferences.edit().apply {
+                putInt(KEY_USER_ID, userId)
+                putString(ENCRYPTED_AUTH_TOKEN, encryptedTokenString)
+                putString(ENCRYPTION_IV, ivString)
+                apply()
+            }
+            applicationContext?.let(AccountInventory::onSessionChanged)
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    /**
+     * 저장된 인증 토큰을 복호화하여 가져옴
+     */
+    fun getToken(): String? {
+        val encryptedTokenString = sharedPreferences.getString(ENCRYPTED_AUTH_TOKEN, null)
+        val ivString = sharedPreferences.getString(ENCRYPTION_IV, null)
+
+        if (encryptedTokenString == null || ivString == null) {
+            return null
+        }
+
+        return try {
+            val encryptedTokenBytes = Base64.decode(encryptedTokenString, Base64.DEFAULT)
+            val iv = Base64.decode(ivString, Base64.DEFAULT)
+
+            val secretKey = getSecretKey()
+            val cipher = Cipher.getInstance(TRANSFORMATION)
+            val spec = GCMParameterSpec(128, iv)
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, spec)
+
+            val decryptedTokenBytes = cipher.doFinal(encryptedTokenBytes)
+            String(decryptedTokenBytes, Charsets.UTF_8)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // 복호화 실패 시 null 반환
+            null
+        }
+    }
+
+    /**
+     * 저장된 사용자 ID를 가져옴
+     */
+    fun getUserId(): Int {
+        return if (::sharedPreferences.isInitialized) sharedPreferences.getInt(KEY_USER_ID, -1) else -1
+    }
+
+    /**
+     * 로그인 상태인지 확인
+     */
+    fun isLoggedIn(): Boolean {
+        return getToken() != null
+    }
+
+    /**
+     * 로그아웃 시 저장된 모든 세션 정보를 삭제
+     */
+    fun clearSession() {
+        sharedPreferences.edit().clear().apply()
+        applicationContext?.let(AccountInventory::onSessionChanged)
+    }
+}
+/*
+```
+
+### 실제 사용 방법
+
+1.  **초기화:** 앱이 시작될 때 딱 한 번 `init()` 함수를 호출. `Application` 클래스나 앱의 첫 화면인 `MainActivity`의 `onCreate`에서 호출하는 것이 좋음
+```kotlin
+// MainActivity.kt 또는 App.kt
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    SessionManager.init(applicationContext) // 앱 실행 시 초기화
+
+    // ...
+}
+```
+
+2.  로그인 성공 시 저장: 서버로부터 로그인 성공 응답을 받으면 `saveSession`을 호출
+```kotlin
+// LoginActivity.kt - handleLogin() 내부
+// ... 로그인 API 호출 성공 후 ...
+val userId = response.body()!!.userId // 예시: 응답에 userId가 포함
+val token = response.body()!!.token   // 예시: 응답에 token이 포함
+
+// SessionManager를 통해 로그인 정보 저장
+SessionManager.saveSession(userId, token)
+
+// 메인 화면으로 이동
+// ...
+```
+
+3.  로그인 상태 확인: 앱의 시작점(예: `MainActivity`)에서 로그인 상태를 확인하고 분기 처리
+```kotlin
+// MainActivity.kt - onCreate() 내부
+if (SessionManager.isLoggedIn()) {
+    // 로그인 상태이므로 메인 컨텐츠를 보여줌
+    showMainContent()
+} else {
+    // 비로그인 상태이므로 로그인 화면으로 이동
+    val intent = Intent(this, LoginActivity::class.java)
+    startActivity(intent)
+    finish()
+}
+```
+
+4.  API 요청 시 토큰 사용: 서버 API를 호출할 때 헤더에 저장된 토큰을 추가합니다. (Retrofit Interceptor 사용 시 편리)
+```kotlin
+// Retrofit Interceptor 예시
+val token = SessionManager.getToken()
+if (token != null) {
+    request.newBuilder()
+        .addHeader("Authorization", "Bearer $token")
+        .build()
+}
+```
+
+5.  로그아웃: 로그아웃 버튼을 누르면 `clearSession`을 호출합니다.
+```kotlin
+// 설정 화면 등에서
+logoutButton.setOnClickListener {
+    SessionManager.clearSession()
+    // 로그인 화면으로 이동
+    val intent = Intent(this, LoginActivity::class.java)
+    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    startActivity(intent)
+}
+*/
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\customize\FoxBitmapRenderer.kt ==========
+package com.example.sumdays.customize
+
+import android.content.Context
+import com.example.sumdays.auth.AccountStorage
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Matrix
+import android.graphics.Paint
+import android.widget.ImageView
+import com.example.sumdays.shop.AllItemMap
+import java.io.File
+
+object FoxBitmapRenderer {
+
+    /**
+     * 전체 합성 영역이 아닌 본체 여우를 기준으로 ImageView의 배율을 맞춘다.
+     * 모자가 추가되어도 본체 얼굴의 크기와 중심은 그대로 유지된다.
+     */
+    fun displayPreview(
+        imageView: ImageView,
+        bitmap: Bitmap,
+        fox: CompleteFox,
+        baseScaleMultiplier: Float = 1f
+    ) {
+        imageView.setImageBitmap(bitmap)
+
+        // Free layouts can extend on every side: show the entire composition.
+        if (fox.placements.isNotEmpty()) {
+            imageView.scaleType = ImageView.ScaleType.FIT_CENTER
+            imageView.scaleX = 1f
+            imageView.scaleY = 1f
+            return
+        }
+
+        imageView.post {
+            if ((imageView.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap !== bitmap) return@post
+            if (imageView.width == 0 || imageView.height == 0) return@post
+
+            val baseResId = FoxBaseImage.resource(fox)
+
+            val baseBitmap = BitmapFactory.decodeResource(
+                imageView.resources,
+                baseResId
+            ) ?: return@post
+
+            val contentWidth =
+                imageView.width - imageView.paddingLeft - imageView.paddingRight
+            val contentHeight =
+                imageView.height - imageView.paddingTop - imageView.paddingBottom
+
+            if (contentWidth <= 0 || contentHeight <= 0) return@post
+
+            val baseScale = minOf(
+                contentWidth.toFloat() / baseBitmap.width,
+                contentHeight.toFloat() / baseBitmap.height
+            ) * baseScaleMultiplier
+
+            val selectedItems = listOf(
+                fox.glasses,
+                fox.hat,
+                fox.scarf,
+                fox.accessory
+            ).mapNotNull { itemId ->
+                itemId?.let(AllItemMap.allItemMap::get)
+            }
+
+            val baseLeft = -(selectedItems
+                .minOfOrNull { minOf(0f, it.offsetX) } ?: 0f)
+            val baseTop = -(selectedItems
+                .minOfOrNull { minOf(0f, it.offsetY) } ?: 0f)
+
+            val translateX =
+                (contentWidth - baseBitmap.width * baseScale) / 2f -
+                        baseLeft * baseScale
+            val translateY =
+                (contentHeight - baseBitmap.height * baseScale) / 2f -
+                        baseTop * baseScale
+
+            imageView.scaleType = ImageView.ScaleType.MATRIX
+            imageView.scaleX = 1f
+            imageView.scaleY = 1f
+            imageView.imageMatrix = Matrix().apply {
+                setScale(baseScale, baseScale)
+                postTranslate(translateX, translateY)
+            }
+        }
+    }
+
+    /**
+     * 여우 + 아이템 미리보기 Bitmap 생성
+     *
+     * offsetX / offsetY를 기준으로 모든 아이템이
+     * 잘리지 않도록 최종 Bitmap 크기를 자동으로 확장한다.
+     */
+    fun createPreview(
+        context: Context,
+        fox: CompleteFox
+    ): Bitmap {
+
+        if (fox.placements.isNotEmpty()) {
+            val composition = FoxComposition(context, fox)
+            val bounds = composition.bounds(composition.placements)
+            // Bound export memory when large accessories are enlarged and moved apart.
+            val scale = minOf(1f, 2048f / maxOf(bounds.width(), bounds.height()))
+            val result = Bitmap.createBitmap(
+                kotlin.math.ceil(bounds.width() * scale).toInt().coerceAtLeast(1),
+                kotlin.math.ceil(bounds.height() * scale).toInt().coerceAtLeast(1),
+                Bitmap.Config.ARGB_8888
+            )
+            Canvas(result).apply {
+                scale(scale, scale)
+                translate(-bounds.left, -bounds.top)
+                composition.draw(this, composition.placements)
+            }
+            return result
+        }
+
+        val baseResId = FoxBaseImage.resource(fox)
+
+        val baseBitmap = BitmapFactory.decodeResource(
+            context.resources,
+            baseResId
+        ) ?: throw IllegalStateException(
+            "여우 기본 이미지를 불러올 수 없습니다. resource=$baseResId"
+        )
+
+        // 이하 동일...
+
+        val paint = Paint(
+            Paint.ANTI_ALIAS_FLAG or
+                    Paint.FILTER_BITMAP_FLAG
+        )
+
+        // --------------------------------------------------
+        // 그릴 아이템 목록
+        // --------------------------------------------------
+
+        val itemIds = listOf(
+            fox.glasses,
+            fox.hat,
+            fox.scarf,
+            fox.accessory
+        )
+
+        val items = itemIds.mapNotNull { id ->
+            if (id == null) {
+                null
+            } else {
+                AllItemMap.allItemMap[id]
+            }
+        }
+
+        // --------------------------------------------------
+        // 선택된 장식을 포함하는 전체 영역 계산
+        // --------------------------------------------------
+
+        var minX = 0f
+        var minY = 0f
+
+        var maxX = baseBitmap.width.toFloat()
+        var maxY = baseBitmap.height.toFloat()
+
+        items.forEach { item ->
+
+            val itemBitmap = BitmapFactory.decodeResource(
+                context.resources,
+                item.imageRes
+            ) ?: return@forEach
+
+            val left = item.offsetX
+            val top = item.offsetY
+
+            val right =
+                left + itemBitmap.width
+
+            val bottom =
+                top + itemBitmap.height
+
+            minX = minOf(minX, left)
+            minY = minOf(minY, top)
+
+            maxX = maxOf(maxX, right)
+            maxY = maxOf(maxY, bottom)
+        }
+
+        // --------------------------------------------------
+        // 실제 Bitmap 크기
+        // --------------------------------------------------
+
+        val resultWidth =
+            (maxX - minX).toInt().coerceAtLeast(1)
+
+        val resultHeight =
+            (maxY - minY).toInt().coerceAtLeast(1)
+
+        val result = Bitmap.createBitmap(
+            resultWidth,
+            resultHeight,
+            Bitmap.Config.ARGB_8888
+        )
+
+        val canvas = Canvas(result)
+
+        // --------------------------------------------------
+        // offset이 음수일 경우를 위한 보정
+        // --------------------------------------------------
+
+        val canvasOffsetX = -minX
+        val canvasOffsetY = -minY
+
+        // --------------------------------------------------
+        // 기본 여우
+        // --------------------------------------------------
+
+        canvas.drawBitmap(
+            baseBitmap,
+            canvasOffsetX,
+            canvasOffsetY,
+            paint
+        )
+
+        // --------------------------------------------------
+        // 아이템
+        // --------------------------------------------------
+
+        items.forEach { item ->
+
+            val itemBitmap = BitmapFactory.decodeResource(
+                context.resources,
+                item.imageRes
+            ) ?: return@forEach
+
+            canvas.drawBitmap(
+                itemBitmap,
+                item.offsetX + canvasOffsetX,
+                item.offsetY + canvasOffsetY,
+                paint
+            )
+        }
+
+        return result
+    }
+
+
+    /**
+     * Bitmap을 파일로 저장
+     */
+    fun savePreview(
+        context: Context,
+        foxId: Int,
+        bitmap: Bitmap
+    ): String {
+
+        val directory = AccountStorage.directory(context, "fox_previews")
+
+        val file = File(
+            directory,
+            "fox_$foxId.png"
+        )
+
+        file.outputStream().use { outputStream ->
+
+            bitmap.compress(
+                Bitmap.CompressFormat.PNG,
+                100,
+                outputStream
+            )
+        }
+
+        return file.absolutePath
+    }
+
+
+    /**
+     * 저장된 미리보기 이미지 불러오기
+     */
+    fun loadPreview(
+        context: Context,
+        previewPath: String?
+    ): Bitmap? {
+        val file = AccountStorage.ownedFile(context, "fox_previews", previewPath) ?: return null
+
+        if (!file.exists())
+            return null
+
+        return BitmapFactory.decodeFile(
+            file.absolutePath
+        )
+    }
+
+
+    /**
+     * 특정 여우의 미리보기 파일 삭제
+     */
+    fun deletePreview(
+        context: Context,
+        previewPath: String?
+    ) {
+        val file = AccountStorage.ownedFile(context, "fox_previews", previewPath) ?: return
+
+        if (file.exists()) {
+            file.delete()
+        }
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\customize\FoxPrefs.kt ==========
+package com.example.sumdays.customize
+
+import android.content.Context
+import com.example.sumdays.auth.AccountStorage
+import org.json.JSONArray
+import org.json.JSONObject
+
+object FoxPrefs {
+
+    private const val PREF_NAME = "fox_prefs"
+    private const val KEY_FOXES = "foxes"
+    private var loadedAccount: String? = null
+
+    private fun ensureLoaded(context: Context) {
+        if (loadedAccount != AccountStorage.accountKey()) loadAll(context)
+    }
+
+    /**
+     * 현재 AllFoxMap 전체 저장
+     */
+    fun saveAll(context: Context, durable: Boolean = false) {
+        ensureLoaded(context)
+
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+
+        val jsonArray = JSONArray()
+
+        AllFoxMap.allFoxMap.values.forEach { fox ->
+
+            val json = JSONObject()
+
+            json.put("id", fox.id)
+            json.put("name", fox.name)
+            json.put("previewImageName", FoxBaseImage.name(fox))
+            json.put("placements", FoxItemPlacement.toJson(fox.placements))
+            json.put("foxFace", fox.foxFace ?: JSONObject.NULL)
+
+            // 실제 조합된 PNG 파일 경로
+            if (fox.previewPath != null) {
+                json.put("previewPath", fox.previewPath)
+            } else {
+                json.put("previewPath", JSONObject.NULL)
+            }
+
+            // 안경
+            if (fox.glasses != null) {
+                json.put("glasses", fox.glasses)
+            } else {
+                json.put("glasses", JSONObject.NULL)
+            }
+
+            // 모자
+            if (fox.hat != null) {
+                json.put("hat", fox.hat)
+            } else {
+                json.put("hat", JSONObject.NULL)
+            }
+
+            // 목도리
+            if (fox.scarf != null) {
+                json.put("scarf", fox.scarf)
+            } else {
+                json.put("scarf", JSONObject.NULL)
+            }
+
+            // 악세사리
+            if (fox.accessory != null) {
+                json.put("accessory", fox.accessory)
+            } else {
+                json.put("accessory", JSONObject.NULL)
+            }
+
+            jsonArray.put(json)
+        }
+
+        val editor = prefs.edit().putString(KEY_FOXES, jsonArray.toString())
+        if (durable) check(editor.commit()) { "완성된 여우를 저장하지 못했습니다." }
+        else editor.apply()
+    }
+
+    /**
+     * 저장된 여우 불러오기
+     */
+    fun loadAll(context: Context) {
+        loadedAccount = AccountStorage.accountKey()
+        AllFoxMap.reset()
+
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+
+        val saved = prefs.getString(
+            KEY_FOXES,
+            null
+        ) ?: return
+
+        try {
+
+            val jsonArray = JSONArray(saved)
+
+            val loadedFoxes = mutableMapOf<Int, CompleteFox>()
+            var needsMigration = false
+
+            for (i in 0 until jsonArray.length()) {
+
+                val json =
+                    jsonArray.getJSONObject(i)
+
+                val fox = CompleteFox(
+
+                    id = json.getInt("id"),
+
+                    name = json.getString("name"),
+
+                    previewImage = 0,
+
+                    // 저장된 PNG 경로
+                    previewPath =
+                        json.getNullableString(
+                            "previewPath"
+                        ),
+
+                    glasses =
+                        json.getNullableInt(
+                            "glasses"
+                        ),
+
+                    hat =
+                        json.getNullableInt(
+                            "hat"
+                        ),
+
+                    scarf =
+                        json.getNullableInt(
+                            "scarf"
+                        ),
+
+                    placements = FoxItemPlacement.fromJson(json.optJSONArray("placements")),
+                    foxFace = json.getNullableInt("foxFace"),
+
+                    accessory =
+                        json.getNullableInt(
+                            "accessory"
+                        )
+                ).let { fox ->
+                    fox.copy(previewImage = FoxBaseImage.restore(json.optString("previewImageName"), fox))
+                }
+
+                needsMigration = needsMigration || json.optString("previewImageName") != FoxBaseImage.name(fox)
+                loadedFoxes[
+                    fox.id
+                ] = fox
+            }
+
+            AllFoxMap.allFoxMap.clear()
+            AllFoxMap.allFoxMap.putAll(loadedFoxes)
+            if (needsMigration) saveAll(context)
+
+        } catch (e: Exception) {
+            AllFoxMap.reset()
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * 특정 여우 저장
+     */
+    fun save(
+        context: Context,
+        fox: CompleteFox,
+        durable: Boolean = false,
+    ) {
+        ensureLoaded(context)
+
+        AllFoxMap.allFoxMap[
+            fox.id
+        ] = fox
+
+        saveAll(context, durable)
+    }
+
+    fun delete(
+        context: Context,
+        foxId: Int
+    ) {
+        ensureLoaded(context)
+        val fox = AllFoxMap.allFoxMap[foxId]
+
+        // 저장된 미리보기 이미지 파일도 삭제
+        fox?.previewPath?.let { path ->
+            try {
+                FoxBitmapRenderer.deletePreview(context, path)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        // 메모리에서 삭제
+        AllFoxMap.allFoxMap.remove(foxId)
+
+        // SharedPreferences에 다시 저장
+        saveAll(context)
+    }
+
+    /**
+     * 저장 데이터 전체 삭제
+     */
+    fun clear(
+        context: Context
+    ) {
+
+        AccountStorage.preferences(context, PREF_NAME)
+            .edit()
+            .remove(KEY_FOXES)
+            .apply()
+        loadedAccount = AccountStorage.accountKey()
+        AllFoxMap.reset()
+    }
+
+    /**
+     * nullable Int 가져오기
+     */
+    private fun JSONObject.getNullableInt(
+        key: String
+    ): Int? {
+
+        return if (
+            !has(key) ||
+            isNull(key)
+        ) {
+            null
+        } else {
+            getInt(key)
+        }
+    }
+
+    /**
+     * nullable String 가져오기
+     */
+    private fun JSONObject.getNullableString(
+        key: String
+    ): String? {
+
+        return if (
+            !has(key) ||
+            isNull(key)
+        ) {
+            null
+        } else {
+            getString(key)
+        }
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\daily\memo\MergeMarbleRepository.kt ==========
+package com.example.sumdays.daily.memo
+
+import android.content.Context
+import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.network.ApiClient
+import com.example.sumdays.shop.PointPrefs
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import java.util.UUID
+
+data class MergeTicketProduct(
+    val packId: String,
+    val ticketCount: Int,
+    val pointPrice: Int,
+)
+
+data class MergeMarbleState(
+    val date: String,
+    val freeLimit: Int,
+    val usedCount: Int,
+    val freeRemainingCount: Int,
+    val ticketBalance: Int,
+    val remainingCount: Int,
+    val ticketProducts: List<MergeTicketProduct>,
+    val passActive: Boolean,
+    val passExpiresAt: String? = null,
+    val pointBalance: Int,
+    val duplicate: Boolean = false,
+)
+
+data class MergeTicketPurchase(
+    val requestId: String,
+    val packId: String,
+    val expectedPrice: Int,
+)
+
+data class MergePassPurchase(
+    val productId: String,
+    val purchaseToken: String,
+)
+
+class MergeMarbleRepository(context: Context) {
+    private val appContext = context.applicationContext
+    private val prefs = appContext.getSharedPreferences("merge_ticket_purchase", Context.MODE_PRIVATE)
+    private val gson = Gson()
+
+    suspend fun refresh(): MergeMarbleState {
+        val userId = SessionManager.getUserId()
+        val token = SessionManager.getToken() ?: error("로그인이 필요합니다.")
+        val response = ApiClient.api.getMergeMarble("Bearer $token")
+        if (!response.isSuccessful) error("합치기 이용권을 불러오지 못했습니다. 연결을 확인해 주세요.")
+        val state = response.body()?.data ?: error("합치기 이용권 응답이 없습니다.")
+        checkUser(userId)
+        PointPrefs.savePoint(appContext, userId, state.pointBalance)
+        return state
+    }
+
+    /**
+     * 응답 유실 뒤에는 동일한 구매 요청만 다시 보낸다. 다른 횟수권을 고르면 먼저
+     * 이전 요청을 확인하므로 포인트가 중복 차감되지 않는다.
+     */
+    suspend fun purchaseTicket(product: MergeTicketProduct): MergeMarbleState = purchaseMutex.withLock {
+        val userId = SessionManager.getUserId()
+        val token = SessionManager.getToken() ?: error("로그인이 필요합니다.")
+        val key = "user_$userId"
+        val pending = prefs.getString(key, null)?.let { gson.fromJson(it, MergeTicketPurchase::class.java) }
+            ?: MergeTicketPurchase(
+                requestId = UUID.randomUUID().toString(),
+                packId = product.packId,
+                expectedPrice = product.pointPrice,
+            ).also {
+                withContext(Dispatchers.IO) {
+                    check(prefs.edit().putString(key, gson.toJson(it)).commit()) { "횟수권 구매 요청을 저장하지 못했습니다." }
+                }
+            }
+        val response = ApiClient.api.purchaseMergeTicket("Bearer $token", pending)
+        checkUser(userId)
+        if (!response.isSuccessful) {
+            if (response.code() in 400..499 && response.code() !in listOf(408, 429)) {
+                prefs.edit().remove(key).apply()
+            }
+            val message = runCatching {
+                gson.fromJson(response.errorBody()?.string(), JsonObject::class.java).get("message").asString
+            }.getOrNull() ?: "횟수권 구매 결과를 확인하지 못했습니다. 다시 확인해 주세요."
+            error(message)
+        }
+        val state = response.body()?.data ?: error("횟수권 구매 결과를 확인하지 못했습니다.")
+        PointPrefs.savePoint(appContext, userId, state.pointBalance)
+        prefs.edit().remove(key).apply()
+        state
+    }
+
+    suspend fun redeemPass(productId: String, purchaseToken: String): MergeMarbleState = purchaseMutex.withLock {
+        val userId = SessionManager.getUserId()
+        val token = SessionManager.getToken() ?: error("로그인이 필요합니다.")
+        val response = ApiClient.api.redeemMergePass(
+            "Bearer $token",
+            MergePassPurchase(productId, purchaseToken),
+        )
+        checkUser(userId)
+        if (!response.isSuccessful) {
+            val message = runCatching {
+                gson.fromJson(response.errorBody()?.string(), JsonObject::class.java).get("message").asString
+            }.getOrNull() ?: "무제한 패스 구매 결과를 확인하지 못했습니다. 다시 확인해 주세요."
+            error(message)
+        }
+        val state = response.body()?.data ?: error("무제한 패스 구매 결과를 확인하지 못했습니다.")
+        PointPrefs.savePoint(appContext, userId, state.pointBalance)
+        state
+    }
+
+    private fun checkUser(userId: Int) {
+        check(userId >= 0 && SessionManager.getUserId() == userId) { "로그인 계정이 변경되었습니다." }
+    }
+
+    private companion object { val purchaseMutex = Mutex() }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\daily\memo\PendingMergeStore.kt ==========
+package com.example.sumdays.daily.memo
+
+import android.content.Context
+import com.google.gson.Gson
+import java.security.MessageDigest
+import java.util.UUID
+
+/** 메모 본문은 저장하지 않고 요청 해시와 ID만 보관한다. 응답 유실 시 같은 입력을 재시도한다. */
+object PendingMergeStore {
+    private fun prefs(context: Context) = context.getSharedPreferences("pending_merge", Context.MODE_PRIVATE)
+    private fun key(userId: Int, request: MergeRequest): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+            .digest(Gson().toJson(request.copy(requestId = "")).toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
+        return "user_${userId}_$digest"
+    }
+
+    @Synchronized
+    fun getOrCreate(context: Context, userId: Int, request: MergeRequest): String {
+        val prefs = prefs(context)
+        val key = key(userId, request)
+        return prefs.getString(key, null) ?: UUID.randomUUID().toString().also {
+            check(prefs.edit().putString(key, it).commit()) { "합치기 요청을 저장하지 못했습니다." }
+        }
+    }
+
+    fun clear(context: Context, userId: Int, request: MergeRequest) {
+        prefs(context).edit().remove(key(userId, request)).apply()
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\data\sync\LocalDataOwnerPrefs.kt ==========
+package com.example.sumdays.data.sync
+
+import android.content.Context
+import com.example.sumdays.auth.SessionManager
+
+/**
+ * 계정 공용 Room DB가 현재 어느 사용자의 서버 데이터와 동기화됐는지 기록합니다.
+ * 소유자가 일치하지 않는 동안에는 로컬 데이터를 서버로 업로드하지 않습니다.
+ */
+object LocalDataOwnerPrefs {
+    private const val PREF_NAME = "local_data_owner"
+    private const val KEY_READY_USER_ID = "ready_user_id"
+    private const val NO_USER = -1
+
+    fun prepareForCurrentSession(context: Context) {
+        val userId = currentUserId()
+        if (userId < 0) return
+
+        val prefs = prefs(context)
+        if (!prefs.contains(KEY_READY_USER_ID)) {
+            prefs.edit().putInt(KEY_READY_USER_ID, userId).apply()
+        }
+    }
+
+    fun beginAccountSwitch(context: Context) {
+        prefs(context).edit().putInt(KEY_READY_USER_ID, NO_USER).apply()
+    }
+
+    fun markReady(context: Context, userId: Int) {
+        if (currentUserId() == userId) {
+            prefs(context).edit().putInt(KEY_READY_USER_ID, userId).apply()
+        }
+    }
+
+    fun isReadyFor(context: Context, userId: Int): Boolean =
+        userId >= 0 && prefs(context).getInt(KEY_READY_USER_ID, NO_USER) == userId
+
+    fun clear(context: Context) {
+        prefs(context).edit().putInt(KEY_READY_USER_ID, NO_USER).apply()
+    }
+
+    private fun prefs(context: Context) =
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+    private fun currentUserId(): Int =
+        runCatching { SessionManager.getUserId() }.getOrDefault(NO_USER)
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\mission\MissionRepository.kt ==========
+package com.example.sumdays.mission
+
+import android.content.Context
+import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.shop.PointPrefs
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import org.threeten.bp.DayOfWeek
+import org.threeten.bp.LocalDate
+import org.threeten.bp.ZoneId
+
+interface MissionRepository {
+    suspend fun getMissions(): List<Mission>
+    suspend fun claimReward(missionCode: String): Int?
+    fun getAdRewardState(): AdRewardState
+    suspend fun claimAdReward(rewardId: String): AdRewardResult
+}
+
+object MissionCatalog {
+    val definitions = listOf(
+        MissionDefinition(
+            code = MissionCode.DAILY_WRITE_MEMO,
+            category = MissionCategory.DAILY,
+            title = "메모 ${MissionConfig.DAILY_MEMO_TARGET}회 작성하기",
+            description = "오늘 작성한 메모가 진행도에 반영돼요",
+            targetCount = MissionConfig.DAILY_MEMO_TARGET,
+            rewardPoints = MissionConfig.DAILY_MEMO_REWARD,
+            displayOrder = 0,
+        ),
+        MissionDefinition(
+            code = MissionCode.DAILY_COMPLETE_DIARY,
+            category = MissionCategory.DAILY,
+            title = "오늘의 일기 완성하기",
+            description = "메모를 모아 오늘의 일기를 완성해 보세요",
+            targetCount = MissionConfig.DAILY_DIARY_TARGET,
+            rewardPoints = MissionConfig.DAILY_DIARY_REWARD,
+            displayOrder = 1,
+        ),
+        MissionDefinition(
+            code = MissionCode.DAILY_VIEW_FRIEND_DIARY,
+            category = MissionCategory.DAILY,
+            title = "친구 일기 구경하기",
+            description = "친구의 공개된 일기를 한 번 읽어 보세요",
+            targetCount = MissionConfig.DAILY_FRIEND_DIARY_TARGET,
+            rewardPoints = MissionConfig.DAILY_FRIEND_DIARY_REWARD,
+            displayOrder = 2,
+        ),
+        MissionDefinition(
+            code = MissionCode.WEEKLY_DIARY_STREAK,
+            category = MissionCategory.WEEKLY,
+            title = "${MissionConfig.WEEKLY_STREAK_TARGET}일 연속 일기 작성하기",
+            description = "이번 주에 연속으로 일기를 완성해 보세요",
+            targetCount = MissionConfig.WEEKLY_STREAK_TARGET,
+            rewardPoints = MissionConfig.WEEKLY_STREAK_REWARD,
+            displayOrder = 0,
+        ),
+        MissionDefinition(
+            code = MissionCode.WEEKLY_WRITE_DIARY,
+            category = MissionCategory.WEEKLY,
+            title = "이번 주 일기 ${MissionConfig.WEEKLY_DIARY_TARGET}회 작성하기",
+            description = "이번 주에 완성한 일기 수를 확인해요",
+            targetCount = MissionConfig.WEEKLY_DIARY_TARGET,
+            rewardPoints = MissionConfig.WEEKLY_DIARY_REWARD,
+            displayOrder = 1,
+        ),
+        MissionDefinition(
+            code = MissionCode.WEEKLY_SUMMARY_REWARD,
+            category = MissionCategory.REWARD,
+            title = "주간 통계 확인하기",
+            description = "새로운 주간 통계를 얻어 확인해 보세요",
+            targetCount = MissionConfig.WEEKLY_SUMMARY_TARGET,
+            rewardPoints = MissionConfig.WEEKLY_SUMMARY_REWARD,
+            displayOrder = 0,
+        ),
+    )
+}
+
+class LocalMissionRepository(
+    context: Context,
+    private val database: AppDatabase = AppDatabase.getDatabase(context),
+) : MissionRepository {
+    private val appContext = context.applicationContext
+    private val claimMutex = Mutex()
+
+    override suspend fun getMissions(): List<Mission> {
+        val today = koreaToday()
+        val weekStart = today.with(DayOfWeek.MONDAY)
+        val weekEnd = weekStart.plusDays(6)
+
+        val roomProgress = withContext(Dispatchers.IO) {
+            val memoCount = database.memoDao().getMemoCountByDate(today.toString())
+            val todayEntry = database.dailyEntryDao().getEntrySnapshot(today.toString())
+            val weeklyWrittenDates = database.dailyEntryDao()
+                .getEntriesBetween(weekStart.toString(), weekEnd.toString())
+                .asSequence()
+                .filter { !it.isDeleted && !it.diary.isNullOrBlank() }
+                .map { LocalDate.parse(it.date) }
+                .distinct()
+                .sorted()
+                .toList()
+
+            RoomMissionProgress(
+                memoCount = memoCount,
+                isTodayDiaryComplete = !todayEntry?.diary.isNullOrBlank() && todayEntry?.isDeleted == false,
+                weeklyDiaryCount = weeklyWrittenDates.size,
+                weeklyStreak = longestConsecutiveDays(weeklyWrittenDates),
+            )
+        }
+        val summaryRewardState = MissionEventPrefs.getWeeklySummaryRewardState(appContext)
+
+        val progressByCode = mapOf(
+            MissionCode.DAILY_WRITE_MEMO to roomProgress.memoCount,
+            MissionCode.DAILY_COMPLETE_DIARY to if (roomProgress.isTodayDiaryComplete) 1 else 0,
+            MissionCode.DAILY_VIEW_FRIEND_DIARY to if (
+                MissionEventPrefs.hasFriendDiaryView(appContext, today)
+            ) 1 else 0,
+            MissionCode.WEEKLY_DIARY_STREAK to roomProgress.weeklyStreak,
+            MissionCode.WEEKLY_WRITE_DIARY to roomProgress.weeklyDiaryCount,
+            MissionCode.WEEKLY_SUMMARY_REWARD to if (summaryRewardState.readySummaryId != null) 1 else 0,
+        )
+
+        return MissionCatalog.definitions.map { definition ->
+            val progress = progressByCode[definition.code]
+                ?.coerceIn(0, definition.targetCount)
+                ?: 0
+            val status = if (definition.code == MissionCode.WEEKLY_SUMMARY_REWARD) {
+                when {
+                    summaryRewardState.readySummaryId != null -> MissionStatus.CLAIMABLE
+                    summaryRewardState.latestSummaryRewarded -> MissionStatus.CLAIMED
+                    else -> MissionStatus.IN_PROGRESS
+                }
+            } else {
+                when {
+                    MissionStatePrefs.isClaimed(appContext, definition, today, weekStart) ->
+                        MissionStatus.CLAIMED
+                    progress >= definition.targetCount -> MissionStatus.CLAIMABLE
+                    else -> MissionStatus.IN_PROGRESS
+                }
+            }
+
+            Mission(definition, progress, status)
+        }
+    }
+
+    override suspend fun claimReward(missionCode: String): Int? = claimMutex.withLock {
+        val mission = getMissions().firstOrNull {
+            it.definition.code == missionCode
+        } ?: return@withLock null
+
+        if (mission.status != MissionStatus.CLAIMABLE) return@withLock null
+
+        if (missionCode == MissionCode.WEEKLY_SUMMARY_REWARD) {
+            val summaryId = MissionEventPrefs.getWeeklySummaryRewardState(appContext)
+                .readySummaryId ?: return@withLock null
+            MissionEventPrefs.markWeeklySummaryRewarded(appContext, summaryId)
+        } else {
+            val today = koreaToday()
+            val weekStart = today.with(DayOfWeek.MONDAY)
+            MissionStatePrefs.markClaimed(appContext, mission.definition, today, weekStart)
+        }
+
+        val currentPoint = PointPrefs.getPoint(appContext)
+        PointPrefs.savePoint(appContext, currentPoint + mission.definition.rewardPoints)
+        mission.definition.rewardPoints
+    }
+
+    override fun getAdRewardState(): AdRewardState = AdRewardState(
+        watchedCount = MissionEventPrefs.getAdViewCount(appContext, koreaToday()),
+        dailyLimit = MissionConfig.AD_DAILY_LIMIT,
+        rewardPoints = MissionConfig.AD_REWARD,
+    )
+
+    override suspend fun claimAdReward(rewardId: String): AdRewardResult = claimMutex.withLock {
+        val state = getAdRewardState()
+        if (MissionEventPrefs.isAdRewardProcessed(appContext, rewardId)) {
+            return@withLock AdRewardResult.Granted(
+                rewardPoints = state.rewardPoints,
+                watchedCount = state.watchedCount,
+                dailyLimit = state.dailyLimit,
+            )
+        }
+        if (!state.canWatch) return@withLock AdRewardResult.DailyLimitReached
+
+        val watchedCount = MissionEventPrefs.incrementAdViewCount(appContext, koreaToday())
+        MissionEventPrefs.markAdRewardProcessed(appContext, rewardId)
+        val currentPoint = PointPrefs.getPoint(appContext)
+        PointPrefs.savePoint(appContext, currentPoint + state.rewardPoints)
+
+        AdRewardResult.Granted(
+            rewardPoints = state.rewardPoints,
+            watchedCount = watchedCount,
+            dailyLimit = state.dailyLimit,
+        )
+    }
+
+    private fun longestConsecutiveDays(dates: List<LocalDate>): Int {
+        if (dates.isEmpty()) return 0
+
+        var longest = 1
+        var current = 1
+        dates.zipWithNext().forEach { (previous, next) ->
+            if (previous.plusDays(1) == next) {
+                current += 1
+                longest = maxOf(longest, current)
+            } else {
+                current = 1
+            }
+        }
+        return longest
+    }
+
+    private data class RoomMissionProgress(
+        val memoCount: Int,
+        val isTodayDiaryComplete: Boolean,
+        val weeklyDiaryCount: Int,
+        val weeklyStreak: Int,
+    )
+}
+
+object MissionEventPrefs {
+    private const val PREF_NAME = "mission_event_prefs"
+    private const val KEY_FRIEND_DIARY_VIEW = "friend_diary_view"
+    private const val KEY_AD_VIEW_COUNT = "ad_view_count"
+    private const val KEY_PROCESSED_AD_REWARDS = "processed_ad_rewards"
+    private const val KEY_WEEKLY_SUMMARY_CREATED = "weekly_summary_created"
+    private const val KEY_WEEKLY_SUMMARY_VIEWED = "weekly_summary_viewed"
+    private const val KEY_WEEKLY_SUMMARY_REWARDED = "weekly_summary_rewarded"
+
+    fun markFriendDiaryViewed(context: Context) {
+        saveBoolean(context, KEY_FRIEND_DIARY_VIEW, koreaToday().toString())
+    }
+
+    fun markWeeklySummaryCreated(context: Context, summaryId: String) {
+        addToSet(context, KEY_WEEKLY_SUMMARY_CREATED, summaryId)
+    }
+
+    fun markWeeklySummaryViewed(context: Context, summaryId: String) {
+        if (summaryId in readSet(context, KEY_WEEKLY_SUMMARY_CREATED)) {
+            addToSet(context, KEY_WEEKLY_SUMMARY_VIEWED, summaryId)
+        }
+    }
+
+    fun hasFriendDiaryView(context: Context, date: LocalDate): Boolean =
+        readBoolean(context, KEY_FRIEND_DIARY_VIEW, date.toString())
+
+    fun getAdViewCount(context: Context, date: LocalDate): Int =
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getInt(scopedKey("${KEY_AD_VIEW_COUNT}_${date}"), 0)
+
+    fun incrementAdViewCount(context: Context, date: LocalDate): Int {
+        val nextCount = getAdViewCount(context, date) + 1
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putInt(scopedKey("${KEY_AD_VIEW_COUNT}_${date}"), nextCount)
+            .apply()
+        return nextCount
+    }
+
+    fun isAdRewardProcessed(context: Context, rewardId: String): Boolean =
+        rewardId in readSet(context, KEY_PROCESSED_AD_REWARDS)
+
+    fun markAdRewardProcessed(context: Context, rewardId: String) {
+        addToSet(context, KEY_PROCESSED_AD_REWARDS, rewardId)
+    }
+
+    fun getWeeklySummaryRewardState(context: Context): WeeklySummaryRewardState {
+        val created = readSet(context, KEY_WEEKLY_SUMMARY_CREATED)
+        val viewed = readSet(context, KEY_WEEKLY_SUMMARY_VIEWED)
+        val rewarded = readSet(context, KEY_WEEKLY_SUMMARY_REWARDED)
+        val ready = created.intersect(viewed).minus(rewarded).sorted().firstOrNull()
+        val latest = created.maxOrNull()
+
+        return WeeklySummaryRewardState(
+            readySummaryId = ready,
+            latestSummaryRewarded = latest != null && latest in rewarded,
+        )
+    }
+
+    fun markWeeklySummaryRewarded(context: Context, summaryId: String) {
+        addToSet(context, KEY_WEEKLY_SUMMARY_REWARDED, summaryId)
+    }
+
+    private fun saveBoolean(context: Context, event: String, period: String) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(scopedKey("${event}_$period"), true)
+            .apply()
+    }
+
+    private fun readBoolean(context: Context, event: String, period: String): Boolean =
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getBoolean(scopedKey("${event}_$period"), false)
+
+    private fun addToSet(context: Context, key: String, value: String) {
+        val values = readSet(context, key).toMutableSet().apply { add(value) }
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putStringSet(scopedKey(key), values)
+            .apply()
+    }
+
+    private fun readSet(context: Context, key: String): Set<String> =
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getStringSet(scopedKey(key), emptySet())
+            ?.toSet()
+            .orEmpty()
+
+    private fun scopedKey(key: String): String = "user_${SessionManager.getUserId()}_$key"
+
+    data class WeeklySummaryRewardState(
+        val readySummaryId: String?,
+        val latestSummaryRewarded: Boolean,
+    )
+}
+
+private object MissionStatePrefs {
+    private const val PREF_NAME = "mission_claim_prefs"
+
+    fun isClaimed(
+        context: Context,
+        definition: MissionDefinition,
+        today: LocalDate,
+        weekStart: LocalDate,
+    ): Boolean = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        .getBoolean(scopedClaimKey(definition, today, weekStart), false)
+
+    fun markClaimed(
+        context: Context,
+        definition: MissionDefinition,
+        today: LocalDate,
+        weekStart: LocalDate,
+    ) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(scopedClaimKey(definition, today, weekStart), true)
+            .apply()
+    }
+
+    private fun scopedClaimKey(
+        definition: MissionDefinition,
+        today: LocalDate,
+        weekStart: LocalDate,
+    ): String = "user_${SessionManager.getUserId()}_${claimKey(definition, today, weekStart)}"
+
+    private fun claimKey(
+        definition: MissionDefinition,
+        today: LocalDate,
+        weekStart: LocalDate,
+    ): String {
+        val period = when (definition.category) {
+            MissionCategory.DAILY -> today.toString()
+            MissionCategory.WEEKLY, MissionCategory.REWARD -> weekStart.toString()
+        }
+        return "claimed_${definition.code}_$period"
+    }
+}
+
+private fun koreaToday(): LocalDate = LocalDate.now(ZoneId.of("Asia/Seoul"))
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\reminder\ReminderPrefs.kt ==========
+package com.example.sumdays.reminder
+
+
+import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+
+class ReminderPrefs(context: Context) {
+    private val prefs = context.getSharedPreferences("reminder_settings", Context.MODE_PRIVATE)
+    private val gson = Gson()
+
+    // 1. 마스터 ON/OFF 상태 저장
+    fun setMasterSwitch(isOn: Boolean) {
+        prefs.edit().putBoolean("master_switch", isOn).apply()
+    }
+    fun isMasterOn(): Boolean {
+        return prefs.getBoolean("master_switch", false)
+    }
+
+    // 2. 알람 시간 목록 저장 (최대 10개, "HH:mm" 형식 문자열 리스트)
+    fun setAlarmTimes(times: List<String>) {
+        val json = gson.toJson(times)
+        prefs.edit().putString("alarm_times", json).apply()
+    }
+    fun getAlarmTimes(): List<String> {
+        val json = prefs.getString("alarm_times", "[]")
+        val type = object : TypeToken<List<String>>() {}.type
+        return gson.fromJson(json, type) ?: emptyList()
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\settings\AccountSettingsActivity.kt ==========
+package com.example.sumdays.settings
+
+import android.os.Bundle
+import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.example.sumdays.R
+import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.databinding.ActivityProfileAccountBinding
+import com.example.sumdays.network.ApiClient
+import com.example.sumdays.network.ChangePasswordRequest
+import com.example.sumdays.network.ChangePasswordResponse
+import com.example.sumdays.network.UpdateNicknameRequest
+import com.example.sumdays.network.UpdateNicknameResponse
+import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.theme.ThemePrefs
+import com.example.sumdays.theme.ThemeRepository
+import com.example.sumdays.utils.setupEdgeToEdge
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+
+class AccountSettingsActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityProfileAccountBinding
+    private lateinit var userStatsPrefs: UserStatsPrefs
+
+    // Retrofit API 서비스 객체와 세션 매니저
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityProfileAccountBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        userStatsPrefs = UserStatsPrefs(this)
+
+        // 초기 닉네임 표시
+        displayCurrentNickname()
+
+        setupListeners()
+        setupHeaderListener()
+
+        applyThemeModeSettings()
+
+        // 상태바, 네비게이션바 같은 색으로
+        val rootView = findViewById<View>(R.id.setting_account_root)
+        setupEdgeToEdge(rootView)
+    }
+
+    private fun applyThemeModeSettings() {
+        val themeKey = ThemePrefs.getTheme(this)
+        val currentTheme = ThemeRepository.ownedThemes[themeKey] ?: return
+
+        val primaryColor = currentTheme.themeColorA
+        val buttonColor = currentTheme.themeColorA
+        val backgroundColor = currentTheme.backgroundColor
+        val blockColor = currentTheme.themeColorA
+        val blockStyle = currentTheme.blockStyleA
+        val textColor = currentTheme.themeColorD
+
+        binding.root.setBackgroundResource(backgroundColor)
+
+        binding.newNicknameInputEditText.setBackgroundResource(blockStyle)
+        binding.currentPasswordInputEditText.setBackgroundResource(blockStyle)
+        binding.newPasswordInputEditText.setBackgroundResource(blockStyle)
+        binding.confirmPasswordInputEditText.setBackgroundResource(blockStyle)
+
+        binding.currentNicknameTextView.setTextColor(getColor(primaryColor))
+        binding.header.headerTitle.setTextColor(getColor(textColor))
+
+        binding.updateNicknameButton.setBackgroundColor(getColor(buttonColor))
+        binding.changePasswordButton.setBackgroundColor(getColor(buttonColor))
+
+        binding.updateNicknameButton.setTextColor(getColor(R.color.white))
+        binding.changePasswordButton.setTextColor(getColor(R.color.white))
+
+        binding.header.headerBackIcon.setColorFilter(getColor(textColor))
+    }
+
+    private fun setupHeaderListener() {
+        // XML에서 include된 헤더의 뷰에 접근합니다.
+        // ActivitySettingsAccountBinding이 포함하고 있는 헤더 바인딩 객체를 사용합니다.
+
+        // headerBackIcon을 클릭하면 Activity를 종료하여 이전 화면(SettingsActivity)으로 돌아갑니다.
+        binding.header.headerBackIcon.setOnClickListener {
+            finish()
+        }
+
+        // 선택 사항: 헤더의 제목 설정 (account settings로)
+        binding.header.headerTitle.text = "계정 설정"
+    }
+
+    /**
+     * 현재 SharedPreferences에 저장된 닉네임을 UI에 표시합니다.
+     */
+    private fun displayCurrentNickname() {
+        // UI의 닉네임 표시 TextView ID를 currentNicknameTextView라고 가정
+        binding.currentNicknameTextView.text = userStatsPrefs.getNickname()
+    }
+
+    private fun setupListeners() {
+        binding.updateNicknameButton.setOnClickListener {
+            handleNicknameUpdate()
+        }
+
+        binding.changePasswordButton.setOnClickListener {
+            handleChangePassword()
+        }
+    }
+
+    // --- 1. 닉네임 변경 로직 ---
+
+    private fun handleNicknameUpdate() {
+        val newNickname = binding.newNicknameInputEditText.text.toString().trim()
+        val token = SessionManager.getToken()
+
+        // 1. 유효성 검사
+        if (newNickname.isEmpty()) {
+            Toast.makeText(this, "새로운 닉네임을 입력해주세요.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (token.isNullOrEmpty()) {
+            Toast.makeText(this, "인증 정보가 없습니다. 다시 로그인 해주세요.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // 2. API 요청 객체 생성
+        val request = UpdateNicknameRequest(newNickname)
+
+        // 3. 서버 호출 (PUT /api/user/nickname)
+        ApiClient.api.updateNickname("Bearer $token", request).enqueue(object : Callback<UpdateNicknameResponse> {
+            override fun onResponse(call: Call<UpdateNicknameResponse>, response: Response<UpdateNicknameResponse>) {
+                if (response.isSuccessful) {
+                    val updateResponse = response.body()
+                    if (updateResponse != null && updateResponse.success) {
+                        // 4. 로컬 SharedPreferences 업데이트
+                        userStatsPrefs.saveNickname(newNickname)
+
+                        // 5. UI 업데이트
+                        displayCurrentNickname()
+
+                        Toast.makeText(this@AccountSettingsActivity, updateResponse.message, Toast.LENGTH_SHORT).show()
+                    } else {
+                        val message = updateResponse?.message ?: "닉네임 변경에 실패했습니다."
+                        Toast.makeText(this@AccountSettingsActivity, message, Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(this@AccountSettingsActivity, "닉네임 변경 실패 (에러 코드: ${response.code()})", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<UpdateNicknameResponse>, t: Throwable) {
+                Toast.makeText(this@AccountSettingsActivity, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    // --- 2. 비밀번호 변경 로직 ---
+
+    private fun handleChangePassword() {
+        val currentPassword = binding.currentPasswordInputEditText.text.toString()
+        val newPassword = binding.newPasswordInputEditText.text.toString()
+        val confirmPassword = binding.confirmPasswordInputEditText.text.toString()
+        val token = SessionManager.getToken()
+
+        // 1. 유효성 검사 (클라이언트 측)
+        if (currentPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
+            Toast.makeText(this, "모든 비밀번호 필드를 입력해주세요.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (newPassword != confirmPassword) {
+            Toast.makeText(this, "새 비밀번호가 일치하지 않습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (token.isNullOrEmpty()) {
+            Toast.makeText(this, "인증 정보가 없습니다. 다시 로그인 해주세요.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        // TODO: 새 비밀번호 복잡성 검사 로직 추가 (예: 8자 이상 등)
+
+        // 2. API 요청 객체 생성
+        val request = ChangePasswordRequest(currentPassword, newPassword)
+
+        // 3. 서버 호출 (PUT /api/auth/password)
+        ApiClient.api.changePassword("Bearer $token", request).enqueue(object : Callback<ChangePasswordResponse> {
+            override fun onResponse(call: Call<ChangePasswordResponse>, response: Response<ChangePasswordResponse>) {
+                if (response.isSuccessful) {
+                    val changeResponse = response.body()
+                    if (changeResponse != null && changeResponse.success) {
+                        Toast.makeText(this@AccountSettingsActivity, "비밀번호 변경 성공! 다시 로그인 해주세요.", Toast.LENGTH_LONG).show()
+                        // 비밀번호가 바뀌었으므로, 보안을 위해 세션을 삭제하고 로그인 화면으로 이동하는 것이 일반적
+                        // sessionManager.clearSession()
+                        // startActivity(Intent(this@AccountSettingsActivity, LoginActivity::class.java))
+                        finish()
+                    } else {
+                        val message = changeResponse?.message ?: "비밀번호 변경에 실패했습니다. (현재 비밀번호 불일치 등)"
+                        Toast.makeText(this@AccountSettingsActivity, message, Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(this@AccountSettingsActivity, "비밀번호 변경 실패 (에러 코드: ${response.code()})", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<ChangePasswordResponse>, t: Throwable) {
+                Toast.makeText(this@AccountSettingsActivity, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\settings\prefs\DiaryPermissionPrefs.kt ==========
+package com.example.sumdays.settings.prefs
+
+import android.content.Context
+
+object DiaryPermissionPrefs {
+
+    private const val PREF_NAME = "diary_permission_settings"
+    private const val KEY_DEFAULT_MODE = "default_permission_mode"
+
+    const val MODE_ASK = 0            // 일기 생성 시 매번 물어보기
+    const val MODE_DEFAULT_FALSE = 1  // 항상 비공개로 생성
+    const val MODE_DEFAULT_TRUE = 2   // 항상 공개로 생성
+
+    fun setMode(context: Context, mode: Int) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putInt(KEY_DEFAULT_MODE, mode).apply()
+    }
+
+    fun getMode(context: Context): Int {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getInt(KEY_DEFAULT_MODE, MODE_ASK)
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\settings\prefs\LabsPrefs.kt ==========
+package com.example.sumdays.settings.prefs
+
+import android.content.Context
+
+object LabsPrefs {
+
+    private const val PREF_NAME = "labs_settings"
+
+    private const val KEY_TEMPERATURE = "temperature_value"
+    private const val KEY_ADVANCED_FLAG = "advanced_style_flag"
+    private const val KEY_LENGTH_LEVEL = "length_level_value"
+
+    private const val DEFAULT_TEMPERATURE = 0.5f
+    private const val DEFAULT_ADVANCED_FLAG = false
+    private const val DEFAULT_LENGTH_LEVEL = 1
+
+    fun setTemperature(context: Context, value: Float) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putFloat(KEY_TEMPERATURE, value).apply()
+    }
+
+    fun getTemperature(context: Context): Float {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getFloat(KEY_TEMPERATURE, DEFAULT_TEMPERATURE)
+    }
+
+    fun setAdvancedFlag(context: Context, enabled: Boolean) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(KEY_ADVANCED_FLAG, enabled).apply()
+    }
+
+    fun getAdvancedFlag(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_ADVANCED_FLAG, DEFAULT_ADVANCED_FLAG)
+    }
+
+    fun setLengthLevel(context: Context, value: Int) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putInt(KEY_LENGTH_LEVEL, value).apply()
+    }
+
+    fun getLengthLevel(context: Context): Int {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getInt(KEY_LENGTH_LEVEL, DEFAULT_LENGTH_LEVEL)
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\settings\prefs\ProfileImagePrefs.kt ==========
+
+package com.example.sumdays.settings.prefs
+
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.core.content.edit
+import com.example.sumdays.data.sync.ProfilePayload
+import com.example.sumdays.network.ApiClient
+
+object ProfileImagePrefs {
+
+    private const val PREF_NAME = "profile_image_prefs"
+
+    private const val KEY_FACE_ID = "face_id"
+    private const val KEY_EYES_ID = "eyes_id"
+    private const val KEY_MOUTH_ID = "mouth_id"
+    private const val KEY_ACC_ID = "acc_id"
+    private const val KEY_MODE = "profile_mode"
+    private const val KEY_IMAGE_URL = "image_url"
+
+    private const val DEFAULT_ID = -1
+
+    private fun getPrefs(context: Context): SharedPreferences {
+        return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+    }
+
+    fun setProfileIds(context: Context, face: Int, eyes: Int, mouth: Int, acc: Int) {
+        getPrefs(context).edit {
+            putInt(KEY_FACE_ID, face)
+            putInt(KEY_EYES_ID, eyes)
+            putInt(KEY_MOUTH_ID, mouth)
+            putInt(KEY_ACC_ID, acc)
+        }
+    }
+
+    fun getFaceId(context: Context): Int =
+        getPrefs(context).getInt(KEY_FACE_ID, DEFAULT_ID)
+
+    fun getEyesId(context: Context): Int =
+        getPrefs(context).getInt(KEY_EYES_ID, DEFAULT_ID)
+
+    fun getMouthId(context: Context): Int =
+        getPrefs(context).getInt(KEY_MOUTH_ID, DEFAULT_ID)
+
+    fun getAccId(context: Context): Int =
+        getPrefs(context).getInt(KEY_ACC_ID, DEFAULT_ID)
+
+    fun setMode(context: Context, mode: String) {
+        getPrefs(context).edit {
+            putString(KEY_MODE, mode)
+        }
+    }
+
+    fun getMode(context: Context): String {
+        return getPrefs(context).getString(KEY_MODE, "AVATAR") ?: "AVATAR"
+    }
+
+    fun setImageUrl(context: Context, url: String?) {
+        getPrefs(context).edit {
+            putString(KEY_IMAGE_URL, url)
+        }
+    }
+    fun parseImageUrl(url: String?): String? {
+        if (url.isNullOrBlank()) return null
+
+        return if (url.startsWith("http://") || url.startsWith("https://")) {
+            url
+        } else {
+            ApiClient.BASE_URL.trimEnd('/') + "/" + url.trimStart('/')
+        }
+    }
+    fun getImageUrl(context: Context): String? {
+        val url = getPrefs(context).getString(KEY_IMAGE_URL, null)
+        return parseImageUrl(url)
+    }
+
+    fun getMyProfilePayload(context: Context): ProfilePayload {
+        return ProfilePayload(
+            mode = getMode(context),
+            faceId = getFaceId(context),
+            eyesId = getEyesId(context),
+            mouthId = getMouthId(context),
+            accessoryId = getAccId(context),
+            imageUrl = getImageUrl(context)
+        )
+    }
+
+    fun clear(context: Context) {
+        getPrefs(context).edit {
+            clear()
+        }
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\settings\prefs\UserStatsPrefs.kt ==========
+package com.example.sumdays.settings.prefs
+
+import android.content.Context
+import android.content.SharedPreferences
+
+class UserStatsPrefs(context: Context) {
+
+    // 1. 상수 정의
+    companion object {
+        private const val APP_PREFS_NAME = "user_stats_prefs" // SharedPreferences 파일 이름
+        private const val KEY_NICKNAME = "nickname"
+        private const val KEY_STREAK = "current_streak"
+        private const val KEY_LEAF_COUNT = "leaf_count"
+        private const val KEY_GRAPE_COUNT = "grape_count"
+        private const val KEY_ACTIVE_STYLE_ID = "active_style_id"
+        private const val DEFAULT_STYLE_ID = -1L // 활성 스타일이 없을 때의 기본값
+    }
+
+    // SharedPreferences 인스턴스 초기화
+    private val prefs: SharedPreferences =
+        context.getSharedPreferences(APP_PREFS_NAME, Context.MODE_PRIVATE)
+
+    // --- 닉네임 관리 ---
+
+    fun saveNickname(nickname: String) {
+        prefs.edit().putString(KEY_NICKNAME, nickname).apply()
+    }
+
+    fun getNickname(): String {
+        // 기본값은 "사용자" 또는 앱에서 정의한 익명 값으로 설정
+        return prefs.getString(KEY_NICKNAME, "사용자") ?: "사용자"
+    }
+
+    // --- Strike 관리 ---
+
+    fun saveStreak(streak: Int) {
+        prefs.edit().putInt(KEY_STREAK, streak).apply()
+    }
+
+    fun getStreak(): Int {
+        return prefs.getInt(KEY_STREAK, 0) // 기본값 0
+    }
+
+    // --- Leaf Count 관리 ---
+
+    fun incrementLeafCount() {
+        val currentCount = getLeafCount()
+        prefs.edit().putInt(KEY_LEAF_COUNT, currentCount + 1).apply()
+    }
+
+    fun getLeafCount(): Int {
+        return prefs.getInt(KEY_LEAF_COUNT, 0) // 기본값 0
+    }
+
+    // --- Grape Count 관리 ---
+
+    fun incrementGrapeCount() {
+        val currentCount = getGrapeCount()
+        prefs.edit().putInt(KEY_GRAPE_COUNT, currentCount + 1).apply()
+    }
+
+    fun getGrapeCount(): Int {
+        return prefs.getInt(KEY_GRAPE_COUNT, 0) // 기본값 0
+    }
+
+    // ===================================
+    // ★ AI 스타일 설정 관련 로직 (추가됨) ★
+    // ===================================
+
+    /**
+     * 현재 활성 스타일의 ID를 SharedPreferences에 저장합니다.
+     */
+    fun saveActiveStyleId(styleId: Long) {
+        prefs.edit().putLong(KEY_ACTIVE_STYLE_ID, styleId).apply()
+    }
+
+    /**
+     * 저장된 활성 스타일의 ID를 가져옵니다.
+     * 활성 스타일이 설정되지 않았다면 0L이 반환합니다.
+     */
+    fun getActiveStyleId(): Long {
+        return prefs.getLong(KEY_ACTIVE_STYLE_ID, 0L)
+    }
+
+    /**
+     * 활성 스타일 ID 설정을 해제(제거)합니다.
+     * (스타일 삭제 시 활성 스타일이었다면 호출)
+     */
+    fun clearActiveStyleId() {
+        prefs.edit().remove(KEY_ACTIVE_STYLE_ID).apply()
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\shop\ItemPrefs.kt ==========
+package com.example.sumdays.shop
+
+import android.content.Context
+import com.example.sumdays.auth.AccountStorage
+
+object ItemPrefs {
+
+    private const val PREF_NAME = "item_inventory"
+
+    /**
+     * 아이템 1개 추가
+     */
+    fun addItem(context: Context, itemId: Int) {
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+
+        val current = prefs.getInt(itemId.toString(), 0)
+
+        prefs.edit()
+            .putInt(itemId.toString(), current + 1)
+            .apply()
+    }
+
+    /**
+     * 현재 보유 개수
+     */
+    fun getCount(context: Context, itemId: Int): Int {
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+        return prefs.getInt(itemId.toString(), 0)
+    }
+
+    /**
+     * 개수 설정 (필요하면 사용)
+     */
+    fun setCount(context: Context, itemId: Int, count: Int) {
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+
+        prefs.edit()
+            .putInt(itemId.toString(), count)
+            .apply()
+    }
+
+    fun setCount(context: Context, userId: Int, itemId: Int, count: Int) {
+        val prefs = AccountStorage.preferences(context, PREF_NAME, userId)
+
+        prefs.edit()
+            .putInt(itemId.toString(), count)
+            .apply()
+    }
+
+    /**
+     * 아이템 하나 사용
+     * 성공하면 true
+     * 부족하면 false
+     */
+    fun useItem(context: Context, itemId: Int): Boolean {
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+
+        val current = prefs.getInt(itemId.toString(), 0)
+
+        if (current <= 0) return false
+
+        prefs.edit()
+            .putInt(itemId.toString(), current - 1)
+            .apply()
+
+        return true
+    }
+    /**
+     * 모든 아이템 초기화
+     */
+    fun clear(context: Context) {
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+        prefs.edit().clear().apply()
+    }
+
+    fun replaceCounts(context: Context, userId: Int, counts: Map<Int, Int>) {
+        val editor = AccountStorage.preferences(context, PREF_NAME, userId).edit().clear()
+        counts.forEach { (itemId, count) -> editor.putInt(itemId.toString(), count) }
+        editor.apply()
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\shop\PendingShopPurchaseStore.kt ==========
+package com.example.sumdays.shop
+
+import android.content.Context
+import com.example.sumdays.auth.SessionManager
+
+data class PendingShopPurchase(
+    val productType: String,
+    val itemId: Int,
+    val idempotencyKey: String,
+)
+
+object PendingShopPurchaseStore {
+    private const val PREF_NAME = "pending_shop_purchase"
+
+    fun save(context: Context, purchase: PendingShopPurchase) {
+        save(context, SessionManager.getUserId(), purchase)
+    }
+
+    fun save(context: Context, userId: Int, purchase: PendingShopPurchase) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(key(userId), encode(purchase))
+            .commit()
+    }
+
+    fun get(context: Context): PendingShopPurchase? {
+        return get(context, SessionManager.getUserId())
+    }
+
+    fun get(context: Context, userId: Int): PendingShopPurchase? {
+        val encoded = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getString(key(userId), null)
+            ?: return null
+        val parts = encoded.split(':', limit = 3)
+        if (parts.size != 3) return null
+        val itemId = parts[1].toIntOrNull() ?: return null
+        return PendingShopPurchase(parts[0], itemId, parts[2])
+    }
+
+    fun clear(context: Context, purchase: PendingShopPurchase) {
+        clear(context, SessionManager.getUserId(), purchase)
+    }
+
+    fun clear(context: Context, userId: Int, purchase: PendingShopPurchase) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        if (prefs.getString(key(userId), null) == encode(purchase)) {
+            prefs.edit().remove(key(userId)).apply()
+        }
+    }
+
+    private fun key(userId: Int): String = "user_$userId"
+
+    private fun encode(purchase: PendingShopPurchase): String =
+        "${purchase.productType}:${purchase.itemId}:${purchase.idempotencyKey}"
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\shop\PointPrefs.kt ==========
+package com.example.sumdays.shop
+
+import android.content.Context
+import com.example.sumdays.auth.AccountStorage
+import com.example.sumdays.auth.SessionManager
+
+object PointPrefs {
+
+    private const val PREF_NAME = "shop_point_prefs"
+    private const val KEY_POINT = "current_point"
+    private const val KEY_LEGACY_POINT = "current_point"
+    private const val KEY_LEGACY_POINT_OWNER = "legacy_point_owner_user_id"
+    private const val DEFAULT_POINT = 9000
+
+    fun savePoint(context: Context, point: Int) {
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+        prefs.edit().putInt(KEY_POINT, point).apply()
+    }
+
+    fun savePoint(context: Context, userId: Int, point: Int) {
+        val prefs = AccountStorage.preferences(context, PREF_NAME, userId)
+        prefs.edit().putInt(KEY_POINT, point).apply()
+    }
+
+    fun getPoint(context: Context): Int {
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+        return prefs.getInt(KEY_POINT, DEFAULT_POINT)
+    }
+
+    fun getPoint(context: Context, userId: Int): Int {
+        val prefs = AccountStorage.preferences(context, PREF_NAME, userId)
+        return prefs.getInt(KEY_POINT, DEFAULT_POINT)
+    }
+
+    /**
+     * 앱 업데이트 당시 로그인돼 있던 계정을 기존 단일 포인트의 소유자로 고정합니다.
+     * 로그아웃 상태였다면 소유자를 추측하지 않아 다른 계정으로 포인트가 넘어가지 않습니다.
+     */
+    fun prepareLegacyMigration(context: Context) {
+        val userId = currentUserId()
+        if (userId < 0) return
+
+        val prefs = legacyPreferences(context)
+        if (prefs.contains(KEY_LEGACY_POINT) && !prefs.contains(KEY_LEGACY_POINT_OWNER)) {
+            prefs.edit().putInt(KEY_LEGACY_POINT_OWNER, userId).apply()
+        }
+    }
+
+    /**
+     * 서버 포인트 지갑이 도입되기 전 앱이 저장하던 단일 포인트 값입니다.
+     * 일반 화면에는 노출하지 않고, 서버 지갑 최초 생성 요청에만 사용합니다.
+     */
+    fun getLegacyPointForMigration(context: Context): Int {
+        return getLegacyPointForMigration(context, currentUserId())
+    }
+
+    fun getLegacyPointForMigration(context: Context, userId: Int): Int {
+        val prefs = legacyPreferences(context)
+        val legacyOwnerId = prefs.getInt(KEY_LEGACY_POINT_OWNER, -1)
+        return if (userId >= 0 && legacyOwnerId == userId) {
+            prefs.getInt(KEY_LEGACY_POINT, getPoint(context, userId))
+        } else {
+            getPoint(context, userId)
+        }
+    }
+
+    /**
+     * 서버가 지갑 초기화 요청을 정상 처리했으면 단일 포인트 값은 더 이상 다른
+     * 계정의 초기값으로 재사용되지 않도록 제거합니다.
+     */
+    fun markLegacyPointHandled(context: Context) {
+        markLegacyPointHandled(context, currentUserId())
+    }
+
+    fun markLegacyPointHandled(context: Context, userId: Int) {
+        val prefs = legacyPreferences(context)
+        if (prefs.getInt(KEY_LEGACY_POINT_OWNER, -1) == userId) {
+            prefs.edit()
+                .remove(KEY_LEGACY_POINT)
+                .remove(KEY_LEGACY_POINT_OWNER)
+                .apply()
+        }
+    }
+
+    fun reset(context: Context) {
+        savePoint(context, DEFAULT_POINT)
+    }
+
+    /** 계정 분리 이전 빌드가 쓰던, 계정 구분 없는 단일 파일입니다. */
+    private fun legacyPreferences(context: Context) =
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+    private fun currentUserId(): Int =
+        runCatching { SessionManager.getUserId() }.getOrDefault(-1)
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\shop\PointWalletRepository.kt ==========
+package com.example.sumdays.shop
+
+import android.content.Context
+import com.example.sumdays.ShopItem
+import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.auth.AccountStorage
+import com.example.sumdays.stickers.StickerInventoryStore
+import com.example.sumdays.stickers.RetrofitStickerRemote
+import com.example.sumdays.stickers.recoverPendingStickers
+import com.example.sumdays.mission.LegacyPointBalanceRequest
+import com.example.sumdays.mission.MissionConfig
+import com.example.sumdays.mission.ShopCatalogResponse
+import com.example.sumdays.mission.ShopPurchaseRequest
+import com.example.sumdays.mission.ShopPurchaseResponse
+import com.example.sumdays.network.ApiClient
+import com.example.sumdays.network.apiService.ApiService
+import kotlinx.coroutines.sync.withLock
+import java.util.UUID
+
+sealed interface ShopPurchaseResult {
+    data class Purchased(
+        val pointBalance: Int,
+        val quantity: Int,
+        val alreadyOwned: Boolean,
+    ) : ShopPurchaseResult
+    data class InsufficientPoints(val pointBalance: Int?) : ShopPurchaseResult
+}
+
+class PointWalletRepository(context: Context, private val api: ApiService = ApiClient.api) {
+    private val appContext = context.applicationContext
+    private val operationMutex = StickerInventoryStore.operationMutex
+
+    suspend fun refreshBalance(): Int = operationMutex.withLock {
+        if (!MissionConfig.USE_SERVER_MISSIONS) return@withLock PointPrefs.getPoint(appContext)
+        val session = requireSession()
+        recoverStickerPlacements(session)
+        recoverPendingPurchase(session)
+        initializeServerWallet(session)
+        val response = api.getShopCatalog(session.authorization)
+        if (!response.isSuccessful) error("포인트 조회 실패: ${response.code()}")
+        val catalog = response.body()?.data ?: error("상점 응답 데이터가 없습니다.")
+        ensureCurrent(session)
+        applyServerCatalog(session.userId, catalog)
+        catalog.pointBalance
+    }
+
+    suspend fun refreshShopCatalog(): ShopCatalogResponse? = operationMutex.withLock {
+        if (!MissionConfig.USE_SERVER_MISSIONS) return@withLock null
+        val session = requireSession()
+        recoverStickerPlacements(session)
+        recoverPendingPurchase(session)
+        initializeServerWallet(session)
+        val response = api.getShopCatalog(session.authorization)
+        if (!response.isSuccessful) error("상점 조회 실패: ${response.code()}")
+        val catalog = response.body()?.data ?: error("상점 응답 데이터가 없습니다.")
+        ensureCurrent(session)
+        applyServerCatalog(session.userId, catalog)
+        catalog
+    }
+
+    suspend fun purchase(item: ShopItem): ShopPurchaseResult = operationMutex.withLock {
+        if (!MissionConfig.USE_SERVER_MISSIONS) {
+            val current = PointPrefs.getPoint(appContext)
+            if (current < item.price) {
+                return@withLock ShopPurchaseResult.InsufficientPoints(current)
+            }
+            val balance = current - item.price
+            PointPrefs.savePoint(appContext, balance)
+            val quantity = if (item is StickerShopItem) {
+                StickerPrefs.addSticker(appContext, item.id)
+                StickerPrefs.getCount(appContext, item.id)
+            } else if (item is FoxShopItem) {
+                val nextCount = ItemPrefs.getCount(appContext, item.id) + 1
+                ItemPrefs.setCount(appContext, item.id, nextCount)
+                nextCount
+            } else {
+                OwnedPrefs.saveOwned(appContext, item.id)
+                1
+            }
+            return@withLock ShopPurchaseResult.Purchased(
+                pointBalance = balance,
+                quantity = quantity,
+                alreadyOwned = false,
+            )
+        }
+
+        val session = requireSession()
+        recoverStickerPlacements(session)
+        initializeServerWallet(session)
+        val productType = if (item is ThemeShopItem) "THEME" else "ITEM"
+        val previousPending = PendingShopPurchaseStore.get(appContext, session.userId)
+        if (previousPending != null) {
+            val recovered = submitPurchase(session, previousPending)
+            if (
+                previousPending.productType == productType &&
+                previousPending.itemId == item.id
+            ) {
+                return@withLock recovered
+            }
+        }
+
+        val pending = PendingShopPurchase(
+            productType = productType,
+            itemId = item.id,
+            idempotencyKey = UUID.randomUUID().toString(),
+        )
+        PendingShopPurchaseStore.save(appContext, session.userId, pending)
+        submitPurchase(session, pending)
+    }
+
+    private suspend fun submitPurchase(
+        session: AuthSession,
+        pending: PendingShopPurchase,
+    ): ShopPurchaseResult {
+        val response = api.purchaseShopProduct(
+            session.authorization,
+            ShopPurchaseRequest(
+                productType = pending.productType,
+                itemId = pending.itemId,
+                idempotencyKey = pending.idempotencyKey,
+            )
+        )
+        ensureCurrent(session)
+        if (response.code() == 409) {
+            PendingShopPurchaseStore.clear(appContext, session.userId, pending)
+            return ShopPurchaseResult.InsufficientPoints(null)
+        }
+        if (!response.isSuccessful) {
+            if (response.code() in 400..499 && response.code() != 408 && response.code() != 429) {
+                PendingShopPurchaseStore.clear(appContext, session.userId, pending)
+            }
+            error("상품 구매 실패: ${response.code()}")
+        }
+        val purchase = response.body()?.data ?: error("상품 구매 응답 데이터가 없습니다.")
+        applyPurchase(session.userId, pending, purchase)
+        PendingShopPurchaseStore.clear(appContext, session.userId, pending)
+        return ShopPurchaseResult.Purchased(
+            pointBalance = purchase.pointBalance,
+            quantity = purchase.quantity,
+            alreadyOwned = purchase.alreadyOwned,
+        )
+    }
+
+    private suspend fun recoverPendingPurchase(session: AuthSession) {
+        val pending = PendingShopPurchaseStore.get(appContext, session.userId) ?: return
+        submitPurchase(session, pending)
+    }
+
+    private fun applyPurchase(
+        userId: Int,
+        pending: PendingShopPurchase,
+        purchase: ShopPurchaseResponse,
+    ) {
+        PointPrefs.savePoint(appContext, userId, purchase.pointBalance)
+        if (pending.productType == "THEME") {
+            if (purchase.owned) OwnedPrefs.saveOwned(appContext, userId, pending.itemId)
+        } else if (StickerCatalog.contains(pending.itemId)) {
+            StickerInventoryStore(appContext, AccountStorage.accountKey(userId))
+                .setCount(pending.itemId, purchase.quantity)
+        } else {
+            ItemPrefs.setCount(appContext, userId, pending.itemId, purchase.quantity)
+        }
+    }
+
+    private fun applyServerCatalog(userId: Int, catalog: ShopCatalogResponse) {
+        PointPrefs.savePoint(appContext, userId, catalog.pointBalance)
+        OwnedPrefs.replaceOwned(
+            appContext,
+            userId,
+            catalog.products
+                .filter { it.productType == "THEME" && it.owned }
+                .mapTo(mutableSetOf()) { it.itemId },
+        )
+        ItemPrefs.replaceCounts(
+            appContext,
+            userId,
+            catalog.products
+                .filter { it.productType == "ITEM" && !StickerCatalog.contains(it.itemId) }
+                .associate { it.itemId to it.quantity },
+        )
+        StickerInventoryStore(appContext, AccountStorage.accountKey(userId)).replaceCounts(
+            catalog.products.filter { it.productType == "ITEM" && StickerCatalog.contains(it.itemId) }
+                .associate { it.itemId to it.quantity },
+        )
+    }
+
+    private suspend fun recoverStickerPlacements(session: AuthSession) {
+        recoverPendingStickers(
+            StickerInventoryStore(appContext, AccountStorage.accountKey(session.userId)),
+            RetrofitStickerRemote(session.authorization.removePrefix("Bearer ")),
+        ) { SessionManager.getUserId() == session.userId }
+        ensureCurrent(session)
+    }
+
+    private suspend fun initializeServerWallet(session: AuthSession): Int {
+        val response = api.initializePointWallet(
+            session.authorization,
+            LegacyPointBalanceRequest(
+                PointPrefs.getLegacyPointForMigration(appContext, session.userId)
+            ),
+        )
+        if (!response.isSuccessful) error("포인트 지갑 준비 실패: ${response.code()}")
+        val balance = response.body()?.data?.pointBalance
+            ?: error("포인트 지갑 응답 데이터가 없습니다.")
+        ensureCurrent(session)
+        PointPrefs.savePoint(appContext, session.userId, balance)
+        PointPrefs.markLegacyPointHandled(appContext, session.userId)
+        return balance
+    }
+
+    private fun requireSession(): AuthSession {
+        val userId = SessionManager.getUserId()
+        val token = SessionManager.getToken()
+        if (userId < 0 || token == null) error("로그인이 필요합니다.")
+        return AuthSession(userId, "Bearer $token")
+    }
+
+    private fun ensureCurrent(session: AuthSession) {
+        if (SessionManager.getUserId() != session.userId) {
+            error("요청 처리 중 로그인 계정이 변경되었습니다.")
+        }
+    }
+
+    private data class AuthSession(
+        val userId: Int,
+        val authorization: String,
+    )
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\statistics\StreakPrefs.kt ==========
+package com.example.sumdays.statistics
+
+import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.core.content.edit
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+
+object StreakPrefs {
+    private const val PREF = "streak_prefs"
+    private const val KEY_LAST_DATE = "last_diary_date"   // yyyy-MM-dd
+    private const val KEY_STREAK = "current_streak"
+    @RequiresApi(Build.VERSION_CODES.O)
+    private val fmt = DateTimeFormatter.ISO_LOCAL_DATE
+
+    fun getStreak(context: Context): Int {
+        val sp = context.getSharedPreferences(PREF, Context.MODE_PRIVATE)
+        return sp.getInt(KEY_STREAK, 0)
+    }
+
+    // 오늘 일기 저장 완료 시점에 streak를 계산한다.
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun onDiarySaved(context: Context, entryDateStr: String) {
+        val entryDate = runCatching { LocalDate.parse(entryDateStr, fmt) }.getOrNull() ?: return
+        val today = LocalDate.now()
+        if (entryDate != today) return
+
+        val sp = context.getSharedPreferences(PREF, Context.MODE_PRIVATE)
+        val lastStr = sp.getString(KEY_LAST_DATE, null)
+        val oldStreak = sp.getInt(KEY_STREAK, 0)
+
+        val newStreak = if (lastStr == null) {
+            1
+        } else {
+            val lastDate = runCatching { LocalDate.parse(lastStr, fmt) }.getOrNull()
+            if (lastDate == null) 1
+            else {
+                val diff = ChronoUnit.DAYS.between(lastDate, today).toInt()
+                when (diff) {
+                    0 -> oldStreak      // 오늘 이미 반영됨(일기 수정한 경우) -> 유지
+                    1 -> oldStreak + 1  // 어제 작성한 경우 → +1
+                    else -> 1           // streak 끊김 -> 1
+                }
+            }
+        }
+
+        sp.edit {
+            putInt(KEY_STREAK, newStreak)
+                .putString(KEY_LAST_DATE, today.toString())
+        }
+    }
+
+    // 통계 화면에서 호출된다. (streak를 확인할 수 있는 모든 곳에서 호출해야 한다.)
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun refreshOnOpen(context: Context) {
+        val sp = context.getSharedPreferences(PREF, Context.MODE_PRIVATE)
+        val lastStr = sp.getString(KEY_LAST_DATE, null) ?: return
+
+        val lastDate = runCatching { LocalDate.parse(lastStr, fmt) }.getOrNull() ?: return
+        val today = LocalDate.now()
+        val diff = ChronoUnit.DAYS.between(lastDate, today).toInt()
+
+        if (diff >= 2) {
+            sp.edit { putInt(KEY_STREAK, 0) }
+        }
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\stickers\StickerInventoryStore.kt ==========
+package com.example.sumdays.stickers
+
+import android.content.Context
+import com.example.sumdays.auth.AccountStorage
+import com.example.sumdays.shop.StickerCatalog
+import com.google.gson.Gson
+import java.io.IOException
+import kotlinx.coroutines.sync.Mutex
+
+/** A reservation and its debit share one durable preferences transaction. Captures the account. */
+class StickerInventoryStore(context: Context, account: String = AccountStorage.accountKey()) {
+    private val prefs = context.getSharedPreferences("sticker_inventory__$account", Context.MODE_PRIVATE)
+    private val gson = Gson()
+
+    fun count(id: Int): Int = synchronized(lock) { prefs.getInt(id.toString(), 0) }
+
+    fun add(id: Int) = synchronized(lock) {
+        prefs.edit().putInt(id.toString(), count(id) + 1).apply()
+    }
+
+    fun setCount(id: Int, quantity: Int) = synchronized(lock) {
+        require(StickerCatalog.contains(id) && quantity >= 0)
+        check(pending().isEmpty()) { "이전 스티커 저장을 확인하고 있어요." }
+        if (!prefs.edit().putInt(id.toString(), quantity).commit()) {
+            throw IOException("스티커 보관함을 저장하지 못했어요.")
+        }
+    }
+
+    fun replaceCounts(counts: Map<Int, Int>) = synchronized(lock) {
+        check(pending().isEmpty()) { "이전 스티커 저장을 확인하고 있어요." }
+        require(counts.values.all { it >= 0 })
+        val edit = prefs.edit()
+        StickerCatalog.items.forEach { edit.putInt(it.id.toString(), counts[it.id] ?: 0) }
+        if (!edit.commit()) throw IOException("스티커 보관함을 저장하지 못했어요.")
+    }
+
+    fun pending(): List<PendingSticker> = synchronized(lock) {
+        prefs.all.filterKeys { it.startsWith(PREFIX) }.values.map {
+            gson.fromJson(it as String, PendingSticker::class.java)
+        }
+    }
+
+    fun reserve(request: PendingSticker): Boolean = synchronized(lock) {
+        require(request.geometry.isValid() && StickerCatalog.items.any { it.id == request.stickerId })
+        val existing = prefs.getString(PREFIX + request.id, null)
+        if (existing != null) {
+            require(gson.fromJson(existing, PendingSticker::class.java) == request)
+            return@synchronized true
+        }
+        val available = count(request.stickerId)
+        if (available <= 0) return@synchronized false
+        if (!prefs.edit().putInt(request.stickerId.toString(), available - 1)
+                .putString(PREFIX + request.id, gson.toJson(request)).commit()) {
+            throw IOException("스티커 보관함을 저장하지 못했어요.")
+        }
+        true
+    }
+
+    fun finish(id: String, accepted: Boolean) = synchronized(lock) {
+        val json = prefs.getString(PREFIX + id, null) ?: return@synchronized
+        val request = gson.fromJson(json, PendingSticker::class.java)
+        val edit = prefs.edit().remove(PREFIX + id)
+        if (!accepted) edit.putInt(request.stickerId.toString(), count(request.stickerId) + 1)
+        if (!edit.commit()) throw IOException("스티커 보관함을 저장하지 못했어요.")
+    }
+
+    companion object {
+        // Serialize network snapshots, purchases and placement reservations across repositories.
+        val operationMutex = Mutex()
+        private val lock = Any()
+        private const val PREFIX = "pending:"
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\theme\OwnedPrefs.kt ==========
+package com.example.sumdays.shop
+
+import android.content.Context
+import com.example.sumdays.auth.AccountStorage
+
+object OwnedPrefs {
+
+    private const val PREF_NAME = "owned_items"
+    private const val DEFAULT_THEME_ID = 1
+
+    fun saveOwned(context: Context, id: Int) {
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+        prefs.edit().putBoolean(id.toString(), true).apply()
+    }
+
+    fun saveOwned(context: Context, userId: Int, id: Int) {
+        val prefs = AccountStorage.preferences(context, PREF_NAME, userId)
+        prefs.edit().putBoolean(id.toString(), true).apply()
+    }
+
+    fun isOwned(context: Context, id: Int): Boolean {
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+        return id == DEFAULT_THEME_ID || prefs.getBoolean(id.toString(), false)
+    }
+
+    fun clear(context: Context) {
+        val prefs = AccountStorage.preferences(context, PREF_NAME)
+        prefs.edit().clear().apply()
+    }
+
+    fun replaceOwned(context: Context, userId: Int, ownedIds: Set<Int>) {
+        val editor = AccountStorage.preferences(context, PREF_NAME, userId).edit().clear()
+        ownedIds.forEach { editor.putBoolean(it.toString(), true) }
+        editor.apply()
+    }
+}
+
+========== FILE: C:\Users\SAMSUNG\mingu_github\sumdays\Sumdays\app\src\main\java\com\example\sumdays\theme\ThemePrefs.kt ==========
+package com.example.sumdays.theme
+
+import android.content.Context
+import com.example.sumdays.auth.AccountStorage
+
+object ThemePrefs {
+
+    private const val PREF_THEME = "theme_settings"
+    private const val KEY_THEME = "selected_theme"
+
+    private const val PREF_FOX = "fox_settings"
+    private const val KEY_FOX = "selected_fox"
+
+    fun saveTheme(context: Context, themeId: Int) {
+        val prefs = AccountStorage.preferences(context, PREF_THEME)
+
+        prefs.edit()
+            .putInt(KEY_THEME, themeId)
+            .apply()
+    }
+
+    fun getTheme(context: Context): Int {
+        val prefs = AccountStorage.preferences(context, PREF_THEME)
+
+        return prefs.getInt(KEY_THEME, 1)
+    }
+
+    fun saveFoxItem(context: Context, foxId: Int) {
+        val prefs = AccountStorage.preferences(context, PREF_FOX)
+
+        prefs.edit()
+            .putInt(KEY_FOX, foxId)
+            .apply()
+    }
+
+    fun getFoxItem(context: Context): Int {
+        val prefs = AccountStorage.preferences(context, PREF_FOX)
+
+        return prefs.getInt(KEY_FOX, 1)
+    }
+}

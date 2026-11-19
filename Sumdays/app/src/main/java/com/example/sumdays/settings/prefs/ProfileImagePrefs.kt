@@ -85,6 +85,29 @@ object ProfileImagePrefs {
         )
     }
 
+    fun init(context: Context, profile: ProfilePayload?) {
+        clear(context)
+
+        if (profile == null) return
+
+        when (profile.mode) {
+            "AVATAR" -> {
+                setProfileIds(
+                    context = context,
+                    face = profile.faceId ?: -1,
+                    eyes = profile.eyesId ?: -1,
+                    mouth = profile.mouthId ?: -1,
+                    acc = profile.accessoryId ?: -1
+                )
+                setMode(context, "AVATAR")
+            }
+
+            "PHOTO" -> {
+                setImageUrl(context, profile.imageUrl)
+                setMode(context, "PHOTO")
+            }
+        }
+    }
     fun clear(context: Context) {
         getPrefs(context).edit {
             clear()

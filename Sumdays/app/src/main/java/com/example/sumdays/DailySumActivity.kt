@@ -211,12 +211,6 @@ class DailySumActivity : AppCompatActivity() {
 
         rootView.setBackgroundResource(currentTheme.backgroundColor)
         memoListView.setBackgroundResource(currentTheme.blockStyleD)
-
-//        dateTextView.setTextColor(
-//            ContextCompat.getColor(this, currentTheme.textPrimaryColor)
-//        )
-//
-//        backIcon.setImageResource(currentTheme.backIcon)
         }
 
     private fun handleBackPress() {
