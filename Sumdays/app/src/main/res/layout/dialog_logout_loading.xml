@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="28dp">
+
+    <ImageView
+        android:id="@+id/logoutLoadingGif"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
+        android:contentDescription="로딩 중" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="데이터를 서버에 저장 중입니다..."
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:gravity="center" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="잠시만 기다려 주세요."
+        android:textSize="13sp"
+        android:textColor="#777777" />
+
+</LinearLayout>
