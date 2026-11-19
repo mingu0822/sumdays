@@ -11,8 +11,13 @@ class BackupWorker(
     params: WorkerParameters
 ) : CoroutineWorker(context, params) {
 
+    companion object {
+        const val KEY_EXPECTED_USER_ID = "expected_user_id"
+
+        fun accountWorkTag(userId: Int): String = "account_work_user_$userId"
+    }
     override suspend fun doWork(): Result {
-        val expectedUserId = inputData.getInt(InitialSyncWorker.KEY_EXPECTED_USER_ID, -1)
+        val expectedUserId = inputData.getInt(KEY_EXPECTED_USER_ID, -1)
         if (expectedUserId >= 0 && SessionManager.getUserId() != expectedUserId) return Result.failure()
         val syncResult = BackupSyncRunner.syncNow(applicationContext)
         if (syncResult.success) return Result.success()

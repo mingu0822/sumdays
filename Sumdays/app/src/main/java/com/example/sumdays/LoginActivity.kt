@@ -13,11 +13,7 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.lifecycleScope
-import androidx.work.WorkManager
 import com.example.sumdays.auth.SessionManager
-import com.example.sumdays.data.sync.InitialSyncScheduler
-import com.example.sumdays.data.sync.InitialSyncWorker
-import com.example.sumdays.data.sync.LocalDataOwnerPrefs
 import com.example.sumdays.databinding.ActivityLoginBinding
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.GoogleLoginRequest
