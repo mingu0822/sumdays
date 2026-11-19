@@ -7,7 +7,6 @@ import com.example.sumdays.daily.memo.MergeRequest
 import com.example.sumdays.daily.memo.MergeTicketPurchase
 import com.example.sumdays.daily.memo.MoodRequest
 import com.example.sumdays.data.sync.SyncFetchResponse
-import com.example.sumdays.data.sync.SyncRequest
 import com.example.sumdays.data.sync.SyncResponse
 import com.example.sumdays.mission.AdRewardClaimRequest
 import com.example.sumdays.mission.FriendDiaryViewRequest
@@ -137,25 +136,15 @@ interface ApiService {
 
     // 닉네임 변경
     @PUT("api/auth/nickname")
-    fun updateNickname(@Header("Authorization") token: String, @Body request: UpdateNicknameRequest): Call<UpdateNicknameResponse>
+    suspend fun updateNickname(
+        @Header("Authorization") token: String,
+        @Body request: UpdateNicknameRequest
+    ): Response<UpdateNicknameResponse>
+
 
     // 비밀번호 변경
     @PUT("api/auth/password")
     fun changePassword(@Header("Authorization") token: String, @Body request: ChangePasswordRequest): Call<ChangePasswordResponse>
-
-    // 프로필 사진
-    @Multipart
-    @POST("/api/auth/profile-image")
-    suspend fun updateProfileImage(
-        @Header("Authorization") token: String,
-        @Part profileImage: MultipartBody.Part
-    ): Response<UpdateProfileImageResponse>
-
-    @POST("/api/auth/profile-avatar")
-    suspend fun updateProfileAvatar(
-        @Header("Authorization") token: String,
-        @Body request: UpdateProfileAvatarRequest
-    ): Response<UpdateProfileAvatarResponse>
 
     // 백업 
     @Multipart
@@ -212,26 +201,3 @@ interface ApiService {
 }
 
 
-
-// 응답 DTO (nullable 권장)
-data class MergeResponse(
-    val merged_memo: String?,
-    val count: Int?,
-    val end_flag: Boolean?
-)
-
-data class UpdateProfileImageResponse(
-    val success: Boolean,
-    val profileImageUrl: String?
-)
-data class UpdateProfileAvatarRequest(
-    val faceId: Int,
-    val eyesId: Int,
-    val mouthId: Int,
-    val accessoryId: Int
-)
-
-data class UpdateProfileAvatarResponse(
-    val success: Boolean,
-    val message: String?
-)

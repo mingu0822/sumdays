@@ -2,7 +2,7 @@ package com.example.sumdays.data
 
 import android.content.Context
 import com.example.sumdays.data.sync.PreferencesPayload
-import com.example.sumdays.settings.prefs.ProfileImagePrefs
+import com.example.sumdays.data.userInfo.prefs.ProfileImagePrefs
 import androidx.core.content.edit
 import com.example.sumdays.reminder.ReminderPrefs
 import com.example.sumdays.settings.prefs.DiaryPermissionPrefs

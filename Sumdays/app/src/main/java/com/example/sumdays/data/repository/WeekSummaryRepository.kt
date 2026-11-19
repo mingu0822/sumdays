@@ -14,7 +14,6 @@ class WeekSummaryRepository (
 
 
      //  특정 시작 날짜에 해당하는 주간 통계 데이터 가져오기
-
     suspend fun getWeekSummary(startDate: String): WeekSummary? {
         return dao.getWeekSummary(startDate)
     }
@@ -27,9 +26,12 @@ class WeekSummaryRepository (
     }
 
 
-    // ㄴ통계 화면 초기 설정을 위해 저장된 모든 유효한 주간의 시작 날짜 목록을 오름차순으로 가져오기
+    // 통계 화면 초기 설정을 위해 저장된 모든 유효한 주간의 시작 날짜 목록을 오름차순으로 가져오기
     suspend fun getAllWrittenDatesAsc(): List<String> {
         return dao.getAllDatesAsc()
     }
-
+    suspend fun getSummaryCount() : Int {
+        val count = dao.getValidSummaryCount()
+        return count
+    }
 }

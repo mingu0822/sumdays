@@ -34,7 +34,6 @@ import com.example.sumdays.data.repository.AnalysisRepository
 import com.example.sumdays.data.sync.BackupSyncRunner
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.settings.prefs.DiaryPermissionPrefs
-import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
@@ -52,7 +51,6 @@ class DailySumActivity : AppCompatActivity() {
     private lateinit var memoMergeAdapter: MemoMergeAdapter
     private val viewModel: DailyEntryViewModel by viewModels()
 
-    private lateinit var userStatsPrefs: UserStatsPrefs
     private lateinit var userStyleDao: UserStyleDao
     private lateinit var loadingOverlay: View
     private lateinit var loadingGifView: ImageView
@@ -86,8 +84,6 @@ class DailySumActivity : AppCompatActivity() {
 
 
         val recyclerView = findViewById<RecyclerView>(R.id.memo_list_view)
-
-        userStatsPrefs = UserStatsPrefs(this)
         userStyleDao = AppDatabase.getDatabase(this).userStyleDao()
 
         date = intent.getStringExtra("date") ?: "알 수 없는 날짜"
@@ -111,7 +107,6 @@ class DailySumActivity : AppCompatActivity() {
             initialMemoList,
             lifecycleScope,
             ::showAllMergedSheet,
-            userStatsPrefs = userStatsPrefs,
             userStyleDao = userStyleDao,
             onMarbleChanged = { refreshMergeMarble() },
         )
@@ -302,9 +297,6 @@ class DailySumActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun saveDiary(mergedResult: String, precomputedMood: String? = null) {
-        val todayStr = getTodayDate()
-        UserStatsPrefs(this).onDiarySaved(todayStr)
-
         viewModel.updateEntryNow(date = date, diary = mergedResult)
         AnalysisRepository.requestAnalysis(
             date = date,

@@ -136,4 +136,12 @@ interface DailyEntryDao {
         ORDER BY date DESC
     """)
     fun searchEntries(q: String): LiveData<List<DailyEntry>>
+
+    @Query("""
+    SELECT DISTINCT date
+    FROM daily_entry
+    WHERE isDeleted = 0
+    ORDER BY date DESC
+    """)
+    suspend fun getWrittenDatesDesc(): List<String>
 }

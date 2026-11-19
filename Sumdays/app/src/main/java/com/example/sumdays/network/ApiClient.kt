@@ -1,6 +1,7 @@
 package com.example.sumdays.network
 
 import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.data.userInfo.UserInfoApi
 import com.example.sumdays.network.apiService.ApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -56,7 +57,8 @@ object ApiClient {
     val api: ApiService by lazy {
         retrofit.create(ApiService::class.java)
     }
-
+    val userInfoApi: UserInfoApi =
+        retrofit.create(UserInfoApi::class.java)
     val socialApi: SocialApiService by lazy {
         retrofit.create(SocialApiService::class.java)
     }

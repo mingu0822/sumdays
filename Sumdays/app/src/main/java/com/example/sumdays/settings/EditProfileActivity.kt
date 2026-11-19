@@ -13,9 +13,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.sumdays.R
+import com.example.sumdays.data.userInfo.UserInfoRepository
 import com.example.sumdays.databinding.ActivityProfileEditBinding
 import com.example.sumdays.image.uploadProfileImageToServer
-import com.example.sumdays.settings.prefs.ProfileImagePrefs
+import com.example.sumdays.data.userInfo.prefs.ProfileImagePrefs
 import com.example.sumdays.settings.profileimage.CategoryAdapter
 import com.example.sumdays.settings.profileimage.ProfileImageCategory
 import com.example.sumdays.settings.profileimage.ProfileImageItem
@@ -24,7 +25,6 @@ import com.example.sumdays.settings.profileimage.ProfileMode
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
 import java.io.File
-import kotlin.io.copyTo
 import com.example.sumdays.image.uploadProfileAvatarToServer
 
 class EditProfileActivity : AppCompatActivity() {
@@ -32,6 +32,7 @@ class EditProfileActivity : AppCompatActivity() {
     private lateinit var binding: ActivityProfileEditBinding
 
     private var currentMode = ProfileMode.AVATAR
+    private lateinit var userInfoRepository: UserInfoRepository
 
     private var curFaceId = -1
     private var curEyesId = -1
@@ -60,6 +61,7 @@ class EditProfileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityProfileEditBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        userInfoRepository = UserInfoRepository(applicationContext)
 
         binding.header.headerTitle.text = "프로필 수정"
         binding.header.headerBackIcon.setOnClickListener { finish() }
@@ -275,11 +277,7 @@ class EditProfileActivity : AppCompatActivity() {
 
                 lifecycleScope.launch {
                     try {
-                        // 서버 업로드 + Prefs 저장은 Helper에서 처리
-                        val isSuccess = uploadProfileImageToServer(
-                            this@EditProfileActivity,
-                            imageFile
-                        )
+                        val isSuccess = userInfoRepository.updateProfilePhoto(imageFile)
 
                         if (isSuccess) {
                             Toast.makeText(
@@ -313,7 +311,7 @@ class EditProfileActivity : AppCompatActivity() {
 
                 lifecycleScope.launch {
                     try {
-                        val isSuccess = uploadProfileAvatarToServer(
+                        val isSuccess = userInfoRepository.updateProfileAvatar(
                             faceId = curFaceId,
                             eyesId = curEyesId,
                             mouthId = curMouthId,
@@ -321,19 +319,6 @@ class EditProfileActivity : AppCompatActivity() {
                         )
 
                         if (isSuccess) {
-                            ProfileImagePrefs.setProfileIds(
-                                context = this@EditProfileActivity,
-                                face = curFaceId,
-                                eyes = curEyesId,
-                                mouth = curMouthId,
-                                acc = curAccId
-                            )
-
-                            ProfileImagePrefs.setMode(
-                                this@EditProfileActivity,
-                                "AVATAR"
-                            )
-
                             Toast.makeText(
                                 this@EditProfileActivity,
                                 "프로필이 저장되었습니다.",

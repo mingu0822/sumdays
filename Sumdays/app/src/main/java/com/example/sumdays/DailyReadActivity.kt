@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.util.Base64
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -32,7 +31,6 @@ import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.databinding.ActivityDailyReadBinding
 import com.example.sumdays.image.GalleryItem
 import com.example.sumdays.image.PhotoGalleryAdapter
-import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.theme.FoxRepository
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
@@ -61,8 +59,6 @@ class DailyReadActivity : AppCompatActivity() {
 
     // 현재 일기의 소셜 공개 여부 (자물쇠 토글용)
     private var currentIsAllowed = false
-
-    private val userStatsPrefs: UserStatsPrefs by lazy { UserStatsPrefs(this) }
     private val userStyleDao by lazy { AppDatabase.getDatabase(this).userStyleDao() }
 
     private val repoKeyFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -489,7 +485,7 @@ class DailyReadActivity : AppCompatActivity() {
                 lifecycleScope.launch {
                     val mood = MoodRepository.generateMood(
                         diary = updatedContent,
-                        userStatsPrefs = userStatsPrefs,
+                        context = applicationContext,
                         userStyleDao = userStyleDao
                     )
                     AnalysisRepository.requestAnalysis(

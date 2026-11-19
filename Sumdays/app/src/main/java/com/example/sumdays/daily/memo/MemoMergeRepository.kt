@@ -7,7 +7,6 @@ import com.example.sumdays.daily.memo.MemoMergeUtils.extractMood
 import com.example.sumdays.data.dao.UserStyleDao
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.settings.prefs.LabsPrefs
-import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
@@ -36,14 +35,13 @@ sealed class MergeException(message: String) : Exception(message) {
 /** Owns request IDs, account checks and streaming. No View or adapter dependencies. */
 class MemoMergeRepository(
     context: Context,
-    private val userStatsPrefs: UserStatsPrefs,
     private val userStyleDao: UserStyleDao,
 ) : MemoMergeGateway {
     private val context = context.applicationContext
-    private val styleProvider = MergeStyleProvider(userStatsPrefs, userStyleDao)
+    private val styleProvider = MergeStyleProvider(context, userStyleDao)
 
     override suspend fun generateMood(diary: String): String? =
-        MoodRepository.generateMood(diary, userStatsPrefs, userStyleDao)
+        MoodRepository.generateMood(context, diary, userStyleDao)
 
     @Throws(MergeException::class)
     override suspend fun merge(

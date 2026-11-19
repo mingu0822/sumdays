@@ -1,12 +1,13 @@
 package com.example.sumdays.daily.memo
 
+import android.content.Context
 import com.example.sumdays.daily.memo.MemoMergeUtils.convertStylePromptToMap
 import com.example.sumdays.data.dao.UserStyleDao
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.settings.prefs.LabsPrefs
 
 /** Builds the style snapshot independently of the RecyclerView. */
 class MergeStyleProvider(
-    private val userStatsPrefs: UserStatsPrefs,
+    private val context: Context,
     private val userStyleDao: UserStyleDao,
 ) {
     data class StyleData(
@@ -16,7 +17,7 @@ class MergeStyleProvider(
     )
 
     suspend fun load(): StyleData {
-        val activeStyleId = userStatsPrefs.getActiveStyleId()
+        val activeStyleId = LabsPrefs.getActiveStyleId(context)
         val stored = userStyleDao.getStyleById(activeStyleId)
         return if (stored != null) {
             StyleData(

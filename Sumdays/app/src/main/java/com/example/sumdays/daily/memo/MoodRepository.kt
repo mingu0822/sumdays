@@ -1,10 +1,11 @@
 package com.example.sumdays.daily.memo
 
+import android.content.Context
 import android.util.Log
 import com.example.sumdays.daily.memo.MemoMergeUtils.convertStylePromptToMap
 import com.example.sumdays.data.dao.UserStyleDao
 import com.example.sumdays.network.ApiClient
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.settings.prefs.LabsPrefs
 
 object MoodRepository {
 
@@ -31,12 +32,12 @@ object MoodRepository {
     )
 
     suspend fun generateMood(
+        context: Context,
         diary: String,
-        userStatsPrefs: UserStatsPrefs,
         userStyleDao: UserStyleDao
     ): String? {
         return try {
-            val activeStyleId = userStatsPrefs.getActiveStyleId()
+            val activeStyleId = LabsPrefs.getActiveStyleId(context)
             val stored = userStyleDao.getStyleById(activeStyleId)
             val stylePrompt: Map<String, Any>
             val styleExamples: List<String>

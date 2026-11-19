@@ -21,11 +21,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.LoginActivity
 import com.example.sumdays.R
 import com.example.sumdays.auth.SessionManager
-import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.sync.BackupSyncRunner
 import com.example.sumdays.settings.EditProfileActivity
-import com.example.sumdays.settings.prefs.ProfileImagePrefs
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.data.userInfo.prefs.ProfileImagePrefs
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import android.widget.EditText
@@ -38,8 +36,6 @@ import androidx.lifecycle.lifecycleScope
 import com.example.sumdays.social.reqeust.AddFriendDialog
 import com.example.sumdays.social.reqeust.FriendRequestDialog
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -70,7 +66,6 @@ class SocialActivity : AppCompatActivity() {
     private lateinit var tvError: TextView
 
     private lateinit var viewModel: SocialViewModel
-    private val userStatsPrefs: UserStatsPrefs by lazy { UserStatsPrefs(this) }
     private val detailLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
@@ -232,7 +227,7 @@ class SocialActivity : AppCompatActivity() {
             btnCustomize.setTextColor(ContextCompat.getColor(this, theme.themeTextColorBasic))
         }
 
-        nickname.text = userStatsPrefs.getNickname()
+        nickname.text = SessionManager.getNickname()
         renderMyProfile(view.findViewById(R.id.dialogProfile))
 
         view.findViewById<FrameLayout>(R.id.profileImageContainer).setOnClickListener {

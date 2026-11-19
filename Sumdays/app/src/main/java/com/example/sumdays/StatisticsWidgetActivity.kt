@@ -16,9 +16,10 @@ import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.GestureDetectorCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.sumdays.data.AppDatabase
+import com.example.sumdays.data.repository.DailyEntryRepository
 import com.example.sumdays.data.viewModel.WeekSummaryViewModel
 import com.example.sumdays.data.viewModel.WeekSummaryViewModelFactory
-import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.statistics.FoxTreeBackground
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
@@ -48,6 +49,8 @@ class StatisticsWidgetActivity : AppCompatActivity() {
     private lateinit var cardLeafGrape: CardView
     private lateinit var cardFoxTree: CardView
 
+    private lateinit var dailyEntryRepository: DailyEntryRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_statistics_widget)
@@ -64,6 +67,10 @@ class StatisticsWidgetActivity : AppCompatActivity() {
         cardLeafGrape    = findViewById(R.id.card_leaf_grape)
         cardFoxTree     = findViewById(R.id.card_fox_tree)
         applyThemeModeSettings()
+
+        val db = AppDatabase.getDatabase(applicationContext)
+        val dailyEntryDao = db.dailyEntryDao()
+        dailyEntryRepository = DailyEntryRepository(dailyEntryDao)
 
         cardFoxTree.setOnClickListener {
             startActivity(Intent(this, StatisticsActivity::class.java))
@@ -123,7 +130,7 @@ class StatisticsWidgetActivity : AppCompatActivity() {
                 val dates = weekSummaryViewModel.getAllDatesAsc()
                 dates.mapNotNull { weekSummaryViewModel.getSummary(it) }
             }
-            val streak     = UserStatsPrefs(this@StatisticsWidgetActivity).getStreak()
+            val streak = dailyEntryRepository.getStreak()
             val leafCount  = weekSummaries.size
             val grapeCount = leafCount / 5
 
@@ -157,9 +164,6 @@ class StatisticsWidgetActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            UserStatsPrefs(this).refreshOnOpen()
-        }
         if (::cardStreak.isInitialized && ::cardLeafGrape.isInitialized) {
             applyThemeModeSettings()
         }

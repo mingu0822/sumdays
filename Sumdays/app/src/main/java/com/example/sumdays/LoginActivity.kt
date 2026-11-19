@@ -19,7 +19,6 @@ import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.GoogleLoginRequest
 import com.example.sumdays.network.LoginRequest
 import com.example.sumdays.network.LoginResponse
-import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -35,7 +34,6 @@ import kotlin.coroutines.cancellation.CancellationException
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var userStatsPrefs: UserStatsPrefs
     private val credentialManager by lazy { CredentialManager.create(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,8 +46,6 @@ class LoginActivity : AppCompatActivity() {
             view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
-        userStatsPrefs = UserStatsPrefs(this)
         setupListeners()
     }
 
@@ -158,8 +154,7 @@ class LoginActivity : AppCompatActivity() {
                     expectedUserId = userId,
                     serverData = initialData
                 )
-
-                loginResponse.nickname?.let(userStatsPrefs::saveNickname)
+                SessionManager.saveNickname(loginResponse.nickname ?: "사용자")
 
                 // 2. 진짜 로그인 완료
                 check(SessionManager.markInitialized())
