@@ -36,10 +36,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkLoginAndNavigate() {
-        if (SessionManager.isLoggedIn()) {
-            navigateToCalendar()
-        } else {
+        if (!SessionManager.isLoggedIn() || !SessionManager.isInitialized()) {
+            SessionManager.clearSession()
             navigateToLogin()
+        } else {
+            navigateToCalendar()
         }
     }
 
