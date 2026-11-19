@@ -18,8 +18,8 @@ import androidx.core.view.GestureDetectorCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.sumdays.data.viewModel.WeekSummaryViewModel
 import com.example.sumdays.data.viewModel.WeekSummaryViewModelFactory
+import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.statistics.FoxTreeBackground
-import com.example.sumdays.statistics.StreakPrefs
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
@@ -123,7 +123,7 @@ class StatisticsWidgetActivity : AppCompatActivity() {
                 val dates = weekSummaryViewModel.getAllDatesAsc()
                 dates.mapNotNull { weekSummaryViewModel.getSummary(it) }
             }
-            val streak     = StreakPrefs.getStreak(this@StatisticsWidgetActivity)
+            val streak     = UserStatsPrefs(this@StatisticsWidgetActivity).getStreak()
             val leafCount  = weekSummaries.size
             val grapeCount = leafCount / 5
 
@@ -158,7 +158,7 @@ class StatisticsWidgetActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            StreakPrefs.refreshOnOpen(this)
+            UserStatsPrefs(this).refreshOnOpen()
         }
         if (::cardStreak.isInitialized && ::cardLeafGrape.isInitialized) {
             applyThemeModeSettings()

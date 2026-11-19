@@ -35,7 +35,6 @@ import com.example.sumdays.data.sync.BackupSyncRunner
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.settings.prefs.DiaryPermissionPrefs
 import com.example.sumdays.settings.prefs.UserStatsPrefs
-import com.example.sumdays.statistics.StreakPrefs
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
@@ -304,7 +303,7 @@ class DailySumActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun saveDiary(mergedResult: String, precomputedMood: String? = null) {
         val todayStr = getTodayDate()
-        StreakPrefs.onDiarySaved(this, todayStr)
+        UserStatsPrefs(this).onDiarySaved(todayStr)
 
         viewModel.updateEntryNow(date = date, diary = mergedResult)
         AnalysisRepository.requestAnalysis(

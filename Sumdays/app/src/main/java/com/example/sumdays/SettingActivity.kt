@@ -75,21 +75,49 @@ class SettingActivity : AppCompatActivity() {
 
         loginButton.setOnClickListener {
             if (!loginButton.isEnabled) return@setOnClickListener
+
             loginButton.isEnabled = false
+
             lifecycleScope.launch {
                 try {
                     if (SessionManager.isLoggedIn()) {
-                        val result = BackupSyncRunner.syncNow(applicationContext, logoutAfterSync = true)
+                        showLogoutLoading(true)
+
+                        val result = BackupSyncRunner.syncNow(
+                            applicationContext,
+                            logoutAfterSync = true
+                        )
+
                         if (!result.success) {
-                            Toast.makeText(this@SettingActivity,
-                                "서버 저장을 확인하지 못해 로그아웃하지 않았어요. ${result.message.orEmpty()}", Toast.LENGTH_LONG).show()
+                            Toast.makeText(
+                                this@SettingActivity,
+                                "서버 저장을 확인하지 못해 로그아웃하지 않았어요. ${result.message.orEmpty()}",
+                                Toast.LENGTH_LONG
+                            ).show()
                             return@launch
                         }
                     }
-                    val intent = Intent(this@SettingActivity, LoginActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+                    val intent = Intent(
+                        this@SettingActivity,
+                        LoginActivity::class.java
+                    ).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                                Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+
                     startActivity(intent)
+
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        this@SettingActivity,
+                        "로그아웃 중 오류가 발생했습니다. ${e.message.orEmpty()}",
+                        Toast.LENGTH_LONG
+                    ).show()
                 } finally {
+                    showLogoutLoading(false)
                     loginButton.isEnabled = true
                 }
             }
@@ -217,5 +245,28 @@ class SettingActivity : AppCompatActivity() {
         binding.tutorialBlockText.setTextColor(getColor(basicColor))
         // binding.summaryBlockText.setTextColor(getColor(basicColor))
         binding.btnBack.setImageResource(R.drawable.ic_left)
+    }
+
+    private fun showLogoutLoading(isLoading: Boolean) {
+        val overlay = binding.logoutLoadingOverlay
+        val gif = binding.logoutLoadingGif
+        val text = binding.logoutLoadingText
+
+        if (isLoading) {
+            overlay.visibility = View.VISIBLE
+            gif.visibility = View.VISIBLE
+            text.visibility = View.VISIBLE
+
+            Glide.with(this)
+                .asGif()
+                .load(R.drawable.loading_animation)
+                .into(gif)
+        } else {
+            overlay.visibility = View.GONE
+            gif.visibility = View.GONE
+            text.visibility = View.GONE
+
+            Glide.with(this).clear(gif)
+        }
     }
 }

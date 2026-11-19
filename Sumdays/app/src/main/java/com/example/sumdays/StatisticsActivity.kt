@@ -24,8 +24,8 @@ import com.example.sumdays.data.WeekSummary
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.data.viewModel.WeekSummaryViewModel
 import com.example.sumdays.data.viewModel.WeekSummaryViewModelFactory
+import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.statistics.FoxTreeBackground
-import com.example.sumdays.statistics.StreakPrefs
 import com.example.sumdays.statistics.WeekStatsDetailActivity
 import com.example.sumdays.ui.TreeTiledDrawable
 import com.example.sumdays.utils.setupEdgeToEdge
@@ -157,7 +157,7 @@ class StatisticsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        StreakPrefs.refreshOnOpen(this)
+        UserStatsPrefs(this).refreshOnOpen()
     }
 
     private fun showLoading(isLoading: Boolean) {
@@ -202,7 +202,7 @@ class StatisticsActivity : AppCompatActivity() {
     }
 
     private fun updateStatisticsHeader() {
-        val streak = StreakPrefs.getStreak(this@StatisticsActivity)
+        val streak = UserStatsPrefs(this@StatisticsActivity).getStreak()
         val leafCount = weekSummaries.size
         val grapeCount = leafCount / 5
 
