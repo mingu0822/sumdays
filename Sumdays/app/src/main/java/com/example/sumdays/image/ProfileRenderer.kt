@@ -4,13 +4,11 @@ package com.example.sumdays.image
 import android.graphics.Color
 import android.view.View
 import android.widget.ImageView
-import androidx.annotation.DrawableRes
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.GlideException
 import com.example.sumdays.R
 import com.example.sumdays.data.sync.ProfilePayload
-import com.example.sumdays.network.ApiClient
-import com.example.sumdays.settings.prefs.ProfileImagePrefs
+import com.example.sumdays.data.userInfo.prefs.ProfileImagePrefs
 import com.example.sumdays.settings.profileimage.ProfileImageItem
 import com.example.sumdays.settings.profileimage.ProfileImageItemType
 import android.graphics.drawable.Drawable

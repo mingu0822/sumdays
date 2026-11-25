@@ -1,6 +1,7 @@
 package com.example.sumdays.network
 
 import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.data.userInfo.UserInfoApi
 import com.example.sumdays.network.apiService.ApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -11,7 +12,7 @@ import com.example.sumdays.network.apiService.SocialApiService
 
 object ApiClient {
     // const val BASE_URL = "http://ec2-13-125-101-143.ap-northeast-2.compute.amazonaws.com:3000/"
-    const val BASE_URL = "http://192.168.1.12:3000/"
+    const val BASE_URL = "http://172.30.1.71:3000/"
 
     // OkHttp 로깅 + 타임아웃 설정
     private val logging = HttpLoggingInterceptor().apply {
@@ -56,7 +57,8 @@ object ApiClient {
     val api: ApiService by lazy {
         retrofit.create(ApiService::class.java)
     }
-
+    val userInfoApi: UserInfoApi =
+        retrofit.create(UserInfoApi::class.java)
     val socialApi: SocialApiService by lazy {
         retrofit.create(SocialApiService::class.java)
     }

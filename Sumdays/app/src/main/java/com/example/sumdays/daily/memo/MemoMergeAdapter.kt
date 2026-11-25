@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.R
 import com.example.sumdays.data.Memo
 import com.example.sumdays.data.dao.UserStyleDao
-import com.example.sumdays.settings.prefs.UserStatsPrefs
 import kotlinx.coroutines.CoroutineScope
 
 class MemoMergeAdapter(
@@ -23,7 +22,6 @@ class MemoMergeAdapter(
     private val scope: CoroutineScope,
     private val onAllMergesDone: () -> Unit,
     private val useStableIds: Boolean = true,
-    private val userStatsPrefs: UserStatsPrefs,
     private val userStyleDao: UserStyleDao,
     private val onMarbleChanged: () -> Unit = {},
 ) : RecyclerView.Adapter<MemoMergeAdapter.VH>() {
@@ -31,7 +29,7 @@ class MemoMergeAdapter(
     private val coordinator = MemoMergeCoordinator(
         memos = memoList,
         scope = scope,
-        gateway = MemoMergeRepository(context, userStatsPrefs, userStyleDao),
+        gateway = MemoMergeRepository(context, userStyleDao),
         changed = { index ->
             if (index == null) notifyDataSetChanged()
             else notifyItemChanged(index, memoList[index].content)

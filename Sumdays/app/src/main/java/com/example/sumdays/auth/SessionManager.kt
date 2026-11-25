@@ -36,6 +36,7 @@ object SessionManager {
     private lateinit var keyStore: KeyStore
     private var applicationContext: Context? = null
 
+    private const val KEY_NICKNAME = "nickname"
     // 데이터 초기화 여부
     private const val KEY_IS_INIT = "is_init"
     /**
@@ -171,7 +172,17 @@ object SessionManager {
         sharedPreferences.edit()
             .putBoolean(KEY_IS_INIT, true)
             .commit()
+    // 서버에서 확인된 닉네임을 로컬에 저장
+    fun saveNickname(nickname: String) {
+        sharedPreferences.edit()
+            .putString(KEY_NICKNAME, nickname)
+            .apply()
+    }
 
+    // 현재 저장된 닉네임 조회
+    fun getNickname(): String {
+        return sharedPreferences.getString(KEY_NICKNAME, "사용자") ?: "사용자"
+    }
 }
 /*
 ```

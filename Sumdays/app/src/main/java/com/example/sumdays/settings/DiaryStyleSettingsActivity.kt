@@ -12,7 +12,7 @@ import com.example.sumdays.R
 import com.example.sumdays.data.UserStyle
 import com.example.sumdays.data.style.UserStyleViewModel
 import com.example.sumdays.databinding.ActivityProfileDiaryStyleBinding
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.settings.prefs.LabsPrefs
 import com.example.sumdays.settings.ui.CenterScaleOnScrollListener
 import com.example.sumdays.settings.ui.HorizontalMarginItemDecoration
 import com.example.sumdays.settings.ui.StyleCardAdapter
@@ -29,7 +29,6 @@ import kotlinx.coroutines.withContext
 open class DiaryStyleSettingsActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     lateinit var binding: ActivityProfileDiaryStyleBinding
-    private lateinit var userStatsPrefs: UserStatsPrefs
     private lateinit var styleViewModel: UserStyleViewModel
     private lateinit var adapter: StyleCardAdapter
 
@@ -41,8 +40,6 @@ open class DiaryStyleSettingsActivity : AppCompatActivity(), CoroutineScope by M
         super.onCreate(savedInstanceState)
         binding = ActivityProfileDiaryStyleBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        userStatsPrefs = provideUserStatsPrefs()
         styleViewModel = provideUserStyleViewModel()
 
         setupHeader()
@@ -90,8 +87,6 @@ open class DiaryStyleSettingsActivity : AppCompatActivity(), CoroutineScope by M
         // 설명 문구
         binding.descText.setTextColor(getColor(R.color.black))
     }
-
-    protected open fun provideUserStatsPrefs(): UserStatsPrefs = UserStatsPrefs(this)
 
     protected open fun provideUserStyleViewModel(): UserStyleViewModel = ViewModelProvider(this).get(UserStyleViewModel::class.java)
 
@@ -149,7 +144,7 @@ open class DiaryStyleSettingsActivity : AppCompatActivity(), CoroutineScope by M
         styleViewModel.getAllStyles().observe(this) { list ->
 
             // 활성화된 스타일이 없으면 기본 스타일 자동 선택
-            var activeId = userStatsPrefs.getActiveStyleId()
+            var activeId = LabsPrefs.getActiveStyleId(this)
 
 //            Log.d("STYLE_DEBUG",
 //                "observeStyles() 실행됨\n" +
@@ -161,7 +156,7 @@ open class DiaryStyleSettingsActivity : AppCompatActivity(), CoroutineScope by M
 
             if (activeId == 0L && list.isNotEmpty()) {
                 val firstStyle = list.first()
-                userStatsPrefs.saveActiveStyleId(firstStyle.styleId)
+                LabsPrefs.saveActiveStyleId(this,firstStyle.styleId)
                 activeId = firstStyle.styleId
             }
 
@@ -174,7 +169,7 @@ open class DiaryStyleSettingsActivity : AppCompatActivity(), CoroutineScope by M
             if (!hasInitialScroll) {
                 hasInitialScroll = true
 
-                val activeId = userStatsPrefs.getActiveStyleId()
+                val activeId = LabsPrefs.getActiveStyleId(this)
                 val targetIndex = adapter.items.indexOfFirst { it.styleId == activeId }.let {
                     if (it == -1) 0 else it
                 }
@@ -199,7 +194,7 @@ open class DiaryStyleSettingsActivity : AppCompatActivity(), CoroutineScope by M
 
     private fun updateSelectButtonText() {
         val style: UserStyle? = adapter.styleAt(currentSnapPos)
-        val activeId = userStatsPrefs.getActiveStyleId()
+        val activeId = LabsPrefs.getActiveStyleId(this)
         binding.selectButton.text = when {
             style == null -> "새 스타일 추출하기"
             style.styleId == activeId -> "✔ 선택됨"
@@ -208,15 +203,15 @@ open class DiaryStyleSettingsActivity : AppCompatActivity(), CoroutineScope by M
     }
 
     fun saveActiveStyle(styleId: Long) = launch(Dispatchers.IO) {
-        val current = userStatsPrefs.getActiveStyleId()
+        val current = LabsPrefs.getActiveStyleId(this@DiaryStyleSettingsActivity)
         if (current == styleId) {
-            userStatsPrefs.saveActiveStyleId(1L)
+            LabsPrefs.saveActiveStyleId(this@DiaryStyleSettingsActivity,1L)
         } else {
-            userStatsPrefs.saveActiveStyleId(styleId)
+            LabsPrefs.saveActiveStyleId(this@DiaryStyleSettingsActivity,styleId)
         }
         withContext(Dispatchers.Main) {
             updateSelectButtonText()
-            adapter.updateActiveStyleId(userStatsPrefs.getActiveStyleId())
+            adapter.updateActiveStyleId(LabsPrefs.getActiveStyleId(this@DiaryStyleSettingsActivity))
         }
     }
 
@@ -227,8 +222,8 @@ open class DiaryStyleSettingsActivity : AppCompatActivity(), CoroutineScope by M
 
     fun deleteStyle(style: UserStyle) = launch(Dispatchers.IO) {
         styleViewModel.deleteStyle(style)
-        if (style.styleId == userStatsPrefs.getActiveStyleId()) {
-            userStatsPrefs.clearActiveStyleId()
+        if (style.styleId == LabsPrefs.getActiveStyleId(this@DiaryStyleSettingsActivity)) {
+            LabsPrefs.clearActiveStyleId(this@DiaryStyleSettingsActivity)
         }
         withContext(Dispatchers.Main) { updateSelectButtonText() }
     }

@@ -45,6 +45,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -157,6 +158,9 @@ dependencies {
     testImplementation("androidx.work:work-testing:2.9.0")
     // ucrop
     implementation("com.github.yalantis:ucrop:2.2.11")
+
+
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }
 
 configurations.all {

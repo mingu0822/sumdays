@@ -2,12 +2,7 @@ package com.example.sumdays.network
 
 import com.example.sumdays.data.sync.SyncFetchResponse
 
-data class UpdateNicknameRequest(val newNickname: String)
 
-data class UpdateNicknameResponse(
-    val success: Boolean,
-    val message: String
-)
 
 data class ChangePasswordRequest(
     val currentPassword: String,
@@ -43,4 +38,14 @@ data class LoginResponse(
     val token: String?,
     val nickname: String?,
     val initialData : SyncFetchResponse?
+)
+
+data class UpdateNicknameRequest(
+    val nickname: String
+)
+
+data class UpdateNicknameResponse(
+    val success: Boolean,
+    val message: String?,
+    val nickname: String?
 )

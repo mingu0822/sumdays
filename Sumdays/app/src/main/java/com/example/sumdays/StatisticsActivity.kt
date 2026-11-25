@@ -20,12 +20,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.WeekSummary
+import com.example.sumdays.data.repository.DailyEntryRepository
 import com.example.sumdays.data.viewModel.DailyEntryViewModel
 import com.example.sumdays.data.viewModel.WeekSummaryViewModel
 import com.example.sumdays.data.viewModel.WeekSummaryViewModelFactory
 import com.example.sumdays.statistics.FoxTreeBackground
-import com.example.sumdays.statistics.StreakPrefs
 import com.example.sumdays.statistics.WeekStatsDetailActivity
 import com.example.sumdays.ui.TreeTiledDrawable
 import com.example.sumdays.utils.setupEdgeToEdge
@@ -50,6 +51,7 @@ class StatisticsActivity : AppCompatActivity() {
     private lateinit var btnBack: ImageButton
     private lateinit var loadingOverlay: View
     private lateinit var loadingGifView: ImageView
+    private lateinit var dailyEntryRepository: DailyEntryRepository
 
     private var treeScrollY = 0f    // 나무 줄기 타일용
     private val backgrounds = FoxTreeBackground.backgrounds
@@ -73,6 +75,9 @@ class StatisticsActivity : AppCompatActivity() {
         showLoading(true)
 
         viewModel = ViewModelProvider(this).get(DailyEntryViewModel::class.java)
+        val db = AppDatabase.getDatabase(applicationContext)
+        val dailyEntryDao = db.dailyEntryDao()
+        dailyEntryRepository = DailyEntryRepository(dailyEntryDao)
 
         val bg1 = findViewById<ImageView>(R.id.statistics_background_1)
         val bg2 = findViewById<ImageView>(R.id.statistics_background_2)
@@ -156,8 +161,6 @@ class StatisticsActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onResume() {
         super.onResume()
-
-        StreakPrefs.refreshOnOpen(this)
     }
 
     private fun showLoading(isLoading: Boolean) {
@@ -201,15 +204,18 @@ class StatisticsActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun updateStatisticsHeader() {
-        val streak = StreakPrefs.getStreak(this@StatisticsActivity)
-        val leafCount = weekSummaries.size
-        val grapeCount = leafCount / 5
+        lifecycleScope.launch {
+            val streak = dailyEntryRepository.getStreak()
+            val leafCount = weekSummaries.size
+            val grapeCount = leafCount / 5
 
-        // UI 업데이트
-        tvStrikeCount.text = "🔥: ${streak}"
-        tvLeafCount.text = "🍃: ${leafCount}"
-        tvGrapeCount.text = "🍇: ${grapeCount}"
+            // UI 업데이트
+            tvStrikeCount.text = "🔥: ${streak}"
+            tvLeafCount.text = "🍃: ${leafCount}"
+            tvGrapeCount.text = "🍇: ${grapeCount}"
+        }
     }
 
 

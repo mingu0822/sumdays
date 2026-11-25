@@ -1,9 +1,12 @@
 package com.example.sumdays.data.repository
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.example.sumdays.data.DailyEntry
 import com.example.sumdays.data.EmojiData
 import com.example.sumdays.data.dao.DailyEntryDao
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
 
 // ⭐ DB 작업만 전담하는 새로운 Repository
 class DailyEntryRepository (
@@ -69,6 +72,40 @@ class DailyEntryRepository (
 
     fun search(q: String) = dao.searchEntries(q)
 
+    private fun calculateStreak(dates: List<String>): Int {
+        if (dates.isEmpty()) return 0
+
+        val writtenDates = dates
+            .map { LocalDate.parse(it) }
+            .distinct()
+            .sortedDescending()
+
+        val today = LocalDate.now()
+        val latest = writtenDates.first()
+
+        // 마지막 작성일이 오늘이나 어제가 아니면 만료
+        if (latest != today && latest != today.minusDays(1)) {
+            return 0
+        }
+
+        var streak = 0
+        var expectedDate = latest
+
+        for (date in writtenDates) {
+            if (date != expectedDate) break
+
+            streak++
+            expectedDate = expectedDate.minusDays(1)
+        }
+
+        return streak
+    }
+
+
+    suspend fun getStreak(): Int {
+        val dates = dao.getWrittenDatesDesc()
+        return calculateStreak(dates)
+    }
     //  기간 내 일기 조회 함수
     suspend fun getEntriesBetween(startDate: String, endDate: String): List<DailyEntry> {
         return dao.getEntriesBetween(startDate, endDate)

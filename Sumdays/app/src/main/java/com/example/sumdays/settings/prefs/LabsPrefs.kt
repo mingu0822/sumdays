@@ -10,10 +10,12 @@ object LabsPrefs {
     private const val KEY_TEMPERATURE = "temperature_value"
     private const val KEY_ADVANCED_FLAG = "advanced_style_flag"
     private const val KEY_LENGTH_LEVEL = "length_level_value"
+    private const val KEY_ACTIVE_STYLE_ID = "active_style_id"
 
     private const val DEFAULT_TEMPERATURE = 0.5f
     private const val DEFAULT_ADVANCED_FLAG = false
     private const val DEFAULT_LENGTH_LEVEL = 1
+    private const val DEFAULT_STYLE_ID = -1L
 
     fun setTemperature(context: Context, value: Float) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -47,5 +49,24 @@ object LabsPrefs {
     fun clear(context: Context) {
         context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
             .edit { clear() }
+    }
+
+    fun saveActiveStyleId(context: Context, styleId: Long) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putLong(KEY_ACTIVE_STYLE_ID, styleId)
+            .apply()
+    }
+
+    fun getActiveStyleId(context: Context): Long {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getLong(KEY_ACTIVE_STYLE_ID, DEFAULT_STYLE_ID)
+    }
+
+    fun clearActiveStyleId(context: Context) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .remove(KEY_ACTIVE_STYLE_ID)
+            .apply()
     }
 }

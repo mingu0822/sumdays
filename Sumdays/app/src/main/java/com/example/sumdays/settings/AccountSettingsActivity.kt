@@ -4,18 +4,18 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.sumdays.R
 import com.example.sumdays.auth.SessionManager
+import com.example.sumdays.data.userInfo.UserInfoRepository
 import com.example.sumdays.databinding.ActivityProfileAccountBinding
 import com.example.sumdays.network.ApiClient
 import com.example.sumdays.network.ChangePasswordRequest
 import com.example.sumdays.network.ChangePasswordResponse
-import com.example.sumdays.network.UpdateNicknameRequest
-import com.example.sumdays.network.UpdateNicknameResponse
-import com.example.sumdays.settings.prefs.UserStatsPrefs
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -23,7 +23,7 @@ import retrofit2.Response
 class AccountSettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityProfileAccountBinding
-    private lateinit var userStatsPrefs: UserStatsPrefs
+    private lateinit var userInfoRepository : UserInfoRepository
 
     // Retrofit API 서비스 객체와 세션 매니저
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,7 +31,7 @@ class AccountSettingsActivity : AppCompatActivity() {
         binding = ActivityProfileAccountBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        userStatsPrefs = UserStatsPrefs(this)
+        userInfoRepository = UserInfoRepository(applicationContext)
 
         // 초기 닉네임 표시
         displayCurrentNickname()
@@ -94,7 +94,7 @@ class AccountSettingsActivity : AppCompatActivity() {
      */
     private fun displayCurrentNickname() {
         // UI의 닉네임 표시 TextView ID를 currentNicknameTextView라고 가정
-        binding.currentNicknameTextView.text = userStatsPrefs.getNickname()
+        binding.currentNicknameTextView.text = SessionManager.getNickname()
     }
 
     private fun setupListeners() {
@@ -110,48 +110,39 @@ class AccountSettingsActivity : AppCompatActivity() {
     // --- 1. 닉네임 변경 로직 ---
 
     private fun handleNicknameUpdate() {
-        val newNickname = binding.newNicknameInputEditText.text.toString().trim()
-        val token = SessionManager.getToken()
+        val newNickname = binding.newNicknameInputEditText
+            .text.toString().trim()
 
-        // 1. 유효성 검사
         if (newNickname.isEmpty()) {
-            Toast.makeText(this, "새로운 닉네임을 입력해주세요.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                "새로운 닉네임을 입력해주세요.",
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
-        if (token.isNullOrEmpty()) {
-            Toast.makeText(this, "인증 정보가 없습니다. 다시 로그인 해주세요.", Toast.LENGTH_SHORT).show()
-            return
+
+        lifecycleScope.launch {
+            val result = userInfoRepository.updateNickname(newNickname)
+
+            result.onSuccess {
+                displayCurrentNickname()
+
+                Toast.makeText(
+                    this@AccountSettingsActivity,
+                    "닉네임이 변경되었습니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            result.onFailure { error ->
+                Toast.makeText(
+                    this@AccountSettingsActivity,
+                    error.message ?: "닉네임 변경에 실패했습니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
-
-        // 2. API 요청 객체 생성
-        val request = UpdateNicknameRequest(newNickname)
-
-        // 3. 서버 호출 (PUT /api/user/nickname)
-        ApiClient.api.updateNickname("Bearer $token", request).enqueue(object : Callback<UpdateNicknameResponse> {
-            override fun onResponse(call: Call<UpdateNicknameResponse>, response: Response<UpdateNicknameResponse>) {
-                if (response.isSuccessful) {
-                    val updateResponse = response.body()
-                    if (updateResponse != null && updateResponse.success) {
-                        // 4. 로컬 SharedPreferences 업데이트
-                        userStatsPrefs.saveNickname(newNickname)
-
-                        // 5. UI 업데이트
-                        displayCurrentNickname()
-
-                        Toast.makeText(this@AccountSettingsActivity, updateResponse.message, Toast.LENGTH_SHORT).show()
-                    } else {
-                        val message = updateResponse?.message ?: "닉네임 변경에 실패했습니다."
-                        Toast.makeText(this@AccountSettingsActivity, message, Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    Toast.makeText(this@AccountSettingsActivity, "닉네임 변경 실패 (에러 코드: ${response.code()})", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onFailure(call: Call<UpdateNicknameResponse>, t: Throwable) {
-                Toast.makeText(this@AccountSettingsActivity, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
-            }
-        })
     }
 
     // --- 2. 비밀번호 변경 로직 ---

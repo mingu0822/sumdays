@@ -8,14 +8,11 @@ package com.example.sumdays
 // import com.example.sumdays.statistics.WeekSummaryWorker
 import android.content.Intent
 import com.bumptech.glide.Glide
-import com.example.sumdays.network.ApiClient
-import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.toColorInt
 import androidx.lifecycle.lifecycleScope
 import com.example.sumdays.auth.SessionManager
 import com.example.sumdays.data.sync.BackupSyncRunner
@@ -27,21 +24,15 @@ import com.example.sumdays.settings.EditProfileActivity
 import com.example.sumdays.settings.LabsSettingsActivity
 import com.example.sumdays.settings.NotificationSettingsActivity
 import com.example.sumdays.settings.prefs.DiaryPermissionPrefs
-import com.example.sumdays.settings.prefs.ProfileImagePrefs
-import com.example.sumdays.settings.prefs.UserStatsPrefs
-import com.example.sumdays.settings.profileimage.ProfileImageItem
-import com.example.sumdays.settings.profileimage.ProfileImageItemType
+import com.example.sumdays.data.userInfo.prefs.ProfileImagePrefs
 import com.example.sumdays.theme.ThemePrefs
 import com.example.sumdays.theme.ThemeRepository
 import com.example.sumdays.utils.setupEdgeToEdge
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class SettingActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingMainBinding
-    private lateinit var userStatsPrefs: UserStatsPrefs
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +41,6 @@ class SettingActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         SessionManager.init(applicationContext)
-        userStatsPrefs = UserStatsPrefs(this)
 
         setSettingsBtnListener()
         updateAuthUI()
@@ -75,21 +65,49 @@ class SettingActivity : AppCompatActivity() {
 
         loginButton.setOnClickListener {
             if (!loginButton.isEnabled) return@setOnClickListener
+
             loginButton.isEnabled = false
+
             lifecycleScope.launch {
                 try {
                     if (SessionManager.isLoggedIn()) {
-                        val result = BackupSyncRunner.syncNow(applicationContext, logoutAfterSync = true)
+                        showLogoutLoading(true)
+
+                        val result = BackupSyncRunner.syncNow(
+                            applicationContext,
+                            logoutAfterSync = true
+                        )
+
                         if (!result.success) {
-                            Toast.makeText(this@SettingActivity,
-                                "서버 저장을 확인하지 못해 로그아웃하지 않았어요. ${result.message.orEmpty()}", Toast.LENGTH_LONG).show()
+                            Toast.makeText(
+                                this@SettingActivity,
+                                "서버 저장을 확인하지 못해 로그아웃하지 않았어요. ${result.message.orEmpty()}",
+                                Toast.LENGTH_LONG
+                            ).show()
                             return@launch
                         }
                     }
-                    val intent = Intent(this@SettingActivity, LoginActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+                    val intent = Intent(
+                        this@SettingActivity,
+                        LoginActivity::class.java
+                    ).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                                Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+
                     startActivity(intent)
+
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        this@SettingActivity,
+                        "로그아웃 중 오류가 발생했습니다. ${e.message.orEmpty()}",
+                        Toast.LENGTH_LONG
+                    ).show()
                 } finally {
+                    showLogoutLoading(false)
                     loginButton.isEnabled = true
                 }
             }
@@ -142,7 +160,7 @@ class SettingActivity : AppCompatActivity() {
 
     private fun updateAuthUI() {
         if (SessionManager.isLoggedIn()) {
-            binding.nickname.text = userStatsPrefs.getNickname()
+            binding.nickname.text = SessionManager.getNickname()
             binding.loginButton.text = "로그아웃"
         } else {
             binding.nickname.text = "닉네임"
@@ -217,5 +235,28 @@ class SettingActivity : AppCompatActivity() {
         binding.tutorialBlockText.setTextColor(getColor(basicColor))
         // binding.summaryBlockText.setTextColor(getColor(basicColor))
         binding.btnBack.setImageResource(R.drawable.ic_left)
+    }
+
+    private fun showLogoutLoading(isLoading: Boolean) {
+        val overlay = binding.logoutLoadingOverlay
+        val gif = binding.logoutLoadingGif
+        val text = binding.logoutLoadingText
+
+        if (isLoading) {
+            overlay.visibility = View.VISIBLE
+            gif.visibility = View.VISIBLE
+            text.visibility = View.VISIBLE
+
+            Glide.with(this)
+                .asGif()
+                .load(R.drawable.loading_animation)
+                .into(gif)
+        } else {
+            overlay.visibility = View.GONE
+            gif.visibility = View.GONE
+            text.visibility = View.GONE
+
+            Glide.with(this).clear(gif)
+        }
     }
 }

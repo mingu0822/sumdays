@@ -21,11 +21,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sumdays.LoginActivity
 import com.example.sumdays.R
 import com.example.sumdays.auth.SessionManager
-import com.example.sumdays.data.AppDatabase
 import com.example.sumdays.data.sync.BackupSyncRunner
 import com.example.sumdays.settings.EditProfileActivity
-import com.example.sumdays.settings.prefs.ProfileImagePrefs
-import com.example.sumdays.settings.prefs.UserStatsPrefs
+import com.example.sumdays.data.userInfo.prefs.ProfileImagePrefs
 import com.example.sumdays.ui.component.NavBarController
 import com.example.sumdays.ui.component.NavSource
 import android.widget.EditText
@@ -38,8 +36,6 @@ import androidx.lifecycle.lifecycleScope
 import com.example.sumdays.social.reqeust.AddFriendDialog
 import com.example.sumdays.social.reqeust.FriendRequestDialog
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -51,6 +47,7 @@ import com.example.sumdays.ui.component.setupBackToCalendar
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.CancellationException
+
 
 class SocialActivity : AppCompatActivity() {
     private lateinit var navBarController: NavBarController
@@ -69,7 +66,6 @@ class SocialActivity : AppCompatActivity() {
     private lateinit var tvError: TextView
 
     private lateinit var viewModel: SocialViewModel
-    private val userStatsPrefs: UserStatsPrefs by lazy { UserStatsPrefs(this) }
     private val detailLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
@@ -231,7 +227,7 @@ class SocialActivity : AppCompatActivity() {
             btnCustomize.setTextColor(ContextCompat.getColor(this, theme.themeTextColorBasic))
         }
 
-        nickname.text = userStatsPrefs.getNickname()
+        nickname.text = SessionManager.getNickname()
         renderMyProfile(view.findViewById(R.id.dialogProfile))
 
         view.findViewById<FrameLayout>(R.id.profileImageContainer).setOnClickListener {
@@ -261,33 +257,8 @@ class SocialActivity : AppCompatActivity() {
         if (loggingOut) return
         loggingOut = true
 
-        // 1. 로딩 다이얼로그 생성
-        val loadingDialog = Dialog(this)
-        val loadingView = layoutInflater.inflate(
-            R.layout.dialog_logout_loading,
-            null
-        )
+        showLogoutLoading(true)
 
-        loadingDialog.setContentView(loadingView)
-        loadingDialog.setCancelable(false)
-        loadingDialog.setCanceledOnTouchOutside(false)
-        loadingDialog.window?.setBackgroundDrawable(
-            ColorDrawable(Color.WHITE)
-        )
-
-        // 2. GIF 표시
-        val loadingGif = loadingView.findViewById<ImageView>(
-            R.id.logoutLoadingGif
-        )
-
-        loadingDialog.show()
-
-        Glide.with(this)
-            .asGif()
-            .load(R.drawable.loading_animation)
-            .into(loadingGif)
-
-        // 3. 백업 및 로그아웃
         lifecycleScope.launch {
             try {
                 val result = BackupSyncRunner.syncNow(
@@ -307,10 +278,10 @@ class SocialActivity : AppCompatActivity() {
                 val intent = Intent(
                     this@SocialActivity,
                     LoginActivity::class.java
-                )
-                intent.flags =
-                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                ).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                             Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
 
                 startActivity(intent)
 
@@ -319,12 +290,11 @@ class SocialActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 Toast.makeText(
                     this@SocialActivity,
-                    "로그아웃 중 오류가 발생했습니다: ${e.message.orEmpty()}",
+                    "로그아웃 중 오류가 발생했습니다. ${e.message.orEmpty()}",
                     Toast.LENGTH_LONG
                 ).show()
             } finally {
-                Glide.with(this@SocialActivity).clear(loadingGif)
-                loadingDialog.dismiss()
+                showLogoutLoading(false)
                 loggingOut = false
             }
         }
@@ -390,6 +360,28 @@ class SocialActivity : AppCompatActivity() {
             viewModel.filteredFriends.collect { friends ->
                 socialAdapter.updateList(friends.toList())
             }
+        }
+    }
+    private fun showLogoutLoading(isLoading: Boolean) {
+        val overlay = findViewById<View>(R.id.logout_loading_overlay)
+        val gif = findViewById<ImageView>(R.id.logout_loading_gif)
+        val text = findViewById<TextView>(R.id.logout_loading_text)
+
+        if (isLoading) {
+            overlay.visibility = View.VISIBLE
+            gif.visibility = View.VISIBLE
+            text.visibility = View.VISIBLE
+
+            Glide.with(this)
+                .asGif()
+                .load(R.drawable.loading_animation)
+                .into(gif)
+        } else {
+            overlay.visibility = View.GONE
+            gif.visibility = View.GONE
+            text.visibility = View.GONE
+
+            Glide.with(this).clear(gif)
         }
     }
 }

@@ -70,4 +70,7 @@ interface WeekSummaryDao {
     // WeekSummaryWorker.kt에서 주간 통계 생성시 사용함
     @Query("SELECT * FROM daily_entry WHERE date >= :start AND date <= :end ORDER BY date ASC")
     suspend fun getEntriesBetween(start: String, end: String): List<DailyEntry>
+
+    @Query("SELECT COUNT(*) FROM weekly_summary WHERE isDeleted = 0")
+    suspend fun getValidSummaryCount(): Int
 }

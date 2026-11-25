@@ -16,7 +16,6 @@
     import java.io.IOException
     import android.net.Uri
     import com.example.sumdays.data.PrefManager
-    import com.example.sumdays.settings.prefs.ProfileImagePrefs
     import com.google.gson.Gson
     import okhttp3.MultipartBody
     import okhttp3.MediaType.Companion.toMediaTypeOrNull
